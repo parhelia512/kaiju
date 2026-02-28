@@ -234,6 +234,8 @@ func (ui *UI) setDirtyInternal(dirtyType DirtyType) {
 	if ui.IsType(ElementTypeLabel) {
 		// TODO:  This isn't needed in some cases
 		ui.ToLabel().LabelData().renderRequired = true
+	} else {
+		ui.ToPanel().PanelData().flags.setWasDirtied()
 	}
 	if ui.dirtyType == DirtyTypeNone || ui.dirtyType >= DirtyTypeParent || dirtyType == DirtyTypeGenerated {
 		ui.dirtyType = dirtyType
