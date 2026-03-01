@@ -58,6 +58,17 @@ kaiju/
 │   │   ├── concurrent/      # Threading and work groups
 │   │   └── filesystem/      # File system operations
 │   │
+│   ├── engine/ui/           # UI system (HTML/CSS-like declarative UI)
+│   │   ├── ui.go            # Core UI types and base element
+│   │   ├── ui_manager.go    # UI Manager (element lifecycle)
+│   │   ├── panel.go         # Panel (container element)
+│   │   ├── button.go        # Button element
+│   │   ├── label.go         # Label (text display)
+│   │   ├── input.go         # Input (text field)
+│   │   ├── layout.go        # Layout system (positioning, sizing)
+│   │   ├── event.go         # Event types
+│   │   └── markup/          # HTML/CSS markup system
+│   │
 │   ├── editor/              # Built-in editor
 │   ├── plugins/             # Lua plugin system
 │   ├── registry/            # Type registries
@@ -504,6 +515,400 @@ The engine provides utility functions for common shapes (in src/rendering/mesh.g
 rendering.NewMeshSphere(cache, radius, widthSegments, heightSegments)
 rendering.NewMeshCube(cache, size)
 rendering.NewMeshPlane(cache, width, depth)
+```
+
+## UI System (`src/engine/ui/`)
+
+The Kaiju Engine features an optional web-inspired UI system with HTML/CSS-like layout, full event handling, and a markup system for declarative UI creation. The UI renders on a separate orthographic camera (`host.Cameras.UI`) from the main 3D rendering. You can choose construct the UI without using any HTML/CSS markup, developers can create stylizers directly.
+
+### Architecture
+
+```
+UI Manager (ui.Manager)
+    └── UI Elements (Panel as base)
+            ├── Button
+            ├── Label
+            ├── Input
+            ├── Image
+            ├── Checkbox
+            ├── Slider
+            ├── Select
+            └── ProgressBar
+
+Markup System (ui/markup/)
+    ├── document/          # DOM-like document model
+    ├── css/              # CSS parsing and styling
+    └── spec_generator/  # Code generation
+```
+
+### UI Manager
+
+The UI Manager is the container for all UI elements. It must be created and initialized before use:
+
+```go
+import "kaijuengine.com/engine/ui"
+
+// Create manager
+man := ui.Manager{}
+
+// Initialize with host (REQUIRED before creating elements)
+man.Init(host)
+
+// Create UI elements
+button := man.Add().ToButton()
+```
+
+### Key Methods
+
+```go
+// Add creates a new UI element (returns *UI)
+man.Add()
+
+// Remove destroys a UI element
+man.Remove(uiElement)
+
+// Clear removes all UI elements
+man.Clear()
+
+// Reserve pre-allocates element slots
+man.Reserve(100)
+
+// Hovered returns all panels currently being hovered
+man.Hovered()
+```
+
+### Creating UI Elements
+
+All UI elements are created through the manager using type assertions:
+
+```go
+// Create a panel
+panel := man.Add().ToPanel()
+panel.Init(nil, ElementTypePanel)
+
+// Create a button (Panel with click behavior)
+button := man.Add().ToButton()
+button.Init(texture, "Click Me")
+
+// Create a label
+label := man.Add().ToLabel()
+label.Init("Hello World")
+
+// Create an input field
+input := man.Add().ToInput()
+input.Init("placeholder")
+
+// Create an image
+image := man.Add().ToImage()
+image.Init(texture)
+
+// Create a slider
+slider := man.Add().ToSlider()
+slider.Init()
+
+// Create a checkbox
+checkbox := man.Add().ToCheckbox()
+checkbox.Init()
+
+// Create a progress bar
+progress := man.Add().ToProgressBar()
+progress.Init()
+```
+
+### Element Types
+
+| Type | Description | Base |
+|------|-------------|------|
+| `Panel` | Container element, base for most elements | UI |
+| `Button` | Clickable button with hover states | Panel |
+| `Label` | Text display | UI |
+| `Input` | Text input field | Panel |
+| `Image` | Texture display | UI |
+| `Checkbox` | Toggle checkbox | Panel |
+| `Slider` | Value slider | Panel |
+| `Select` | Dropdown selector | Panel |
+| `ProgressBar` | Progress indicator | Panel |
+
+### Event Handling
+
+UI elements support a comprehensive event system:
+
+```go
+// Event types
+ui.EventTypeEnter       // Mouse enters element
+ui.EventTypeExit        // Mouse exits element
+ui.EventTypeClick       // Left click
+ui.EventTypeRightClick  // Right click
+ui.EventTypeDoubleClick // Double click
+ui.EventTypeDown        // Mouse button down
+ui.EventTypeUp          // Mouse button up
+ui.EventTypeRightDown   // Right mouse button down
+ui.EventTypeRightUp     // Right mouse button up
+ui.EventTypeMiss        // Click missed element
+ui.EventTypeDragStart   // Drag started
+ui.EventTypeDragEnd     // Drag ended
+ui.EventTypeDrop        // Drop occurred
+ui.EventTypeScroll      // Mouse scroll
+ui.EventTypeChange      // Value changed
+ui.EventTypeFocus       // Element focused
+ui.EventTypeBlur        // Element lost focus
+ui.EventTypeSubmit      // Form submitted (Input)
+ui.EventTypeKeyDown     // Key pressed
+ui.EventTypeKeyUp       // Key released
+```
+
+#### Adding Event Handlers
+
+```go
+// Add click handler
+button.Base().AddEvent(ui.EventTypeClick, func() {
+    fmt.Println("Button clicked!")
+})
+
+// Add hover enter handler
+button.Base().AddEvent(ui.EventTypeEnter, func() {
+    fmt.Println("Mouse entered button")
+})
+
+// Add change handler (for inputs, sliders, etc.)
+input.Base().AddEvent(ui.EventTypeChange, func() {
+    fmt.Println("Input changed:", input.Value())
+})
+
+// Remove event handler
+button.Base().RemoveEvent(ui.EventTypeClick, eventId)
+```
+
+### Layout System
+
+The layout system controls element positioning and sizing:
+
+```go
+// Positioning modes
+layout.SetPositioning(PositioningStatic)    // Normal flow
+layout.SetPositioning(PositioningAbsolute)  // Fixed position
+layout.SetPositioning(PositioningFixed)     // Relative to viewport
+layout.SetPositioning(PositioningRelative)  // Relative to normal position
+layout.SetPositioning(PositioningSticky)   // Sticky positioning
+
+// Size (in pixels)
+layout.Scale(width, height)      // Set width and height
+layout.ScaleWidth(width)         // Set width only
+layout.ScaleHeight(height)      // Set height only
+
+// Margins (left, top, right, bottom)
+layout.SetMargin(left, top, right, bottom)
+
+// Padding (left, top, right, bottom)
+layout.SetPadding(left, top, right, bottom)
+
+// Border (left, top, right, bottom)
+layout.SetBorder(left, top, right, bottom)
+
+// Offset (for absolute positioning)
+layout.SetOffset(x, y)
+
+// Z-order
+layout.SetZ(z float32)
+
+// Auto-fit content to children
+panel.FitContent()        // Fit width and height
+panel.FitContentWidth()  // Fit width only
+panel.FitContentHeight() // Fit height only
+panel.DontFitContent()   // Disable auto-fit
+```
+
+### Panel Operations
+
+```go
+// Add child element
+panel.AddChild(childUI)
+
+// Remove child element
+panel.RemoveChild(childUI)
+
+// Background color
+panel.SetColor(matrix.ColorWhite())
+
+// Background texture
+panel.SetBackground(texture)
+
+// Border radius
+panel.SetBorderRadius(topLeft, topRight, bottomRight, bottomLeft)
+
+// Scrolling
+panel.SetScrollDirection(PanelScrollDirectionVertical)  // Vertical
+panel.SetScrollDirection(PanelScrollDirectionHorizontal) // Horizontal
+panel.SetScrollDirection(PanelScrollDirectionBoth)     // Both
+panel.ScrollX()      // Current X scroll position
+panel.ScrollY()      // Current Y scroll position
+panel.SetScrollY(50) // Set scroll position
+panel.ResetScroll()  // Reset to top
+```
+
+### Label Operations
+
+```go
+// Text
+label.SetText("New Text")
+label.Text() // Get current text
+
+// Font styling
+label.SetFontSize(16.0)
+label.SetFontFace(rendering.FontRegular)
+label.SetFontWeight("bold")   // "normal", "bold", "bolder", "lighter"
+label.SetFontStyle("italic")  // "normal", "italic"
+
+// Text alignment
+label.SetJustify(rendering.FontJustifyLeft)   // or Center, Right
+label.SetBaseline(rendering.FontBaselineTop)  // or Center, Bottom
+
+// Colors
+label.SetColor(matrix.ColorWhite())     // Text color
+label.SetBGColor(matrix.ColorBlack())   // Background color
+
+// Word wrap
+label.SetWrap(true)  // Enable word wrap (default)
+label.SetWrap(false) // Disable word wrap
+
+// Auto-width based on text
+label.SetWidthAutoHeight(width)
+```
+
+### Input Operations
+
+```go
+// Get/set value
+input.Value()        // Get current text
+input.SetValue("text") // Set text
+
+// Placeholder
+input.Placeholder()        // Get placeholder text
+input.SetPlaceholder("...") // Set placeholder
+
+// Events
+input.Base().AddEvent(ui.EventTypeSubmit, func() {
+    // Handle enter key
+})
+input.Base().AddEvent(ui.EventTypeChange, func() {
+    // Handle value change
+})
+```
+
+### Dirty Flag System
+
+UI elements use a dirty flag system to optimize updates:
+
+```go
+// Mark element as needing update
+ui.SetDirty(DirtyTypeLayout)     // Layout changed
+ui.SetDirty(DirtyTypeResize)     // Size changed
+ui.SetDirty(DirtyTypeGenerated)  // Content regenerated
+ui.SetDirty(DirtyTypeColorChange) // Color changed
+```
+
+### HTML/CSS Markup System
+
+The UI system supports declarative UI creation via HTML and CSS:
+
+```go
+import (
+    "kaijuengine.com/engine/ui/markup"
+    "kaijuengine.com/engine/ui/markup/document"
+)
+
+// From asset file
+doc, err := markup.DocumentFromHTMLAsset(&man, "ui/main.html", nil, nil)
+
+// From string
+doc := markup.DocumentFromHTMLString(&man, htmlStr, cssStr, nil, nil, nil)
+
+// Access elements
+element, _ := doc.GetElementById("myButton")
+element.UI.ToButton().Base().AddEvent(ui.EventTypeClick, handler)
+
+// Get root panel
+rootPanel := doc.Elements[0].UI.ToPanel()
+```
+
+### Complete Example: Creating a Simple UI
+
+```go
+import (
+    "kaijuengine.com/engine"
+    "kaijuengine.com/engine/ui"
+    "kaijuengine.com/matrix"
+    "kaijuengine.com/rendering"
+    "kaijuengine.com/registry/shader_data_registry"
+)
+
+type Game struct {
+    host       *engine.Host
+    uiMan      ui.Manager
+    myButton   *ui.Button
+    myLabel    *ui.Label
+    myPanel    *ui.Panel
+}
+
+func (g *Game) Launch(host *engine.Host) {
+    g.host = host
+    
+    // Initialize UI Manager
+    g.uiMan.Init(host)
+    
+    // Create a root panel (fills window)
+    g.myPanel = g.uiMan.Add().ToPanel()
+    g.myPanel.Init(nil, ui.ElementTypePanel)
+    g.myPanel.SetColor(matrix.ColorGray().ScaleAlpha(0.8))
+    g.myPanel.SetMargin(10, 10, 10, 10)
+    g.myPanel.SetPadding(10, 10, 10, 10)
+    
+    // Create a label
+    g.myLabel = g.uiMan.Add().ToLabel()
+    g.myLabel.Init("Hello, Kaiju!")
+    g.myLabel.SetFontSize(24.0)
+    g.myLabel.SetColor(matrix.ColorWhite())
+    g.myPanel.AddChild(g.myLabel.Base())
+    
+    // Create a button
+    g.myButton = g.uiMan.Add().ToButton()
+    // Get texture from cache
+    tex, _ := host.TextureCache().Texture("square", rendering.TextureFilterLinear)
+    g.myButton.Init(tex, "Click Me")
+    g.myButton.Base().Layout().SetMargin(0, 10, 0, 0)
+    g.myPanel.AddChild(g.myButton.Base())
+    
+    // Add click event
+    g.myButton.Base().AddEvent(ui.EventTypeClick, func() {
+        g.myLabel.SetText("Button Clicked!")
+    })
+    
+    // Add hover events
+    g.myButton.Base().AddEvent(ui.EventTypeEnter, func() {
+        g.myButton.SetColor(matrix.ColorGreen())
+    })
+    g.myButton.Base().AddEvent(ui.EventTypeExit, func() {
+        g.myButton.SetColor(matrix.ColorWhite())
+    })
+}
+```
+
+### Update Cycle
+
+UI updates run through the host's UI updater:
+
+- **UIUpdater**: Runs before main game Update
+- **UILateUpdater**: Runs after UIUpdater
+
+The UI manager automatically registers with these updaters when `Init()` is called.
+
+### Accessing UI Camera
+
+The UI renders to a separate orthographic camera:
+
+```go
+// UI camera is available via host
+uiCamera := host.Cameras.UI
 ```
 
 ## Building the Project
