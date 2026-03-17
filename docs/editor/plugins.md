@@ -160,6 +160,23 @@ Place both files in a folder under the editor’s `plugins` directory, enable it
 
 ---
 
+## Working with a locally built editor (or debugging)
+The standard plugin directory is meant for a pre-built and distributed editor, which requires you to enable the plugin in-editor and click the compile button. If you are building/debugging the editor locally, the `src/editor/editor_plugin` folder is where you can place your plugins to be compiled into the editor.
+
+Since plugins are actual Go code, that means that the editor needs to be compiled with the plugin code embedded into it. Thus, if you build locally (like a debug build), it will not have the plugin code built in from the external folder.
+
+Once you place your plugin into `src/editor/editor_plugin`, you'll want to add an import somewhere (like main) to call the `init()` of your plugin.
+
+```go
+import (
+	_ "kaijuengine.com/editor/editor_plugin/developer_plugins/my_plugin"
+)
+```
+
+**WARNING**: *The `/editor/editor_plugin/developer_plugins/` folder has a `.gitignore` that will exclude everything. Modify this as needed.*
+
+---
+
 ## Frequently asked questions
 
 * **Do I need to rebuild the editor for every change?**
