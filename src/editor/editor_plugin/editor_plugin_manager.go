@@ -39,10 +39,12 @@ package editor_plugin
 import (
 	"encoding/json"
 	"fmt"
-	"kaijuengine.com/platform/filesystem"
-	"kaijuengine.com/platform/profiler/tracing"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"kaijuengine.com/platform/filesystem"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 const (
@@ -84,6 +86,7 @@ type PluginConfig struct {
 	Author      string
 	Website     string
 	Enabled     bool
+	GitModule   string `json:",omitempty"`
 }
 
 type PluginInfo struct {
@@ -145,6 +148,7 @@ func PluginsFolder() (string, error) {
 func AvailablePlugins() []PluginInfo {
 	defer tracing.NewRegion("editor_plugin.AvailablePlugins").End()
 	plugs := []PluginInfo{}
+
 	plugFolder, err := PluginsFolder()
 	if err != nil {
 		return plugs
@@ -171,8 +175,12 @@ func AvailablePlugins() []PluginInfo {
 		}
 		var cfg PluginConfig
 		if err = json.NewDecoder(f).Decode(&cfg); err == nil {
+			path := folders[i]
+			if cfg.GitModule != "" {
+				path = "git://" + cfg.GitModule
+			}
 			plugs = append(plugs, PluginInfo{
-				Path:   folders[i],
+				Path:   path,
 				Config: cfg,
 			})
 		}
@@ -183,6 +191,11 @@ func AvailablePlugins() []PluginInfo {
 }
 
 func UpdatePluginConfigState(info PluginInfo) error {
+	// Skip Git plugins - they don't have physical config files to update
+	if strings.HasPrefix(info.Path, "git://") {
+		return nil
+	}
+
 	f, err := os.Create(filepath.Join(info.Path, pluginConfigFile))
 	if err != nil {
 		return err

@@ -40,15 +40,16 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"kaijuengine.com/build"
-	"kaijuengine.com/editor/editor_plugin"
-	"kaijuengine.com/editor/project/project_file_system"
-	"kaijuengine.com/platform/filesystem"
 	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"kaijuengine.com/build"
+	"kaijuengine.com/editor/editor_plugin"
+	"kaijuengine.com/editor/project/project_file_system"
+	"kaijuengine.com/platform/filesystem"
 )
 
 var editorPluginRegistry = map[string]editor_plugin.EditorPlugin{}
@@ -62,7 +63,6 @@ func RegisterPlugin(key string, plugin editor_plugin.EditorPlugin) {
 }
 
 func (ed *Editor) RecompileWithPlugins(plugins []editor_plugin.PluginInfo, onComplete func(err error)) error {
-	// Copy editor source to build folder
 	exe, err := os.Executable()
 	if err != nil {
 		return err
@@ -82,14 +82,33 @@ func (ed *Editor) RecompileWithPlugins(plugins []editor_plugin.PluginInfo, onCom
 	}
 	defer registry.Close()
 	registry.WriteString("\nimport (\n")
-	// Copy each enabled plugin into editor/editor_plugin/developer_plugins
 	for i := range plugins {
 		if !plugins[i].Config.Enabled {
 			continue
 		}
+		if strings.HasPrefix(plugins[i].Path, "git://") {
+			moduleRef := strings.TrimPrefix(plugins[i].Path, "git://")
+			modulePath := strings.Split(moduleRef, "@")[0]
+
+			getCmd := exec.Command("go", "get", moduleRef)
+			getCmd.Dir = to
+			if output, getErr := getCmd.CombinedOutput(); getErr != nil {
+				slog.Error("failed to get git plugin module", "module", moduleRef, "error", getErr, "output", string(output))
+				return getErr
+			}
+
+			registry.WriteString(fmt.Sprintf("\t_ \"%s\"\n", modulePath))
+			continue
+		}
 		dstName := plugins[i].Config.PackageName
 		dst := filepath.Join(to, "editor/editor_plugin/developer_plugins", dstName)
-		filesystem.CopyDirectory(plugins[i].Path, dst)
+		if err = filesystem.CopyDirectory(plugins[i].Path, dst); err != nil {
+			slog.Error("failed to copy plugin directory", "source", plugins[i].Path, "destination", dst, "error", err)
+			return err
+		}
+		os.Remove(filepath.Join(dst, "go.mod"))
+		os.Remove(filepath.Join(dst, "go.sum"))
+
 		registry.WriteString(fmt.Sprintf("\t_ \"kaijuengine.com/editor/editor_plugin/developer_plugins/%s\"\n", dstName))
 		if err = editor_plugin.UpdatePluginConfigState(plugins[i]); err != nil {
 			slog.Warn("failed to update the enabled state of the plugin",
@@ -97,7 +116,7 @@ func (ed *Editor) RecompileWithPlugins(plugins []editor_plugin.PluginInfo, onCom
 		}
 	}
 	registry.WriteString(")\n")
-	// Run compile of the editor
+
 	var cmd *exec.Cmd
 	if build.Debug {
 		cmd = exec.Command("go", "build", "-tags=debug,editor", "-o", filepath.Base(exe), ".")
@@ -105,17 +124,21 @@ func (ed *Editor) RecompileWithPlugins(plugins []editor_plugin.PluginInfo, onCom
 		cmd = exec.Command("go", "build", "-tags=editor", "-o", filepath.Base(exe), ".")
 	}
 	cmd.Dir = to
+
+	var buildOutput strings.Builder
+	cmd.Stdout = &buildOutput
+	cmd.Stderr = &buildOutput
+
 	if err := cmd.Start(); err != nil {
 		return err
 	}
 	go func() {
 		defer onComplete(err)
-		// TODO:  Add better error messaging for failed compile
-		if err = cmd.Wait(); err != nil {
-			slog.Error("failed to compile the editor with the plugins", "error", err)
+		err = cmd.Wait()
+		if err != nil {
+			slog.Error("failed to compile the editor with the plugins", "error", err, "output", buildOutput.String())
 			return
 		}
-		// Launch the generators/plugin_installer/main.go
 		toExe := filepath.Join(to, filepath.Base(exe))
 		boot := exec.Command("go", "run", "generators/plugin_installer/main.go", exe, toExe)
 		boot.Dir = to
@@ -139,7 +162,7 @@ func copyEditorCodeForRecompile(to string, efs project_file_system.EngineFileSys
 		relPath, _ := filepath.Rel(from, path)
 		folder := filepath.Join(to, relPath)
 		if path != "." {
-			if err := os.Mkdir(folder, os.ModePerm); err != nil {
+			if err := os.MkdirAll(folder, os.ModePerm); err != nil {
 				return err
 			}
 		}
