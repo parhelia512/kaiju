@@ -37,14 +37,16 @@
 package sprite
 
 import (
+	"log/slog"
+	"weak"
+
 	"kaijuengine.com/debug"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/matrix"
+	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"weak"
 )
 
 const (
@@ -335,7 +337,7 @@ func (s *Sprite) recreateDrawing(drawingIndex int, blended bool) {
 	if d.Material.HasTransparentSuffix() != blended {
 		host := s.host.Value()
 		debug.EnsureNotNil(host)
-		mat, err := host.MaterialCache().Material(assets.MaterialDefinitionSpriteTransparent)
+		mat, err := host.MaterialCache().Material(assets.MaterialDefinitionUnlitTransparent)
 		if err == nil {
 			d.Material = mat.CreateInstance(d.Material.Textures)
 		} else {
@@ -410,9 +412,9 @@ func (s *Sprite) baseInit(x, y, width, height float32, host *engine.Host) {
 }
 
 func (s *Sprite) buildDrawing(host *engine.Host, color matrix.Color, texture *rendering.Texture) (rendering.Drawing, error) {
-	matDef := assets.MaterialDefinitionSprite
+	matDef := assets.MaterialDefinitionUnlit
 	if s.enforcedBlended || color.A() < 1 {
-		matDef = assets.MaterialDefinitionSpriteTransparent
+		matDef = assets.MaterialDefinitionUnlitTransparent
 	}
 	mat, err := host.MaterialCache().Material(matDef)
 	if err != nil {
@@ -421,14 +423,12 @@ func (s *Sprite) buildDrawing(host *engine.Host, color matrix.Color, texture *re
 	}
 	mat = mat.CreateInstance([]*rendering.Texture{texture})
 	mesh := rendering.NewMeshQuad(host.MeshCache())
+	sd := shader_data_registry.Create(mat.Shader.ShaderDataName()).(*shader_data_registry.ShaderDataUnlit)
+	sd.Color = color
 	d := rendering.Drawing{
-		Material: mat,
-		Mesh:     mesh,
-		ShaderData: &ShaderData{
-			ShaderDataBase: rendering.NewShaderDataBase(),
-			FgColor:        color,
-			UVs:            matrix.NewVec4(0, 0, 1, 1),
-		},
+		Material:   mat,
+		Mesh:       mesh,
+		ShaderData: sd,
 		Transform:  &s.Entity.Transform,
 		ViewCuller: &host.Cameras.Primary,
 	}
