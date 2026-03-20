@@ -40,17 +40,18 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"kaijuengine.com/engine/assets"
-	"kaijuengine.com/engine/cameras"
-	"kaijuengine.com/klib"
-	"kaijuengine.com/matrix"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"slices"
 	"sync"
 	"unicode"
 	"unicode/utf8"
 	"unsafe"
+
+	"kaijuengine.com/engine/assets"
+	"kaijuengine.com/engine/cameras"
+	"kaijuengine.com/klib"
+	"kaijuengine.com/matrix"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 const (
@@ -407,10 +408,18 @@ func (cache *FontCache) RenderMeshes(caches RenderCaches,
 	cy := y * inverseHeight
 	fontFace := cache.fontFaces[face.string()]
 	var material *Material
-	if is3D {
-		material = cache.textMaterial
+	if fgColor.A() < 1 || bgColor.A() < 1 {
+		if is3D {
+			material = cache.textMaterialTransparent
+		} else {
+			material = cache.textOrthoMaterialTransparent
+		}
 	} else {
-		material = cache.textOrthoMaterial
+		if is3D {
+			material = cache.textMaterial
+		} else {
+			material = cache.textOrthoMaterial
+		}
 	}
 	// Iterate through all characters
 	runes := []rune(text)
