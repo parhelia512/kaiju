@@ -136,9 +136,10 @@ func (c *Controller) Disconnected(id int) {
 func (device *ControllerDevice) endUpdate() {
 	if device.id >= 0 {
 		for i := 0; i < ControllerButtonMax; i++ {
-			if device.buttons[i] == controllerButtonStateDown {
+			switch device.buttons[i] {
+			case controllerButtonStateDown:
 				device.buttons[i] = controllerButtonStateHeld
-			} else if device.buttons[i] == controllerButtonStateUp {
+			case controllerButtonStateUp:
 				device.buttons[i] = controllerButtonStateIdle
 			}
 		}

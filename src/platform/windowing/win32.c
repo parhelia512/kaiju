@@ -56,6 +56,7 @@
 
 #include "win32.h"
 #include <assert.h>
+#include <limits.h>
 #include <string.h>
 #include <windows.h>
 #include <windowsx.h>
@@ -138,6 +139,24 @@ static inline bool obtainControllerStates(SharedMem* sm) {
 			evt.controllerState.connectionType = WINDOW_EVENT_CONTROLLER_CONNECTION_TYPE_CONNECTED;
 			readControllerStates = true;
 			connectedControllers[i] = 0; // Check this controller next frame
+			if (abs(evt.controllerState.thumbLX) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
+				evt.controllerState.thumbLX = 0;
+			}
+			if (abs(evt.controllerState.thumbLY) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
+				evt.controllerState.thumbLY = 0;
+			}
+			if (abs(evt.controllerState.thumbRX) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
+				evt.controllerState.thumbRX = 0;
+			}
+			if (abs(evt.controllerState.thumbRY) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) {
+				evt.controllerState.thumbRY = 0;
+			}
+			if (abs(evt.controllerState.leftTrigger) < XINPUT_GAMEPAD_TRIGGER_THRESHOLD) {
+				evt.controllerState.leftTrigger = 0;
+			}
+			if (abs(evt.controllerState.rightTrigger) < XINPUT_GAMEPAD_TRIGGER_THRESHOLD) {
+				evt.controllerState.rightTrigger = 0;
+			}
 		} else {
 			// TODO:  readControllerStates would be true here too, but
 			// no need to spam the event if no controllers are available?
