@@ -252,3 +252,23 @@ func (v Vec2) LargestAxisDelta() Float {
 		return hi
 	}
 }
+
+func Vec2Inf(sign int) Vec2 {
+	return Vec2{Inf(sign), Inf(sign)}
+}
+
+func Vec2NaN() Vec2 {
+	return Vec2{NaN(), NaN()}
+}
+
+func (v Vec2) IsZero() bool {
+	return Vec2Approx(v, Vec2Zero())
+}
+
+func (v Vec2) IsInf(sign int) bool {
+	return IsInf(v[Vx], sign) || IsInf(v[Vy], sign)
+}
+
+func (v Vec2) IsNaN() bool {
+	return IsNaN(v[Vx]) || IsNaN(v[Vy])
+}
