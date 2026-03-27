@@ -79,6 +79,8 @@ type Sprite struct {
 	flipHorizontal  bool
 }
 
+func (s *Sprite) IsValid() bool { return len(s.drawings) > 0 }
+
 func (s *Sprite) Init(x, y, width, height float32, host *engine.Host, texture string, color matrix.Color) {
 	tex, err := host.TextureCache().Texture(texture, sFilter)
 	if err != nil {
