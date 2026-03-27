@@ -272,3 +272,7 @@ func (v Vec2) IsInf(sign int) bool {
 func (v Vec2) IsNaN() bool {
 	return IsNaN(v[Vx]) || IsNaN(v[Vy])
 }
+
+func (v Vec2) IsValidNonZero() bool {
+	return !v.IsZero() && !v.IsNaN() && !v.IsInf(-1) && !v.IsInf(1)
+}
