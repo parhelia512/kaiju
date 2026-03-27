@@ -59,7 +59,7 @@ var (
 )
 
 type Sprite struct {
-	Entity          *engine.Entity
+	Entity          engine.Entity
 	host            weak.Pointer[engine.Host]
 	currentClipName string
 	currentClip     SpriteSheetClip
@@ -86,6 +86,11 @@ func (s *Sprite) Init(x, y, width, height float32, host *engine.Host, texture st
 		tex, _ = host.TextureCache().Texture(assets.TextureSquare, sFilter)
 	}
 	s.InitFromTexture(x, y, width, height, host, tex, color)
+	s.Entity.OnDestroy.Add(func() {
+		for i := range s.drawings {
+			s.drawings[i].ShaderData.Destroy()
+		}
+	})
 }
 
 func (s *Sprite) InitFromTexture(x, y, width, height float32, host *engine.Host, texture *rendering.Texture, color matrix.Color) {
@@ -256,7 +261,7 @@ func (s *Sprite) SetFlipBookAnimation(inFPS float32, textures []*rendering.Textu
 
 func (s *Sprite) SetColor(color matrix.Color) {
 	for i := range s.drawings {
-		s.drawings[i].ShaderData.(*ShaderData).FgColor = color
+		s.drawings[i].ShaderData.(*shader_data_registry.ShaderDataUnlit).Color = color
 	}
 	s.setBlendingInternal(s.enforcedBlended || color.A() < 1)
 }
@@ -318,8 +323,8 @@ func (s *Sprite) SetUVs(drawing int, inUVs matrix.Vec4) {
 	s.ShaderData(drawing).UVs = inUVs
 }
 
-func (s *Sprite) ShaderData(drawing int) *ShaderData {
-	return s.drawings[drawing].ShaderData.(*ShaderData)
+func (s *Sprite) ShaderData(drawing int) *shader_data_registry.ShaderDataUnlit {
+	return s.drawings[drawing].ShaderData.(*shader_data_registry.ShaderDataUnlit)
 }
 
 func (s *Sprite) isFlipBook() bool    { return len(s.drawings) > 1 }
@@ -331,7 +336,7 @@ func (s *Sprite) recreateDrawing(drawingIndex int, blended bool) {
 	sd := s.ShaderData(drawingIndex)
 	proxy := *sd
 	sd.Destroy()
-	sd = &ShaderData{}
+	sd = &shader_data_registry.ShaderDataUnlit{}
 	*sd = proxy
 	d.ShaderData = sd
 	if d.Material.HasTransparentSuffix() != blended {
@@ -406,7 +411,7 @@ func (s *Sprite) baseInit(x, y, width, height float32, host *engine.Host) {
 		host:      weak.Make(host),
 		baseScale: matrix.NewVec3(width, height, 1.0),
 	}
-	s.Entity = engine.NewEntity(host.WorkGroup())
+	s.Entity.Init(host.WorkGroup())
 	s.Entity.Transform.SetPosition(matrix.NewVec3(x, y, 0))
 	s.Entity.Transform.SetScale(matrix.NewVec3(width, height, 1))
 }
