@@ -134,7 +134,8 @@ func (p *PoolGroup[T]) All(each func(elm *T)) {
 // the expression that was supplied to this function call
 func (p *PoolGroup[T]) Each(each func(elm *T)) {
 	for i := range p.pools {
-		for j := range p.pools[i].takenLen {
+		// Loop in reverse so that it's safe to remove elements during this call
+		for j := p.pools[i].takenLen - 1; j >= 0; j-- {
 			each(&p.pools[i].elements[p.pools[i].taken[j]])
 		}
 	}
@@ -147,7 +148,7 @@ func (p *PoolGroup[T]) Each(each func(elm *T)) {
 func (p *PoolGroup[T]) ConditionalEach(each func(elm *T) bool) {
 outerLoop:
 	for i := range p.pools {
-		for j := range p.pools[i].takenLen {
+		for j := p.pools[i].takenLen - 1; j >= 0; j-- {
 			if !each(&p.pools[i].elements[p.pools[i].taken[j]]) {
 				break outerLoop
 			}
