@@ -179,6 +179,9 @@ func StringsContainsCaseInsensitive(s []string, value string) bool {
 // this, pointers are not collected by the GC unless actually wiped out from
 // the slice.
 func WipeSlice[S any](s []S) []S {
+	if len(s) == 0 {
+		return s
+	}
 	clear(s)
 	return s[:0]
 }
