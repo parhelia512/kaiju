@@ -39,7 +39,19 @@
 #define WINDOWING_X11_H
 
 #include <X11/Xlib.h>
+#include <X11/extensions/Xrandr.h>
 #include "shared_mem.h"
+
+typedef struct {
+	float dpmm;
+	int mm_width;
+	int mm_height;
+	int px_width;
+	int px_height;
+	int x;
+	int y;
+	int found;
+} MonitorInfo;
 
 typedef struct {
 	SharedMem sm;
@@ -50,6 +62,8 @@ typedef struct {
 	Atom TEXT;
 	Atom UTF8_STRING;
 	Atom CLIPBOARD;
+	MonitorInfo monitorCache;
+	int monitorCacheDirty;
 } X11State;
 
 unsigned int get_toggle_key_state();
@@ -67,6 +81,7 @@ void window_set_position(void* state, int x, int y);
 void window_set_size(void* state, int width, int height);
 int window_width_mm(void* state);
 int window_height_mm(void* state);
+void window_invalidate_monitor_cache(void* state);
 void window_cursor_standard(void* state);
 void window_cursor_ibeam(void* state);
 void window_cursor_size_all(void* state);

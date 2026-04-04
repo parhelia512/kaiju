@@ -160,15 +160,19 @@ func (w *Window) clipboardContents() string {
 	return string(clipboard.Read(clipboard.FmtText))
 }
 
+func (w *Window) invalidateMonitorCache() {}
+
 func (w *Window) dotsPerMillimeter() float64 {
 	dpi := float64(C.window_dpi(w.handle))
 	return dpi / 25.4
 }
 
 func (w *Window) sizeMM() (int, int, error) {
-	dpi := float64(C.window_dpi(w.handle))
-	mm := dpi / 25.4
-	return int(float64(w.width) * mm), int(float64(w.height) * mm), nil
+	dpmm := float64(C.window_dpi(w.handle)) / 25.4
+	if dpmm <= 0 {
+		return 0, 0, errors.New("invalid dpmm")
+	}
+	return int(float64(w.width) / dpmm), int(float64(w.height) / dpmm), nil
 }
 
 func (w *Window) screenSizeMM() (int, int, error) {
