@@ -343,7 +343,6 @@ void window_poll(void* x11State) {
 				if (!filtered) {
 					const Atom protocol = e.xclient.data.l[0];
 					if (protocol == s->WM_DELETE_WINDOW) {
-						XDestroyWindow(s->d, s->w);
 						shared_mem_add_event(&s->sm, (WindowEvent) {
 							.type = WINDOW_EVENT_TYPE_ACTIVITY,
 							.windowActivity = {
@@ -361,7 +360,9 @@ void window_poll(void* x11State) {
 
 void window_destroy(void* x11State) {
 	X11State* s = x11State;
-	XDestroyWindow(s->d, s->w);
+	if (s->w) {
+		XDestroyWindow(s->d, s->w);
+	}
 	XCloseDisplay(s->d);
 	free(s);
 }
