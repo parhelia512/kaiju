@@ -181,109 +181,77 @@ func TextureKeys(textures []*Texture) []string {
 	return keys
 }
 
+// ReadRawTextureData reads raw texture data from a byte slice based on the specified input type (ASTC, PNG, or RAW).
+// It returns a TextureData struct containing the decoded pixel data, dimensions, and format information.
 func ReadRawTextureData(mem []byte, inputType TextureFileFormat) TextureData {
 	defer tracing.NewRegion("rendering.ReadRawTextureData").End()
+
 	var res TextureData
 	res.InputType = inputType
+
+	astcFormatMap := map[[2]byte]TextureInputType{
+		{4, 0}:   TextureInputTypeCompressedRgbaAstc4x4,
+		{5, 4}:   TextureInputTypeCompressedRgbaAstc5x4,
+		{5, 5}:   TextureInputTypeCompressedRgbaAstc5x5,
+		{6, 5}:   TextureInputTypeCompressedRgbaAstc6x5,
+		{6, 6}:   TextureInputTypeCompressedRgbaAstc6x6,
+		{8, 5}:   TextureInputTypeCompressedRgbaAstc8x5,
+		{8, 6}:   TextureInputTypeCompressedRgbaAstc8x6,
+		{8, 8}:   TextureInputTypeCompressedRgbaAstc8x8,
+		{10, 5}:  TextureInputTypeCompressedRgbaAstc10x5,
+		{10, 6}:  TextureInputTypeCompressedRgbaAstc10x6,
+		{10, 8}:  TextureInputTypeCompressedRgbaAstc10x8,
+		{10, 10}: TextureInputTypeCompressedRgbaAstc10x10,
+		{12, 10}: TextureInputTypeCompressedRgbaAstc12x10,
+		{12, 12}: TextureInputTypeCompressedRgbaAstc12x12,
+	}
+
 	switch inputType {
 	case TextureFileFormatAstc:
-		switch mem[4] {
-		case 4:
-			res.InternalFormat = TextureInputTypeCompressedRgbaAstc4x4
-		case 5:
-			switch mem[5] {
-			case 4:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc5x4
-			case 5:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc5x5
-			}
-		case 6:
-			switch mem[5] {
-			case 5:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc6x5
-			case 6:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc6x6
-			}
-		case 8:
-			switch mem[5] {
-			case 5:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc8x5
-			case 6:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc8x6
-			case 8:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc8x8
-			}
-		case 10:
-			switch mem[5] {
-			case 5:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc10x5
-			case 6:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc10x6
-			case 8:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc10x8
-			case 10:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc10x10
-			}
-		case 12:
-			switch mem[5] {
-			case 10:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc12x10
-			case 12:
-				res.InternalFormat = TextureInputTypeCompressedRgbaAstc12x12
-			}
+		key := [2]byte{mem[4], mem[5]}
+		if format, ok := astcFormatMap[key]; ok {
+			res.InternalFormat = format
 		}
-		res.Width = int(mem[9])
-		res.Width <<= 8
-		res.Width += int(mem[8])
-		res.Width <<= 8
-		res.Width += int(mem[7])
-		res.Height = int(mem[12])
-		res.Height <<= 8
-		res.Height += int(mem[11])
-		res.Height <<= 8
-		res.Height += int(mem[10])
+
+		res.Width = int(mem[9])<<16 | int(mem[8])<<8 | int(mem[7])
+		res.Height = int(mem[12])<<16 | int(mem[11])<<8 | int(mem[10])
+
 		res.Mem = mem[16:]
 		res.Format = TextureColorFormatRgbaUnorm
 		res.Type = TextureMemTypeUnsignedByte
+
 	case TextureFileFormatPng:
-		r := bytes.NewReader(mem)
-		if img, err := png.Decode(r); err == nil {
-			var mem []byte
-			switch pic := img.(type) {
-			case *image.RGBA:
-				mem = pic.Pix
-			//case *image.Paletted:
-			//	mem = pic.Pix
-			//case *image.NRGBA:
-			//	mem = pic.Pix
-			default:
-				b := img.Bounds()
-				dst := image.NewRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
-				draw.Draw(dst, dst.Bounds(), img, b.Min, draw.Src)
-				mem = dst.Pix
-			}
-			res.Width = img.Bounds().Dx()
-			res.Height = img.Bounds().Dy()
-			res.InternalFormat = TextureInputTypeRgba8
-			res.Format = TextureColorFormatRgbaUnorm
-			res.Type = TextureMemTypeUnsignedByte
-			res.Mem = mem
-			//res.Mem = make([]byte, len(mem))
-			//byteWidth := res.Width * bytesInPixel
-			//for y := 0; y < res.Height; y++ {
-			//	from := y * byteWidth
-			//	to := (res.Height - y - 1) * byteWidth
-			//	copy(res.Mem[to:to+byteWidth], mem[from:from+byteWidth])
-			//}
+		img, err := png.Decode(bytes.NewReader(mem))
+		if err != nil {
+			return res
 		}
+
+		b := img.Bounds()
+		w, h := b.Dx(), b.Dy()
+
+		if rgba, ok := img.(*image.RGBA); ok {
+			res.Mem = rgba.Pix
+		} else {
+			dst := image.NewRGBA(image.Rect(0, 0, w, h))
+			draw.Draw(dst, dst.Bounds(), img, b.Min, draw.Src)
+			res.Mem = dst.Pix
+		}
+
+		res.Width = w
+		res.Height = h
+		res.InternalFormat = TextureInputTypeRgba8
+		res.Format = TextureColorFormatRgbaUnorm
+		res.Type = TextureMemTypeUnsignedByte
+
 	case TextureFileFormatRaw:
-		res.Mem = mem[:]
+		res.Mem = mem
 		res.Width = 0
 		res.Height = 0
 		res.InternalFormat = TextureInputTypeRgba8
 		res.Format = TextureColorFormatRgbaUnorm
 		res.Type = TextureMemTypeUnsignedByte
 	}
+
 	return res
 }
 

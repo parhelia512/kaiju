@@ -39,6 +39,14 @@ package editor_stage_manager
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"reflect"
+	"slices"
+	"strings"
+	"weak"
+
 	"kaijuengine.com/editor/codegen"
 	"kaijuengine.com/editor/codegen/entity_data_binding"
 	"kaijuengine.com/editor/editor_events"
@@ -58,13 +66,6 @@ import (
 	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
 	"kaijuengine.com/rendering/loaders/kaiju_mesh"
-	"log/slog"
-	"os"
-	"path/filepath"
-	"reflect"
-	"slices"
-	"strings"
-	"weak"
 
 	"github.com/KaijuEngine/uuid"
 )
@@ -714,7 +715,7 @@ func (m *StageManager) spawnLoadedEntity(e *StageEntity, host *engine.Host, fs *
 			return err
 		}
 		// TODO:  Should be reading the filter from the configuration file
-		tex, err := rendering.NewTextureFromMemory(textureIds[i],
+		tex, err := m.host.TextureCache().InsertRawTexture(textureIds[i],
 			texData, 0, 0, rendering.TextureFilterLinear)
 		if err != nil {
 			slog.Error("failed to create the texture from it's data", "id", textureIds[i], "error", err)

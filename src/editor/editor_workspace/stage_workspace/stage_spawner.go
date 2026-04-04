@@ -37,6 +37,9 @@
 package stage_workspace
 
 import (
+	"log/slog"
+	"weak"
+
 	"kaijuengine.com/editor/codegen"
 	"kaijuengine.com/editor/codegen/entity_data_binding"
 	"kaijuengine.com/editor/editor_overlay/confirm_prompt"
@@ -54,8 +57,6 @@ import (
 	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
 	"kaijuengine.com/rendering/loaders/kaiju_mesh"
-	"log/slog"
-	"weak"
 )
 
 func (w *StageWorkspace) attachEntityData(e *editor_stage_manager.StageEntity, g codegen.GeneratedType) *entity_data_binding.EntityDataEntry {
@@ -263,7 +264,7 @@ func (w *StageWorkspace) spawnTexture(cc *content_database.CachedContent, point 
 		slog.Error("error reading the image file", "path", path)
 		return
 	}
-	tex, err := rendering.NewTextureFromMemory(rendering.GenerateUniqueTextureKey,
+	tex, err := w.Host.TextureCache().InsertRawTexture(rendering.GenerateUniqueTextureKey,
 		data, 0, 0, rendering.TextureFilterLinear)
 	if err != nil {
 		slog.Error("failed to create the texture resource", "id", cc.Id(), "error", err)
