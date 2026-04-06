@@ -198,6 +198,17 @@ func (g *GPUSwapChain) destroyImpl(device *GPUDevice) {
 	for i := range g.renderFinishedSemaphores {
 		vk.DestroySemaphore(vkDevice, vk.Semaphore(g.renderFinishedSemaphores[i].handle), nil)
 		dbg.remove(g.renderFinishedSemaphores[i].handle)
+		g.renderFinishedSemaphores[i].Reset()
+	}
+	for i := range g.imageSemaphores {
+		vk.DestroySemaphore(vkDevice, vk.Semaphore(g.imageSemaphores[i].handle), nil)
+		dbg.remove(g.imageSemaphores[i].handle)
+		g.imageSemaphores[i].Reset()
+	}
+	for i := range g.renderFences {
+		vk.DestroyFence(vkDevice, vk.Fence(g.renderFences[i].handle), nil)
+		dbg.remove(g.renderFences[i].handle)
+		g.renderFences[i].Reset()
 	}
 	for i := range g.FrameBuffers {
 		vk.DestroyFramebuffer(vkDevice, vk.Framebuffer(g.FrameBuffers[i].handle), nil)
