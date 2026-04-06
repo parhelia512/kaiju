@@ -37,8 +37,6 @@
 package rendering
 
 import (
-	"errors"
-	"strings"
 	"sync"
 
 	"kaijuengine.com/engine/assets"
@@ -47,22 +45,20 @@ import (
 )
 
 type TextureCache struct {
-	device              *GPUDevice
-	assetDatabase       assets.Database
-	textures            [TextureFilterMax]map[string]*Texture
-	pendingTextures     []*Texture
-	decodedTextureCache map[string]*TextureData // Cache for decoded texture data
-	mutex               sync.Mutex
+	device          *GPUDevice
+	assetDatabase   assets.Database
+	textures        [TextureFilterMax]map[string]*Texture
+	pendingTextures []*Texture
+	mutex           sync.Mutex
 }
 
 func NewTextureCache(device *GPUDevice, assetDatabase assets.Database) TextureCache {
 	defer tracing.NewRegion("rendering.NewTextureCache").End()
 	tc := TextureCache{
-		device:              device,
-		assetDatabase:       assetDatabase,
-		pendingTextures:     make([]*Texture, 0),
-		decodedTextureCache: make(map[string]*TextureData),
-		mutex:               sync.Mutex{},
+		device:          device,
+		assetDatabase:   assetDatabase,
+		pendingTextures: make([]*Texture, 0),
+		mutex:           sync.Mutex{},
 	}
 	for i := range tc.textures {
 		tc.textures[i] = make(map[string]*Texture)
@@ -77,7 +73,7 @@ func (t *TextureCache) Texture(textureKey string, filter TextureFilter) (*Textur
 	if texture, ok := t.textures[filter][textureKey]; ok {
 		return texture, nil
 	} else {
-		if texture, err := t.newTextureWithCache(textureKey, filter); err == nil {
+		if texture, err := NewTexture(t.assetDatabase, textureKey, filter); err == nil {
 			t.pendingTextures = append(t.pendingTextures, texture)
 			t.textures[filter][textureKey] = texture
 			return texture, nil
@@ -96,8 +92,6 @@ func (t *TextureCache) ReloadTexture(textureKey string, filter TextureFilter) er
 	if !ok {
 		return nil
 	}
-	delete(t.decodedTextureCache, textureKey)
-
 	t.device.LogicalDevice.FreeTexture(&texture.RenderId)
 	if err := texture.Reload(t.assetDatabase); err != nil {
 		return err
@@ -126,25 +120,10 @@ func (t *TextureCache) InsertRawTexture(key string, data []byte, width, height i
 	if texture, ok := t.textures[filter][key]; ok {
 		return texture, nil
 	}
-
-	// Create texture directly with raw data and cache it
-	tex := &Texture{Key: key, Filter: filter}
-	textureData := TextureData{
-		Mem:            data,
-		InternalFormat: TextureInputTypeRgba8,
-		Format:         TextureColorFormatRgbaUnorm,
-		Type:           TextureMemTypeUnsignedByte,
-		Width:          width,
-		Height:         height,
-		InputType:      TextureFileFormatRaw,
-		Dimensions:     TextureDimensions2,
+	tex, err := NewTextureFromMemory(key, data, width, height, filter)
+	if err != nil {
+		return nil, err
 	}
-	t.decodedTextureCache[key] = &textureData
-
-	tex.pendingData = &textureData
-	tex.Width = width
-	tex.Height = height
-
 	t.pendingTextures = append(t.pendingTextures, tex)
 	t.textures[filter][key] = tex
 	return tex, nil
@@ -155,43 +134,14 @@ func (t *TextureCache) InsertImageTexture(key string, imageData []byte, filter T
 	defer tracing.NewRegion("TextureCache.InsertImageTexture").End()
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
-
 	// Check if already exists
 	if texture, ok := t.textures[filter][key]; ok {
 		return texture, nil
 	}
-
-	if cachedData, exists := t.decodedTextureCache[key]; exists {
-		tex := &Texture{Key: key, Filter: filter}
-		tex.pendingData = cachedData
-		tex.Width = cachedData.Width
-		tex.Height = cachedData.Height
-
-		t.pendingTextures = append(t.pendingTextures, tex)
-		t.textures[filter][key] = tex
-		return tex, nil
+	tex, err := NewTextureFromMemory(key, imageData, 0, 0, filter)
+	if err != nil {
+		return nil, err
 	}
-
-	// Create texture with image data and cache the decoded result
-	tex := &Texture{Key: key, Filter: filter}
-
-	// Determine input type from data
-	inputType := TextureFileFormatRaw
-	if len(imageData) > 4 && imageData[0] == '\x89' && imageData[1] == 'P' && imageData[2] == 'N' && imageData[3] == 'G' {
-		inputType = TextureFileFormatPng
-	} else if strings.HasSuffix(key, ".png") {
-		inputType = TextureFileFormatPng
-	} else if strings.HasSuffix(key, ".astc") {
-		inputType = TextureFileFormatAstc
-	}
-
-	data := ReadRawTextureData(imageData, inputType)
-	t.decodedTextureCache[key] = &data
-
-	tex.pendingData = &data
-	tex.Width = data.Width
-	tex.Height = data.Height
-
 	t.pendingTextures = append(t.pendingTextures, tex)
 	t.textures[filter][key] = tex
 	return tex, nil
@@ -201,21 +151,6 @@ func (t *TextureCache) ForceRemoveTexture(key string, filter TextureFilter) {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 	delete(t.textures[filter], key)
-	delete(t.decodedTextureCache, key)
-}
-
-// ClearDecodedTextureCache clears the decoded texture data cache to free memory
-func (t *TextureCache) ClearDecodedTextureCache() {
-	t.mutex.Lock()
-	defer t.mutex.Unlock()
-	t.decodedTextureCache = make(map[string]*TextureData)
-}
-
-// GetDecodedTextureCacheSize returns the number of cached decoded texture data entries
-func (t *TextureCache) GetDecodedTextureCacheSize() int {
-	t.mutex.Lock()
-	defer t.mutex.Unlock()
-	return len(t.decodedTextureCache)
 }
 
 func (t *TextureCache) CreatePending() {
@@ -228,68 +163,11 @@ func (t *TextureCache) CreatePending() {
 	t.pendingTextures = klib.WipeSlice(t.pendingTextures)
 }
 
-// newTextureWithCache attempts to create a new texture using the cache for decoded data to optimize performance and memory usage.
-// It checks if the decoded data for the given texture key is already cached, and if so, it creates the texture directly from the cached data.
-func (t *TextureCache) newTextureWithCache(textureKey string, filter TextureFilter) (*Texture, error) {
-	defer tracing.NewRegion("TextureCache.newTextureWithCache").End()
-
-	key := selectKey(textureKey)
-
-	if cachedData, ok := t.decodedTextureCache[key]; ok {
-		return &Texture{
-			Key:         key,
-			Filter:      filter,
-			pendingData: cachedData,
-			Width:       cachedData.Width,
-			Height:      cachedData.Height,
-		}, nil
-	}
-
-	if !t.assetDatabase.Exists(key) {
-		return nil, errors.New("texture does not exist")
-	}
-
-	imgBuff, err := t.assetDatabase.Read(key)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(imgBuff) == 0 {
-		return nil, errors.New("no data in texture")
-	}
-
-	inputType := TextureFileFormatRaw
-	switch {
-	case strings.HasSuffix(key, ".astc"):
-		inputType = TextureFileFormatAstc
-	case strings.HasSuffix(key, ".png"):
-		inputType = TextureFileFormatPng
-	case len(imgBuff) > 4 &&
-		imgBuff[0] == '\x89' &&
-		imgBuff[1] == 'P' &&
-		imgBuff[2] == 'N' &&
-		imgBuff[3] == 'G':
-		inputType = TextureFileFormatPng
-	}
-
-	data := ReadRawTextureData(imgBuff, inputType)
-	t.decodedTextureCache[key] = &data
-
-	return &Texture{
-		Key:         key,
-		Filter:      filter,
-		pendingData: &data,
-		Width:       data.Width,
-		Height:      data.Height,
-	}, nil
-}
-
 // Destroy frees all textures in the cache and clears the decoded texture data cache to release GPU and memory resources when the texture cache is no longer needed.
 // This should be called when the application is shutting down or when the texture cache needs to be reset to ensure proper cleanup of resources.
 func (t *TextureCache) Destroy() {
 	defer tracing.NewRegion("TextureCache.Destroy").End()
 	t.pendingTextures = klib.WipeSlice(t.pendingTextures)
-	t.decodedTextureCache = make(map[string]*TextureData)
 	for i := range t.textures {
 		for _, tex := range t.textures[i] {
 			t.device.LogicalDevice.FreeTexture(&tex.RenderId)
