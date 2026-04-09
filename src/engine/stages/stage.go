@@ -39,6 +39,9 @@ package stages
 import (
 	"bytes"
 	"encoding/json"
+	"log/slog"
+	"reflect"
+
 	"kaijuengine.com/build"
 	"kaijuengine.com/debug"
 	"kaijuengine.com/engine"
@@ -49,8 +52,6 @@ import (
 	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
 	"kaijuengine.com/rendering/loaders/kaiju_mesh"
-	"log/slog"
-	"reflect"
 )
 
 const EntryPointAssetKey = "entryPointStage"
@@ -367,7 +368,7 @@ func SetupEntityFromDescription(e *engine.Entity, host *engine.Host, se *EntityD
 			return nil, err
 		}
 		// TODO:  Should be reading the filter from the configuration file
-		tex, err := rendering.NewTextureFromMemory(textureIds[i],
+		tex, err := host.TextureCache().InsertRawTexture(textureIds[i],
 			texData, 0, 0, rendering.TextureFilterLinear)
 		if err != nil {
 			slog.Error("failed to create the texture from it's data", "id", textureIds[i], "error", err)

@@ -194,6 +194,7 @@ func (g *GPULogicalDevice) remakeSwapChainImpl(window RenderingContainer, inst *
 	defer tracing.NewRegion("GPULogicalDevice.remakeSwapChainImpl").End()
 	// This will destroy the existing swap chain
 	device.CreateSwapChain(window, inst)
+	device.destroyGlobalUniforms()
 	if !g.SwapChain.IsValid() {
 		return nil // TODO:  Is this correct?
 	}

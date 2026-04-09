@@ -40,6 +40,7 @@ import (
 	"errors"
 	"image"
 	"log/slog"
+	"math"
 	"runtime"
 	"slices"
 	"sync"
@@ -89,6 +90,7 @@ type Window struct {
 	windowSync               chan struct{}
 	syncRequest              bool
 	isClosed                 bool
+	isDestroyed              bool
 	isCrashed                bool
 	fatalFromNativeAPI       bool
 	resizedFromNativeAPI     bool
@@ -310,6 +312,10 @@ func (w *Window) ClipboardContents() string   { return w.clipboardContents() }
 
 func (w *Window) Destroy() {
 	defer tracing.NewRegion("Window.Destroy").End()
+	if w.isDestroyed {
+		return
+	}
+	w.isDestroyed = true
 	w.isClosed = true
 	w.removeFromActiveWindows()
 	w.GpuHost.Destroy()
@@ -450,6 +456,8 @@ func (w *Window) processWindowMoveEvent(evt *WindowMoveEvent) {
 	w.top = w.y
 	w.right = w.x + ww
 	w.bottom = w.y + wh
+	w.cachedScreenSizeWidthMM, w.cacheScreenSizeHeightMM = 0, 0
+	w.invalidateMonitorCache()
 	w.OnMove.Execute()
 }
 
@@ -542,6 +550,13 @@ func (w *Window) processControllerStateEvent(evt *ControllerStateWindowEvent) {
 			w.Controller.SetButtonUp(int(evt.controllerId), i)
 		}
 	}
+	id := int(evt.controllerId)
+	w.Controller.SetAxis(id, hid.ControllerAxisLeftHorizontal, float32(evt.thumbLX)/math.MaxInt16)
+	w.Controller.SetAxis(id, hid.ControllerAxisLeftVertical, float32(evt.thumbLY)/math.MaxInt16)
+	w.Controller.SetAxis(id, hid.ControllerAxisRightHorizontal, float32(evt.thumbRX)/math.MaxInt16)
+	w.Controller.SetAxis(id, hid.ControllerAxisRightVertical, float32(evt.thumbRY)/math.MaxInt16)
+	w.Controller.SetAxis(id, hid.ControllerAxisLeftTrigger, float32(evt.leftTrigger)/math.MaxUint8)
+	w.Controller.SetAxis(id, hid.ControllerAxisRightTrigger, float32(evt.rightTrigger)/math.MaxUint8)
 }
 
 func (w *Window) processTouchStateEvent(evt *TouchStateWindowEvent) {

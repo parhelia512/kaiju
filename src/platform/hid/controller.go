@@ -36,7 +36,11 @@
 
 package hid
 
-import "errors"
+import (
+	"errors"
+
+	"kaijuengine.com/matrix"
+)
 
 // Based off XBOX controller
 const (
@@ -136,9 +140,10 @@ func (c *Controller) Disconnected(id int) {
 func (device *ControllerDevice) endUpdate() {
 	if device.id >= 0 {
 		for i := 0; i < ControllerButtonMax; i++ {
-			if device.buttons[i] == controllerButtonStateDown {
+			switch device.buttons[i] {
+			case controllerButtonStateDown:
 				device.buttons[i] = controllerButtonStateHeld
-			} else if device.buttons[i] == controllerButtonStateUp {
+			case controllerButtonStateUp:
 				device.buttons[i] = controllerButtonStateIdle
 			}
 		}
@@ -173,6 +178,9 @@ func (c *Controller) SetButtonUp(id, button int) {
 // SetAxis sets the axis on the given controller. This is called
 // automatically by the system and should not be called by the end-developer
 func (c *Controller) SetAxis(id, stick int, axis float32) {
+	if matrix.IsNaN(axis) {
+		return
+	}
 	c.devices[id].axis[stick] = axis
 }
 

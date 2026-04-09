@@ -47,6 +47,14 @@ type PoolGroup[T any] struct {
 
 func (p *PoolGroup[T]) Count() int { return len(p.pools) }
 
+func (p *PoolGroup[T]) ElementCount() int {
+	count := 0
+	for i := range p.pools {
+		count += p.pools[i].takenLen
+	}
+	return count
+}
+
 func (p *PoolGroup[T]) selectPool() (*Pool[T], PoolGroupId) {
 	for i := range p.pools {
 		if p.pools[i].availableLen > 0 {
@@ -126,8 +134,24 @@ func (p *PoolGroup[T]) All(each func(elm *T)) {
 // the expression that was supplied to this function call
 func (p *PoolGroup[T]) Each(each func(elm *T)) {
 	for i := range p.pools {
-		for j := range p.pools[i].takenLen {
+		// Loop in reverse so that it's safe to remove elements during this call
+		for j := p.pools[i].takenLen - 1; j >= 0; j-- {
 			each(&p.pools[i].elements[p.pools[i].taken[j]])
+		}
+	}
+}
+
+// ConditionalEach iterates over each active element in the pool group, invoking the
+// provided callback function `each`. If the callback returns false for any element,
+// the iteration stops early. This allows callers to break out of the loop based on
+// a condition while still processing elements in order of their allocation.
+func (p *PoolGroup[T]) ConditionalEach(each func(elm *T) bool) {
+outerLoop:
+	for i := range p.pools {
+		for j := p.pools[i].takenLen - 1; j >= 0; j-- {
+			if !each(&p.pools[i].elements[p.pools[i].taken[j]]) {
+				break outerLoop
+			}
 		}
 	}
 }

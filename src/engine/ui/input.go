@@ -37,6 +37,12 @@
 package ui
 
 import (
+	"math"
+	"time"
+	"unicode"
+	"unicode/utf8"
+	"weak"
+
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/engine/systems/events"
 	"kaijuengine.com/klib"
@@ -44,11 +50,6 @@ import (
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"math"
-	"time"
-	"unicode"
-	"unicode/utf8"
-	"weak"
 )
 
 type InputType = int32
@@ -87,6 +88,8 @@ type inputData struct {
 	nextFocusInput                    weak.Pointer[Input]
 	labelShift                        float32
 	textOnFocus                       string
+	lastClickTime                     time.Time
+	lastDownTime                      time.Time
 }
 
 func (i *inputData) innerPanelData() *panelData { return &i.panelData }
@@ -159,6 +162,7 @@ func (input *Input) Init(placeholderText string) {
 	base.AddEvent(EventTypeExit, input.onExit)
 	base.AddEvent(EventTypeDown, input.onDown)
 	base.AddEvent(EventTypeClick, input.onClick)
+	base.AddEvent(EventTypeDoubleClick, input.onDoubleClick)
 	base.AddEvent(EventTypeMiss, input.onMiss)
 	base.AddEvent(EventTypeRebuild, input.onRebuild)
 	input.SetFGColor(matrix.ColorBlack())
@@ -571,7 +575,38 @@ func (input *Input) onDown() {
 }
 
 func (input *Input) onClick() {
+	if input.detectDoubleClick() {
+		input.onDoubleClick()
+		return
+	}
 	input.Focus()
+}
+
+func (input *Input) onDoubleClick() {
+	input.Focus()
+	input.SelectAll()
+}
+
+func (input *Input) detectDoubleClick() bool {
+	data := input.InputData()
+	now := time.Now()
+
+	clickDuration := now.Sub(data.lastDownTime)
+	if clickDuration > 200*time.Millisecond {
+		data.lastClickTime = time.Time{}
+		return false
+	}
+
+	if !data.lastClickTime.IsZero() {
+		delta := now.Sub(data.lastClickTime)
+		if delta > 0 && delta <= 300*time.Millisecond {
+			data.lastClickTime = time.Time{}
+			return true
+		}
+	}
+
+	data.lastClickTime = now
+	return false
 }
 
 func (input *Input) onMiss() {

@@ -55,7 +55,7 @@ func (v *Vec2) SetX(x Float)      { v[Vx] = x }
 func (v *Vec2) SetY(y Float)      { v[Vy] = y }
 func (v *Vec2) SetWidth(x Float)  { v[Vx] = x }
 func (v *Vec2) SetHeight(y Float) { v[Vy] = y }
-func (v *Vec2) AsVec3() Vec3      { return NewVec3(v[Vx], v[Vy], 0) }
+func (v Vec2) AsVec3() Vec3       { return NewVec3(v[Vx], v[Vy], 0) }
 func (v Vec2) XY() (Float, Float) { return v[Vx], v[Vy] }
 
 func (v Vec2) AsVec2i() Vec2i {
@@ -251,4 +251,28 @@ func (v Vec2) LargestAxisDelta() Float {
 	} else {
 		return hi
 	}
+}
+
+func Vec2Inf(sign int) Vec2 {
+	return Vec2{Inf(sign), Inf(sign)}
+}
+
+func Vec2NaN() Vec2 {
+	return Vec2{NaN(), NaN()}
+}
+
+func (v Vec2) IsZero() bool {
+	return Vec2Approx(v, Vec2Zero())
+}
+
+func (v Vec2) IsInf(sign int) bool {
+	return IsInf(v[Vx], sign) || IsInf(v[Vy], sign)
+}
+
+func (v Vec2) IsNaN() bool {
+	return IsNaN(v[Vx]) || IsNaN(v[Vy])
+}
+
+func (v Vec2) IsValidNonZero() bool {
+	return !v.IsZero() && !v.IsNaN() && !v.IsInf(-1) && !v.IsInf(1)
 }

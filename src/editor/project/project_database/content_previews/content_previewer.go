@@ -40,6 +40,11 @@ import (
 	"bytes"
 	"image"
 	"image/png"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"sync"
+
 	"kaijuengine.com/editor/project/project_database/content_database"
 	"kaijuengine.com/editor/project/project_file_system"
 	"kaijuengine.com/engine"
@@ -47,10 +52,6 @@ import (
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"os"
-	"path/filepath"
-	"sync"
 )
 
 const (
@@ -116,12 +117,20 @@ func (p *ContentPreviewer) LoadPreviewImage(id string) (*rendering.Texture, erro
 	const filter = rendering.TextureFilterLinear
 	tex, err := host.TextureCache().Texture(texKey, filter)
 	if tex == nil || err != nil {
-		if tex, err = rendering.NewTextureFromImage(texKey, data, filter); err != nil {
+		tex, err = p.useCachedTexture(texKey, data, filter)
+		if err != nil {
 			return nil, err
 		}
-		host.TextureCache().InsertTexture(tex)
 	}
 	return tex, nil
+}
+
+// useCachedTexture attempts to insert the preview image data into the texture cache and returns the texture if successful.
+// This allows for efficient reuse of textures across multiple previews and avoids redundant GPU uploads if the texture already exists in the cache.
+func (p *ContentPreviewer) useCachedTexture(texKey string, data []byte, filter rendering.TextureFilter) (*rendering.Texture, error) {
+	defer tracing.NewRegion("ContentPreviewer.useCachedTexture").End()
+	host := p.ed.Host()
+	return host.TextureCache().InsertImageTexture(texKey, data, filter)
 }
 
 func (p *ContentPreviewer) previewExists(id string) bool {

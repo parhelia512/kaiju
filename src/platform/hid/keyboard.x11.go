@@ -168,26 +168,36 @@ func ToKeyboardKey(nativeKey int) KeyboardKey {
 		return KeyboardKey8
 	case 0x0039:
 		return KeyboardKey9
-	case 0xFFB0:
+	case 0xFF9E, 0xFFB0:
 		return KeyboardNumKey0
-	case 0xFFB1:
+	case 0xFF9C, 0xFFB1:
 		return KeyboardNumKey1
-	case 0xFFB2:
+	case 0xFF99, 0xFFB2:
 		return KeyboardNumKey2
-	case 0xFFB3:
+	case 0xFF9B, 0xFFB3:
 		return KeyboardNumKey3
-	case 0xFFB4:
+	case 0xFF96, 0xFFB4:
 		return KeyboardNumKey4
-	case 0xFFB5:
+	case 0xFF9D, 0xFFB5:
 		return KeyboardNumKey5
-	case 0xFFB6:
+	case 0xFF98, 0xFFB6:
 		return KeyboardNumKey6
-	case 0xFFB7:
+	case 0xFF95, 0xFFB7:
 		return KeyboardNumKey7
-	case 0xFFB8:
+	case 0xFF97, 0xFFB8:
 		return KeyboardNumKey8
-	case 0xFFB9:
+	case 0xFF9A, 0xFFB9:
 		return KeyboardNumKey9
+	case 0xFFAA:
+		return KeyboardNumKeyMultiply
+	case 0xFFAB:
+		return KeyboardNumKeyAdd
+	case 0xFFAD:
+		return KeyboardNumKeySubtract
+	case 0xFFAE, 0xFF9F:
+		return KeyboardNumKeyPeriod
+	case 0xFFAF:
+		return KeyboardNumKeyDivide
 	case 0xFFBE:
 		return KeyboardKeyF1
 	case 0xFFBF:

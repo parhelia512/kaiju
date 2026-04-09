@@ -71,8 +71,11 @@ func (t *Threads) Stop() {
 	defer tracing.NewRegion("Threads.Stop").End()
 	t.mutex.Lock()
 	t.shutdown = true
-	t.mutex.Unlock()
 	t.cond.Broadcast()
+	for t.count > 0 {
+		t.cond.Wait()
+	}
+	t.mutex.Unlock()
 }
 
 func (t *Threads) AddWork(work []func(threadId int)) {
@@ -89,6 +92,12 @@ func (t *Threads) AddWork(work []func(threadId int)) {
 }
 
 func (t *Threads) work(id int) {
+	defer func() {
+		t.mutex.Lock()
+		t.count--
+		t.cond.Broadcast()
+		t.mutex.Unlock()
+	}()
 	for {
 		t.mutex.Lock()
 		if t.shutdown {

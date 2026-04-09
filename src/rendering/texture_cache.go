@@ -83,7 +83,11 @@ func (t *TextureCache) Texture(textureKey string, filter TextureFilter) (*Textur
 	}
 }
 
+// ReloadTexture forces a reload of the texture data for the given texture key and filter, bypassing the cache.
+// And invalidates the cached decoded data to ensure the next load will read fresh data from the asset database.
 func (t *TextureCache) ReloadTexture(textureKey string, filter TextureFilter) error {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
 	texture, ok := t.textures[filter][textureKey]
 	if !ok {
 		return nil
@@ -107,6 +111,8 @@ func (t *TextureCache) InsertTexture(tex *Texture) {
 	t.textures[tex.Filter][tex.Key] = tex
 }
 
+// InsertRawTexture creates a texture directly from raw data and caches it without needing to read from the asset database
+// This is useful for dynamically generated textures or when the raw data is already available in memory, caching without redundant file I/O.
 func (t *TextureCache) InsertRawTexture(key string, data []byte, width, height int, filter TextureFilter) (*Texture, error) {
 	defer tracing.NewRegion("TextureCache.InsertTexture").End()
 	t.mutex.Lock()
@@ -114,13 +120,31 @@ func (t *TextureCache) InsertRawTexture(key string, data []byte, width, height i
 	if texture, ok := t.textures[filter][key]; ok {
 		return texture, nil
 	}
-	texture, err := NewTextureFromMemory(key, data, width, height, filter)
+	tex, err := NewTextureFromMemory(key, data, width, height, filter)
 	if err != nil {
 		return nil, err
 	}
-	t.pendingTextures = append(t.pendingTextures, texture)
-	t.textures[filter][key] = texture
-	return texture, nil
+	t.pendingTextures = append(t.pendingTextures, tex)
+	t.textures[filter][key] = tex
+	return tex, nil
+}
+
+// InsertImageTexture creates a texture from raw image data and caches it efficiently
+func (t *TextureCache) InsertImageTexture(key string, imageData []byte, filter TextureFilter) (*Texture, error) {
+	defer tracing.NewRegion("TextureCache.InsertImageTexture").End()
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+	// Check if already exists
+	if texture, ok := t.textures[filter][key]; ok {
+		return texture, nil
+	}
+	tex, err := NewTextureFromMemory(key, imageData, 0, 0, filter)
+	if err != nil {
+		return nil, err
+	}
+	t.pendingTextures = append(t.pendingTextures, tex)
+	t.textures[filter][key] = tex
+	return tex, nil
 }
 
 func (t *TextureCache) ForceRemoveTexture(key string, filter TextureFilter) {
@@ -139,6 +163,8 @@ func (t *TextureCache) CreatePending() {
 	t.pendingTextures = klib.WipeSlice(t.pendingTextures)
 }
 
+// Destroy frees all textures in the cache and clears the decoded texture data cache to release GPU and memory resources when the texture cache is no longer needed.
+// This should be called when the application is shutting down or when the texture cache needs to be reset to ensure proper cleanup of resources.
 func (t *TextureCache) Destroy() {
 	defer tracing.NewRegion("TextureCache.Destroy").End()
 	t.pendingTextures = klib.WipeSlice(t.pendingTextures)

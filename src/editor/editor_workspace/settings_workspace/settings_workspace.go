@@ -37,6 +37,10 @@
 package settings_workspace
 
 import (
+	"log/slog"
+	"strconv"
+	"strings"
+
 	"kaijuengine.com/editor/editor_plugin"
 	"kaijuengine.com/editor/editor_settings"
 	"kaijuengine.com/editor/editor_workspace/common_workspace"
@@ -47,8 +51,6 @@ import (
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/filesystem"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"strconv"
 )
 
 const uiFile = "editor/ui/workspace/settings_workspace.go.html"
@@ -65,6 +67,7 @@ type SettingsWorkspace struct {
 	pluginInitStates   []bool
 	reloadRequested    bool
 	recompiling        bool
+	downloadingPlugin  bool
 }
 
 type settingsWorkspaceData struct {
@@ -175,7 +178,27 @@ func (w *SettingsWorkspace) togglePlugin(e *document.Element) {
 	if err != nil {
 		return
 	}
-	w.plugins[idx].Config.Enabled = !w.plugins[idx].Config.Enabled
+
+	plugin := &w.plugins[idx]
+
+	// Handle Git plugins differently - remove from storage when disabled
+	if strings.HasPrefix(plugin.Path, "git://") {
+		if plugin.Config.Enabled {
+			// Disable Git plugin by removing from storage
+			gitPlugin := strings.TrimPrefix(plugin.Path, "git://")
+			if err := editor_plugin.RemoveGitPluginFromStorage(gitPlugin); err != nil {
+				slog.Error("failed to remove Git plugin from storage", "plugin", gitPlugin, "error", err)
+				return
+			}
+			plugin.Config.Enabled = false
+			slog.Info("Git plugin removed from storage", "plugin", gitPlugin)
+		}
+		// Note: Re-enabling Git plugins would require re-adding their URL,
+		// so we don't handle that case here
+	} else {
+		// Handle local plugins normally
+		plugin.Config.Enabled = !plugin.Config.Enabled
+	}
 }
 
 func (w *SettingsWorkspace) clickOpenPlugins(e *document.Element) {
@@ -196,9 +219,11 @@ func (w *SettingsWorkspace) recompileEditor(*document.Element) {
 		slog.Warn("the editor is already in the process of recompiling, please wait")
 		return
 	}
-	pluginsChanged := false
-	for i := 0; i < len(w.plugins) && !pluginsChanged; i++ {
-		pluginsChanged = w.pluginInitStates[i] != w.plugins[i].Config.Enabled
+	pluginsChanged := len(w.plugins) != len(w.pluginInitStates)
+	if !pluginsChanged {
+		for i := 0; i < len(w.plugins) && i < len(w.pluginInitStates) && !pluginsChanged; i++ {
+			pluginsChanged = w.pluginInitStates[i] != w.plugins[i].Config.Enabled
+		}
 	}
 	if !pluginsChanged {
 		slog.Warn("plugin settings have not changed, no reason to recompile")
@@ -212,6 +237,102 @@ func (w *SettingsWorkspace) recompileEditor(*document.Element) {
 		slog.Error("failed to compile the editor", "error", err)
 		w.recompiling = false
 	}
+}
+
+func (w *SettingsWorkspace) addPluginFromGit(e *document.Element) {
+	defer tracing.NewRegion("SettingsWorkspace.addPluginFromGit").End()
+
+	if w.downloadingPlugin {
+		slog.Warn("a plugin download is already in progress, please wait")
+		return
+	}
+	if w.recompiling {
+		slog.Warn("the editor is already in the process of recompiling, please wait")
+		return
+	}
+
+	// Get Git URL from the input field
+	gitUrlElement, found := w.Doc.GetElementById("gitPluginUrl")
+	if !found {
+		slog.Error("Git URL input element not found")
+		return
+	}
+	gitUrlElement.UI.ToInput().SetPlaceholder("Processing...")
+
+	gitURL := gitUrlElement.UI.ToInput().Text()
+	if gitURL == "" {
+		slog.Warn("Git URL is empty")
+		return
+	}
+
+	w.downloadingPlugin = true
+
+	// Show processing status
+	statusElement, found := w.Doc.GetElementById("pluginDownloadStatus")
+	if found && statusElement.UI != nil {
+		if innerLabel := statusElement.InnerLabel(); innerLabel != nil {
+			innerLabel.SetText("Processing Git URL...")
+		}
+		statusElement.UI.Show()
+	}
+
+	// Process the Git URL to get module path
+	modulePath, err := editor_plugin.AddPluginFromGit(gitURL)
+	if err != nil {
+		w.downloadingPlugin = false
+		slog.Error("failed to process Git URL", "url", gitURL, "error", err)
+		if statusElement, found := w.Doc.GetElementById("pluginDownloadStatus"); found && statusElement.UI != nil {
+			if innerLabel := statusElement.InnerLabel(); innerLabel != nil {
+				innerLabel.SetText("Failed to process Git URL: " + err.Error())
+			}
+		}
+		return
+	}
+
+	// Update status before recompilation
+	if statusElement, found := w.Doc.GetElementById("pluginDownloadStatus"); found && statusElement.UI != nil {
+		if innerLabel := statusElement.InnerLabel(); innerLabel != nil {
+			innerLabel.SetText("Git plugin '" + modulePath + "' added. Recompiling editor...")
+		}
+	}
+
+	// Clear the input field
+	if urlElement, found := w.Doc.GetElementById("gitPluginUrl"); found {
+		urlElement.UI.ToInput().SetText("")
+	}
+
+	// Refresh the plugins list and recompile immediately
+	w.plugins = editor_plugin.AvailablePlugins()
+	w.pluginInitStates = make([]bool, len(w.plugins))
+	for i := range w.plugins {
+		w.pluginInitStates[i] = w.plugins[i].Config.Enabled
+	}
+
+	w.recompiling = true
+	if err := w.editor.RecompileWithPlugins(w.plugins, func(err error) {
+		w.recompiling = false
+		if err != nil {
+			slog.Error("failed to compile the editor", "error", err)
+			if statusElement, found := w.Doc.GetElementById("pluginDownloadStatus"); found && statusElement.UI != nil {
+				if innerLabel := statusElement.InnerLabel(); innerLabel != nil {
+					innerLabel.SetText("Failed to compile editor: " + err.Error())
+				}
+			}
+		}
+	}); err != nil {
+		w.recompiling = false
+		w.downloadingPlugin = false
+		slog.Error("failed to compile the editor", "error", err)
+		if statusElement, found := w.Doc.GetElementById("pluginDownloadStatus"); found && statusElement.UI != nil {
+			if innerLabel := statusElement.InnerLabel(); innerLabel != nil {
+				innerLabel.SetText("Failed to compile editor: " + err.Error())
+			}
+		}
+		return
+	}
+
+	w.downloadingPlugin = false
+	slog.Info("Git plugin added and recompilation started", "module", modulePath)
 }
 
 func (w *SettingsWorkspace) uiData() settingsWorkspaceData {
@@ -234,14 +355,15 @@ func (w *SettingsWorkspace) uiData() settingsWorkspaceData {
 
 func (w *SettingsWorkspace) funcMap() map[string]func(*document.Element) {
 	return map[string]func(*document.Element){
-		"showProjectSettings": w.showProjectSettings,
-		"showEditorSettings":  w.showEditorSettings,
-		"showPluginSettings":  w.showPluginSettings,
-		"valueChanged":        w.valueChanged,
-		"openPluginWebsite":   w.openPluginWebsite,
-		"togglePlugin":        w.togglePlugin,
-		"clickOpenPlugins":    w.clickOpenPlugins,
-		"recompileEditor":     w.recompileEditor,
+		"showProjectSettings":   w.showProjectSettings,
+		"showEditorSettings":    w.showEditorSettings,
+		"showPluginSettings":    w.showPluginSettings,
+		"valueChanged":          w.valueChanged,
+		"openPluginWebsite":     w.openPluginWebsite,
+		"togglePlugin":          w.togglePlugin,
+		"clickOpenPlugins":      w.clickOpenPlugins,
+		"recompileEditor":       w.recompileEditor,
+		"addPluginFromGit":      w.addPluginFromGit,
 	}
 }
 

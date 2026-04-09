@@ -138,12 +138,11 @@ func (g *GPUDevice) createGlobalUniforms() error {
 }
 
 func (g *GPUDevice) destroyGlobalUniforms() {
-	dbg := g.LogicalDevice.dbg
 	for i := 0; i < maxFramesInFlight; i++ {
 		g.DestroyBuffer(g.globalUniformBuffers[i])
-		dbg.remove(g.globalUniformBuffers[i].handle)
+		g.LogicalDevice.dbg.remove(g.globalUniformBuffers[i].handle)
 		g.FreeMemory(g.globalUniformBuffersMemory[i])
-		dbg.remove(g.globalUniformBuffersMemory[i].handle)
+		g.LogicalDevice.dbg.remove(g.globalUniformBuffersMemory[i].handle)
 	}
 }
 
