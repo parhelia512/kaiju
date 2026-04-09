@@ -507,24 +507,25 @@ func gltfReadMeshTextures(mesh *gltf.Mesh, doc *gltf.GLTF, primitive int) map[st
 	if len(doc.Materials) == 0 || mesh.Primitives[primitive].Material == nil {
 		return textures
 	}
-	uri := func(path string) string {
+	uri := func(textureIndex int32) string {
+		path := doc.Images[doc.Textures[textureIndex].Source].URI
 		return filepath.ToSlash(filepath.Join(filepath.Dir(doc.Asset.FilePath), path))
 	}
 	mat := doc.Materials[*mesh.Primitives[primitive].Material]
 	if mat.PBRMetallicRoughness.BaseColorTexture != nil {
-		textures["baseColor"] = uri(doc.Images[mat.PBRMetallicRoughness.BaseColorTexture.Index].URI)
+		textures["baseColor"] = uri(mat.PBRMetallicRoughness.BaseColorTexture.Index)
 	}
 	if mat.PBRMetallicRoughness.MetallicRoughnessTexture != nil {
-		textures["metallicRoughness"] = uri(doc.Images[mat.PBRMetallicRoughness.MetallicRoughnessTexture.Index].URI)
+		textures["metallicRoughness"] = uri(mat.PBRMetallicRoughness.MetallicRoughnessTexture.Index)
 	}
 	if mat.NormalTexture != nil {
-		textures["normal"] = uri(doc.Images[mat.NormalTexture.Index].URI)
+		textures["normal"] = uri(mat.NormalTexture.Index)
 	}
 	if mat.OcclusionTexture != nil {
-		textures["occlusion"] = uri(doc.Images[mat.OcclusionTexture.Index].URI)
+		textures["occlusion"] = uri(mat.OcclusionTexture.Index)
 	}
 	if mat.EmissiveTexture != nil {
-		textures["emissive"] = uri(doc.Images[mat.EmissiveTexture.Index].URI)
+		textures["emissive"] = uri(mat.EmissiveTexture.Index)
 	}
 	return textures
 }
