@@ -79,11 +79,40 @@ jobs:
           go build -tags="debug,editor" -o ../kaiju.exe ./
           Get-ChildItem ../kaiju.exe | Format-Table Name, Length, LastWriteTime
 
+      - name: Package Windows build with MinGW DLLs
+        shell: pwsh
+        run: |
+          $mingwBin = "C:\mingw64\bin"
+          
+          # Copy the exact runtime DLLs that the MinGW build depends on
+          @(
+            "libgcc_s_seh-1.dll",
+            "libstdc++-6.dll",
+            "libwinpthread-1.dll"
+          ) | ForEach-Object {
+            $source = Join-Path $mingwBin $_
+            if (Test-Path $source) {
+              Copy-Item $source -Destination .. -Force
+              Write-Output "Copied $_"
+            } else {
+              Write-Warning "DLL not found: $source (this should not happen with the current MinGW cache)"
+            }
+          }
+
+          # Create a clean zip containing the exe + all three DLLs
+          $zipName = "kaiju-editor-windows.zip"
+          $filesToZip = @("kaiju.exe", "libgcc_s_seh-1.dll", "libstdc++-6.dll", "libwinpthread-1.dll")
+          
+          Compress-Archive -Path $filesToZip -DestinationPath $zipName -Force
+          
+          Write-Output "Created Windows package: $zipName"
+          Get-ChildItem ..\$zipName | Format-Table Name, Length, LastWriteTime
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: kaiju-editor-windows
-          path: kaiju.exe
+          path: kaiju-editor-windows.zip
           retention-days: 7
 
   build-linux:
