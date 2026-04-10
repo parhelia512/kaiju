@@ -223,7 +223,8 @@ static NSEvent* handleEvent(NSEvent* e) {
 				.type = WINDOW_EVENT_TYPE_KEYBOARD_BUTTON,
 				.keyboardButton = { e.keyCode, e.type==NSEventTypeKeyDown?WINDOW_EVENT_BUTTON_TYPE_DOWN:WINDOW_EVENT_BUTTON_TYPE_UP }
 			});
-			break;
+			shared_mem_flush_events(sm);
+			return nil;
 		default: break;
 	}
 
