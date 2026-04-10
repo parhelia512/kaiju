@@ -37,12 +37,13 @@
 package editor_stage_manager
 
 import (
+	"slices"
+
 	"kaijuengine.com/engine/collision"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/registry/shader_data_registry"
-	"slices"
 )
 
 func (m *StageManager) HasSelection() bool { return len(m.selected) > 0 }
@@ -105,6 +106,23 @@ func (m *StageManager) SelectEntity(e *StageEntity) {
 func (m *StageManager) SelectEntityById(id string) {
 	m.ClearSelection()
 	m.SelectAppendEntityById(id)
+}
+
+func (m *StageManager) SelectWithChildrenOrSingleEntityById(id string) {
+	if entity, ok := m.EntityById(id); ok {
+		m.selectWithChildrenOrSingleEntityById(entity)
+	}
+}
+
+func (m *StageManager) selectWithChildrenOrSingleEntityById(entity *StageEntity) {
+	if entity.HasChildren() {
+		for _, child := range entity.Children {
+			m.selectWithChildrenOrSingleEntityById(EntityToStageEntity(child))
+			m.SelectEntity(entity)
+		}
+	} else {
+		m.SelectEntity(entity)
+	}
 }
 
 func (m *StageManager) SelectAppendEntityById(id string) {

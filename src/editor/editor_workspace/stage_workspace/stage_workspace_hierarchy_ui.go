@@ -37,14 +37,15 @@
 package stage_workspace
 
 import (
+	"strings"
+	"weak"
+
 	"kaijuengine.com/editor/editor_stage_manager"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/platform/windowing"
-	"strings"
-	"weak"
 )
 
 type WorkspaceHierarchyUI struct {
@@ -127,7 +128,7 @@ func (hui *WorkspaceHierarchyUI) selectEntity(e *document.Element) {
 	if kb.HasCtrl() {
 		man.SelectToggleEntityById(id)
 	} else if kb.HasShift() {
-		man.SelectAppendEntityById(id)
+		man.SelectWithChildrenOrSingleEntityById(id)
 	} else {
 		man.SelectEntityById(id)
 	}
