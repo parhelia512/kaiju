@@ -59,6 +59,7 @@ const (
 type TranslationTool struct {
 	root          matrix.Transform
 	arrows        [3]TranslationToolArrow
+	planes        [3]TranslationToolPlane
 	lastCamPos    matrix.Vec3
 	lastHit       matrix.Vec3
 	rootHitOffset matrix.Vec3
@@ -77,12 +78,21 @@ type TranslationToolArrow struct {
 	hitBox     collision.AABB
 }
 
+type TranslationToolPlane struct {
+	shaderData rendering.DrawInstance
+	transform  matrix.Transform
+	hitBox     collision.AABB
+}
+
 func (t *TranslationTool) Initialize(host *engine.Host) {
 	t.root.Initialize(host.WorkGroup())
 	t.currentAxis = -1
 	for i := range t.arrows {
 		t.arrows[i].Initialize(host, i)
 		t.arrows[i].transform.SetParent(&t.root)
+
+		t.planes[i].Initialize(host, i)
+		t.planes[i].transform.SetParent(&t.root)
 	}
 	t.Hide()
 }
@@ -113,6 +123,42 @@ func (a *TranslationToolArrow) Initialize(host *engine.Host, vec int) {
 		ViewCuller: &host.Cameras.Primary,
 	}
 	host.Drawings.AddDrawing(draw)
+
+}
+
+func (p *TranslationToolPlane) Initialize(host *engine.Host, vec int) {
+	p.transform.Initialize(host.WorkGroup())
+
+	m := rendering.NewMeshQuad(host.MeshCache())
+	mat, _ := host.MaterialCache().Material("gizmo_overlay.material")
+	p.shaderData = shader_data_registry.Create("unlit")
+	sd := p.shaderData.(*shader_data_registry.ShaderDataUnlit)
+
+	var dist matrix.Float = 0.5
+	p.transform.SetScale(matrix.NewVec3(0.25, 0.25, 0.25))
+	switch vec {
+	case matrix.Vx:
+		p.transform.SetRotation(matrix.NewVec3(0, 0, -90))
+		p.transform.SetLocalPosition(matrix.NewVec3(dist, dist, 0))
+		sd.Color = matrix.ColorRed()
+	case matrix.Vy:
+		p.transform.SetLocalPosition(matrix.NewVec3(0, dist, dist))
+		p.transform.SetRotation(matrix.NewVec3(0, 90, 0))
+		sd.Color = matrix.ColorGreen()
+	case matrix.Vz:
+		p.transform.SetRotation(matrix.NewVec3(-90, 0, 0))
+		p.transform.SetLocalPosition(matrix.NewVec3(dist, 0, dist))
+		sd.Color = matrix.ColorBlue()
+	}
+	draw := rendering.Drawing{
+		Material:   mat,
+		Mesh:       m,
+		ShaderData: p.shaderData,
+		Transform:  &p.transform,
+		ViewCuller: &host.Cameras.Primary,
+	}
+	host.Drawings.AddDrawing(draw)
+
 }
 
 func (t *TranslationTool) Show(pos matrix.Vec3) {
@@ -120,6 +166,7 @@ func (t *TranslationTool) Show(pos matrix.Vec3) {
 	t.root.SetPosition(pos)
 	for i := range t.arrows {
 		t.arrows[i].shaderData.Activate()
+		t.planes[i].shaderData.Activate()
 	}
 	t.updateHitBoxes()
 }
@@ -128,6 +175,7 @@ func (t *TranslationTool) Hide() {
 	t.visible = false
 	for i := range t.arrows {
 		t.arrows[i].shaderData.Deactivate()
+		t.planes[i].shaderData.Deactivate()
 	}
 	t.currentAxis = -1
 	t.dragging = false
