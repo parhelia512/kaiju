@@ -342,12 +342,7 @@ func (hui *WorkspaceHierarchyUI) entityChangedParent(e *editor_stage_manager.Sta
 		parent = hui.entityList
 	}
 	w.Doc.ChangeElementParent(child, parent)
-	if parent.Parent.Value() == hui.entityList {
-		w.Doc.SetElementClasses(parent, "hierarchyEntry")
-	}
-	if parent == hui.entityList {
-		w.Doc.SetElementClasses(child, "hierarchyEntry")
-	} else {
+	if parent != hui.entityList {
 		hui.setIndent(child)
 	}
 }

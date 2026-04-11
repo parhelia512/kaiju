@@ -437,12 +437,12 @@ button:active {
 }
 input[type="text"] {
 	color: white;
-	background-color: #111;
-	border: 2px solid #111;
+	background-color: #151515;
+	border: 2px solid #151515;
 	overflow: hidden;
 }
 input[type="text"]:focus {
-	border: 2px solid #777;
+	border: 2px solid #363636;
 }
 .filterBtn {
 	padding: 2px 5px;
@@ -480,10 +480,10 @@ input[type="text"]:focus {
 	color: #999;
 }
 .edPanelBg {
-	background-color: #1C1E25;
+	background-color: #1C1C1C;
 }
 .edPanelBgDark {
-	background-color: #181A20;
+	background-color: #151515;
 }
 .edPanelBgHoverable {
 	color: #AAA;
