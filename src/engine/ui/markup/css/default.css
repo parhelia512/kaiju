@@ -439,9 +439,8 @@ input[type="text"] {
 	color: white;
 	background-color: #111;
 	border: 2px solid #111;
-	border-radius: 5px;
 	overflow: hidden;
-}
+}i
 input[type="text"]:focus {
 	border: 2px solid #777;
 }

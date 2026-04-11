@@ -43,6 +43,7 @@ import (
 	"kaijuengine.com/editor/editor_stage_manager"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/assets"
+	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
@@ -98,13 +99,14 @@ func (hui *WorkspaceHierarchyUI) hierarchySearch(e *document.Element) {
 	defer tracing.NewRegion("WorkspaceHierarchyUI.hierarchySearch").End()
 	q := strings.ToLower(e.UI.ToInput().Text())
 	for i := range hui.entityList.Children[1:] {
-		lbl := hui.entityList.Children[i+1].Children[0].Children[0].UI.ToLabel()
+		lbl := hui.entityList.Children[i+1].Children[2].InnerLabel()
 		if strings.Contains(strings.ToLower(lbl.Text()), q) {
 			hui.entityList.Children[i+1].UI.Show()
 		} else {
 			hui.entityList.Children[i+1].UI.Hide()
 		}
 	}
+	hui.entityList.UI.SetDirty(ui.DirtyTypeLayout)
 }
 
 func (hui *WorkspaceHierarchyUI) processHotkeys(host *engine.Host) {
