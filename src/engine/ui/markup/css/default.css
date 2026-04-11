@@ -440,7 +440,7 @@ input[type="text"] {
 	background-color: #111;
 	border: 2px solid #111;
 	overflow: hidden;
-}i
+}
 input[type="text"]:focus {
 	border: 2px solid #777;
 }
