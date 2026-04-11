@@ -156,8 +156,16 @@ func (hui *WorkspaceHierarchyUI) entityToggleVisibility(e *document.Element) {
 	if entity, ok := man.EntityById(id); ok {
 		if entity.IsActive() {
 			entity.Deactivate()
+			w.ed.History().Add(&hierarchyEntityChangeVisibilty{
+				entity:  entity,
+				visible: false,
+			})
 		} else {
 			entity.Activate()
+			w.ed.History().Add(&hierarchyEntityChangeVisibilty{
+				entity:  entity,
+				visible: true,
+			})
 		}
 	}
 }
