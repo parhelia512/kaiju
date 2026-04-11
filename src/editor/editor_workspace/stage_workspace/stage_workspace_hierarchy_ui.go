@@ -42,10 +42,12 @@ import (
 
 	"kaijuengine.com/editor/editor_stage_manager"
 	"kaijuengine.com/engine"
+	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/platform/windowing"
+	"kaijuengine.com/rendering"
 )
 
 type WorkspaceHierarchyUI struct {
@@ -59,13 +61,14 @@ type WorkspaceHierarchyUI struct {
 func (hui *WorkspaceHierarchyUI) setupFuncs() map[string]func(*document.Element) {
 	defer tracing.NewRegion("WorkspaceHierarchyUI.setupFuncs").End()
 	return map[string]func(*document.Element){
-		"hierarchySearch": hui.hierarchySearch,
-		"selectEntity":    hui.selectEntity,
-		"entityDragStart": hui.entityDragStart,
-		"entityDrop":      hui.entityDrop,
-		"entityDragEnter": hui.entityDragEnter,
-		"entityDragExit":  hui.entityDragExit,
-		"hierarchyDrop":   hui.hierarchyDrop,
+		"hierarchySearch":        hui.hierarchySearch,
+		"selectEntity":           hui.selectEntity,
+		"entityToggleVisibility": hui.entityToggleVisibility,
+		"entityDragStart":        hui.entityDragStart,
+		"entityDrop":             hui.entityDrop,
+		"entityDragEnter":        hui.entityDragEnter,
+		"entityDragExit":         hui.entityDragExit,
+		"hierarchyDrop":          hui.hierarchyDrop,
 	}
 }
 
@@ -131,6 +134,33 @@ func (hui *WorkspaceHierarchyUI) selectEntity(e *document.Element) {
 		man.SelectWithChildrenOrSingleEntityById(id)
 	} else {
 		man.SelectEntityById(id)
+	}
+}
+
+func (hui *WorkspaceHierarchyUI) textureFromString(key string) *rendering.Texture {
+	w := hui.workspace.Value()
+	filter := rendering.TextureFilterLinear
+	tex, err := w.Host.TextureCache().Texture(key, filter)
+	if err == nil {
+		return tex
+	}
+	tex, _ = w.Host.TextureCache().Texture(assets.TextureSquare, filter)
+	return tex
+}
+
+func (hui *WorkspaceHierarchyUI) entityToggleVisibility(e *document.Element) {
+	defer tracing.NewRegion("WorkspaceHierarchyUI.entityToggleVisibility").End()
+	id := e.Parent.Value().Attribute("id")
+	w := hui.workspace.Value()
+	man := w.stageView.Manager()
+	if entity, ok := man.EntityById(id); ok {
+		if entity.IsActive() {
+			entity.Deactivate()
+			e.UI.ToImage().SetTexture(hui.textureFromString("editor/textures/icons/eye_closed.png"))
+		} else {
+			entity.Activate()
+			e.UI.ToImage().SetTexture(hui.textureFromString("editor/textures/icons/eye_open.png"))
+		}
 	}
 }
 
@@ -236,7 +266,8 @@ func (hui *WorkspaceHierarchyUI) entityCreated(e *editor_stage_manager.StageEnti
 	w := hui.workspace.Value()
 	cpy := w.Doc.DuplicateElement(hui.entityTemplate)
 	w.Doc.SetElementId(cpy, e.StageData.Description.Id)
-	cpy.Children[0].Children[0].UI.ToLabel().SetText(e.Name())
+	cpy.Children[0].UI.ToPanel().SetUseBlending(true)
+	cpy.Children[2].InnerLabel().SetText(e.Name())
 }
 
 func (hui *WorkspaceHierarchyUI) entityDestroyed(e *editor_stage_manager.StageEntity) {
@@ -298,8 +329,21 @@ func (hui *WorkspaceHierarchyUI) entityChangedParent(e *editor_stage_manager.Sta
 	if parent == hui.entityList {
 		w.Doc.SetElementClasses(child, "hierarchyEntry")
 	} else {
-		w.Doc.SetElementClasses(child, "hierarchyEntry", "hierarchyEntryChild")
+		hui.setIndent(child)
 	}
+}
+
+func (hui *WorkspaceHierarchyUI) setIndent(row *document.Element) {
+	parent := row.Parent.Value()
+	if parent == nil {
+		return
+	}
+	parentCount := 0
+	for parent != hui.entityList {
+		parentCount++
+		parent = parent.Parent.Value()
+	}
+	row.Children[1].UI.ToPanel().Base().Layout().SetPadding(float32(parentCount*10), 0, 0, 0)
 }
 
 func (hui *WorkspaceHierarchyUI) dragStopped() {
@@ -317,9 +361,6 @@ func (hui *WorkspaceHierarchyUI) buildEntityClasses(e *document.Element, additio
 		classes = append(classes, "hierarchyEntrySelected")
 	}
 	classes = append(classes, additionalClasses...)
-	if e.Parent.Value() != hui.entityList {
-		classes = append(classes, "hierarchyEntryChild")
-	}
 	return classes
 }
 

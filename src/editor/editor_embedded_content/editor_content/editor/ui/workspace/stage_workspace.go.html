@@ -104,7 +104,6 @@
 				width: 100%;
 				height: calc(100% - 3em);
 				overflow-y: scroll;
-				padding-left: 1em;
 			}
 			.hierarchyEntry {
 				width: 100%;
@@ -116,7 +115,7 @@
 				background-color: #313232;
 			}
 			.hierarchyEntrySelected {
-				background-color: #575757;
+				background-color: #536b7a;
 			}
 			.hierarchyEntryDragHover:hover {
 				background-color: #682A2D;
@@ -130,9 +129,14 @@
 				width: calc(100% - 2em);
 				height: 2em;
 			}
-			.hierarchyEntryChild {
-				margin-left: 1em;
+			.hierarchyEntry img {
+				width: 16px;
+				height: 16px;
+				margin-right: 8px;
 			}
+			.entryEye { background-color: rgb(200, 200, 200); }
+			.entryEye:hover { background-color: rgb(255, 255, 255); }
+			.entryEye:active { background-color: rgb(200, 200, 200); }
 			#hierarchyDragPreview {
 				position: absolute;
 				width: 2em;
@@ -232,6 +236,8 @@
 			<input type="text" placeholder="Search..." onsubmit="hierarchySearch" onchange="hierarchySearch" />
 			<div id="entityList">
 				<div id="entityTemplate" class="hierarchyEntry" onclick="selectEntity" ondragstart="entityDragStart" ondrop="entityDrop" ondragenter="entityDragEnter" ondragleave="entityDragExit">
+					<img class="entryEye" src="editor/textures/icons/eye_open.png" onclick="entityToggleVisibility" />
+					<span class="entrySpaces"></span>
 					<span>Name...</span>
 				</div>
 			</div>

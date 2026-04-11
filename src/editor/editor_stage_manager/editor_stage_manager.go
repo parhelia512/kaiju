@@ -183,6 +183,16 @@ func (m *StageManager) AddEntityWithId(id, name string, point matrix.Vec3) *Stag
 	e.AddNamedData("stage", e.StageData)
 	wm := weak.Make(m)
 	we := weak.Make(e)
+	e.OnActivate.Add(func() {
+		if e.StageData.ShaderData != nil {
+			e.StageData.ShaderData.Activate()
+		}
+	})
+	e.OnDeactivate.Add(func() {
+		if e.StageData.ShaderData != nil {
+			e.StageData.ShaderData.Deactivate()
+		}
+	})
 	e.OnDestroy.Add(func() {
 		sm := wm.Value()
 		if sm == nil {
@@ -753,7 +763,6 @@ func (m *StageManager) spawnLoadedEntity(e *StageEntity, host *engine.Host, fs *
 			ViewCuller: &host.Cameras.Primary,
 		}
 		host.Drawings.AddDrawing(draw)
-		e.OnDestroy.Add(func() { e.StageData.ShaderData.Destroy() })
 	})
 	return nil
 }

@@ -733,11 +733,12 @@ func (p *Panel) SetBackground(tex *rendering.Texture) {
 		p.textureSize = matrix.NewVec2(float32(tex.Width), float32(tex.Height))
 		p.shaderData.resetSize2D(p.Base())
 		pd.drawing.Material = pd.drawing.Material.SelectRoot().CreateInstance(t)
-		if pd.transparentDrawing.Material != nil {
-			pd.transparentDrawing.Material = pd.transparentDrawing.Material.SelectRoot().CreateInstance(t)
-		}
 		host := p.man.Value().Host
 		host.Drawings.AddDrawing(pd.drawing)
+		if pd.transparentDrawing.Material != nil {
+			pd.transparentDrawing.Material = pd.transparentDrawing.Material.SelectRoot().CreateInstance(t)
+			host.Drawings.AddDrawing(pd.transparentDrawing)
+		}
 	} else {
 		p.ensureBGExists(tex)
 	}
