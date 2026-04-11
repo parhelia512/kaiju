@@ -277,11 +277,15 @@ func (hui *WorkspaceHierarchyUI) entityCreated(e *editor_stage_manager.StageEnti
 	img := cpy.Children[0].UI.ToImage()
 	img.Base().ToPanel().SetUseBlending(true)
 	cpy.Children[2].InnerLabel().SetText(e.Name())
-	e.OnActivate.Add(func() {
+	activateEvtId := e.OnActivate.Add(func() {
 		img.SetTexture(hui.textureFromString("editor/textures/icons/eye_open.png"))
 	})
-	e.OnDeactivate.Add(func() {
+	deactivateEvtId := e.OnDeactivate.Add(func() {
 		img.SetTexture(hui.textureFromString("editor/textures/icons/eye_closed.png"))
+	})
+	img.Base().Entity().OnDestroy.Add(func() {
+		e.OnActivate.Remove(activateEvtId)
+		e.OnDeactivate.Remove(deactivateEvtId)
 	})
 }
 
