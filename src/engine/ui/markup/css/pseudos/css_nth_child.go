@@ -39,6 +39,7 @@ package pseudos
 import (
 	"errors"
 	"fmt"
+
 	"kaijuengine.com/engine/ui/markup/css/helpers"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
@@ -52,12 +53,14 @@ func nth(args []string, count int) (int, int, error) {
 	} else {
 		start := 0
 		skip := 0
+		prevArg := args[0]
+		defer func() { args[0] = prevArg }()
 		var err error
 		switch args[0] {
-		case "even":
-			args[0] = "2"
 		case "odd":
 			start = 1
+			fallthrough
+		case "even":
 			args[0] = "2"
 		}
 		helpers.ChangeNToChildCount(args, count)
