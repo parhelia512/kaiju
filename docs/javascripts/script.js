@@ -11,7 +11,7 @@ async function listSponsors() {
 		tr.appendChild(tdName);
 		const tdGit = document.createElement('td');
 		const a = document.createElement('a');
-		a.href = `https://github.com/${s.GitHub}`;
+		a.href = `${s.GitHub}`;
 		a.textContent = s.GitHub;
 		a.target = '_blank';
 		a.rel = 'noopener';
