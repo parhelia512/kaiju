@@ -156,10 +156,8 @@ func (hui *WorkspaceHierarchyUI) entityToggleVisibility(e *document.Element) {
 	if entity, ok := man.EntityById(id); ok {
 		if entity.IsActive() {
 			entity.Deactivate()
-			e.UI.ToImage().SetTexture(hui.textureFromString("editor/textures/icons/eye_closed.png"))
 		} else {
 			entity.Activate()
-			e.UI.ToImage().SetTexture(hui.textureFromString("editor/textures/icons/eye_open.png"))
 		}
 	}
 }
@@ -266,8 +264,15 @@ func (hui *WorkspaceHierarchyUI) entityCreated(e *editor_stage_manager.StageEnti
 	w := hui.workspace.Value()
 	cpy := w.Doc.DuplicateElement(hui.entityTemplate)
 	w.Doc.SetElementId(cpy, e.StageData.Description.Id)
-	cpy.Children[0].UI.ToPanel().SetUseBlending(true)
+	img := cpy.Children[0].UI.ToImage()
+	img.Base().ToPanel().SetUseBlending(true)
 	cpy.Children[2].InnerLabel().SetText(e.Name())
+	e.OnActivate.Add(func() {
+		img.SetTexture(hui.textureFromString("editor/textures/icons/eye_open.png"))
+	})
+	e.OnDeactivate.Add(func() {
+		img.SetTexture(hui.textureFromString("editor/textures/icons/eye_closed.png"))
+	})
 }
 
 func (hui *WorkspaceHierarchyUI) entityDestroyed(e *editor_stage_manager.StageEntity) {
