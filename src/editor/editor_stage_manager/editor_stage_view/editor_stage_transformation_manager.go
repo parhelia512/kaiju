@@ -37,6 +37,8 @@
 package editor_stage_view
 
 import (
+	"weak"
+
 	"kaijuengine.com/editor/editor_settings"
 	"kaijuengine.com/editor/editor_stage_manager"
 	"kaijuengine.com/editor/editor_stage_manager/editor_stage_view/transform_tools"
@@ -45,7 +47,6 @@ import (
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
-	"weak"
 )
 
 type ToolState = uint8
@@ -111,11 +112,11 @@ func (t *TransformationManager) Update(host *engine.Host) {
 		if t.manager.HasSelection() {
 			pos = t.manager.LastSelected().Transform.Position()
 		}
-		if kb.KeyDown(hid.KeyboardKey1) {
+		if kb.KeyDown(hid.KeyboardKeyG) {
 			t.setToolState(ToolStateMove, pos)
-		} else if kb.KeyDown(hid.KeyboardKey2) {
+		} else if kb.KeyDown(hid.KeyboardKeyR) {
 			t.setToolState(ToolStateRotate, pos)
-		} else if kb.KeyDown(hid.KeyboardKey3) {
+		} else if kb.KeyDown(hid.KeyboardKeyS) {
 			t.setToolState(ToolStateScale, pos)
 		}
 	}

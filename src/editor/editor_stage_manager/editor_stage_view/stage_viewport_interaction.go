@@ -76,11 +76,11 @@ func (v *StageView) processViewportInteractions() {
 		if v.manager.HasSelection() {
 			v.camera.Focus(v.manager.SelectionBounds())
 		}
-	} else if kb.KeyDown(hid.KeyboardKeyG) {
+	} else if kb.KeyDown(hid.KeyboardKey1) {
 		v.transformTool.Enable(transform_tools.ToolStateMove)
-	} else if kb.KeyDown(hid.KeyboardKeyR) {
+	} else if kb.KeyDown(hid.KeyboardKey2) {
 		v.transformTool.Enable(transform_tools.ToolStateRotate)
-	} else if kb.KeyDown(hid.KeyboardKeyS) {
+	} else if kb.KeyDown(hid.KeyboardKey3) {
 		v.transformTool.Enable(transform_tools.ToolStateScale)
 	}
 }
