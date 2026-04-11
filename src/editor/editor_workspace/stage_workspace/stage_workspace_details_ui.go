@@ -38,6 +38,13 @@ package stage_workspace
 
 import (
 	"fmt"
+	"log/slog"
+	"reflect"
+	"slices"
+	"strconv"
+	"strings"
+	"weak"
+
 	"kaijuengine.com/editor/codegen"
 	"kaijuengine.com/editor/codegen/entity_data_binding"
 	"kaijuengine.com/editor/editor_overlay/content_selector"
@@ -55,12 +62,6 @@ import (
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/platform/windowing"
 	"kaijuengine.com/rendering/loaders/kaiju_mesh"
-	"log/slog"
-	"reflect"
-	"slices"
-	"strconv"
-	"strings"
-	"weak"
 )
 
 type transformKind int
@@ -185,6 +186,7 @@ func (dui *WorkspaceDetailsUI) setup(w *StageWorkspace) {
 	man.OnEntitySelected.Add(dui.entitySelected)
 	man.OnEntityDeselected.Add(dui.entityDeselected)
 	w.ed.Project().OnEntityDataUpdated.Add(dui.reloadDataList)
+	dui.reloadDataList(w.ed.Project().EntityData())
 }
 
 func (dui *WorkspaceDetailsUI) open() {
@@ -372,6 +374,7 @@ func (dui *WorkspaceDetailsUI) searchEntityData(e *document.Element) {
 			c.UI.Hide()
 		}
 	}
+	dui.entityDataList.UI.SetDirty(ui.DirtyTypeLayout)
 }
 
 func (dui *WorkspaceDetailsUI) addEntityData(e *document.Element) {
