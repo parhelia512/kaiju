@@ -350,9 +350,19 @@ func (t *TranslationTool) processDrag(host *engine.Host, cam cameras.Camera, sna
 		// if ok {
 		// 	host.Window.SetCursorPosition(int(p.X()), int(p.Y()))
 		// }
-		for i := range t.arrows {
-			if i != t.currentAxis {
-				t.arrows[i].shaderData.Deactivate()
+
+		switch t.currentType {
+		case TRANSLATION_TYPE_ARROW:
+			for i := range t.arrows {
+				if i != t.currentAxis {
+					t.arrows[i].shaderData.Deactivate()
+				}
+			}
+		case TRANSLATION_TYPE_PLANE:
+			for i := range t.planes {
+				if i != t.currentAxis {
+					t.planes[i].shaderData.Deactivate()
+				}
 			}
 		}
 		t.OnDragStart.Execute(t.root.Position())
@@ -375,13 +385,29 @@ func (t *TranslationTool) processDrag(host *engine.Host, cam cameras.Camera, sna
 				p.SetY(matrix.Floor(p.Y()/snapScale) * snapScale)
 				p.SetZ(matrix.Floor(p.Z()/snapScale) * snapScale)
 			}
-			switch t.currentAxis {
-			case matrix.Vx:
-				rp.SetX(p.X())
-			case matrix.Vy:
-				rp.SetY(p.Y())
-			case matrix.Vz:
-				rp.SetZ(p.Z())
+
+			switch t.currentType {
+			case TRANSLATION_TYPE_ARROW:
+				switch t.currentAxis {
+				case matrix.Vx:
+					rp.SetX(p.X())
+				case matrix.Vy:
+					rp.SetY(p.Y())
+				case matrix.Vz:
+					rp.SetZ(p.Z())
+				}
+			case TRANSLATION_TYPE_PLANE:
+				switch t.currentAxis {
+				case matrix.Vx:
+					rp.SetX(p.X())
+					rp.SetY(p.Y())
+				case matrix.Vy:
+					rp.SetY(p.Y())
+					rp.SetZ(p.Z())
+				case matrix.Vz:
+					rp.SetZ(p.Z())
+					rp.SetX(p.X())
+				}
 			}
 			t.root.SetPosition(rp)
 			t.updateHitBoxes()
@@ -392,6 +418,7 @@ func (t *TranslationTool) processDrag(host *engine.Host, cam cameras.Camera, sna
 			t.OnDragEnd.Execute(t.root.Position())
 			for i := range t.arrows {
 				t.arrows[i].shaderData.Activate()
+				t.planes[i].shaderData.Activate()
 			}
 		}
 	}
