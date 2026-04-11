@@ -98,6 +98,7 @@
 				color: white;
 				border-right: 2px solid black;
 			}
+			.hierarchySearch { margin-top: 0.5em; }
 			.sideBarStandard { height: calc(70% - 3em); }
 			.sideBarTall { height: calc(100% - 3em); }
 			#entityList {
@@ -233,7 +234,7 @@
 		<span id="dimensionToggle" onclick="toggleDimension">{{ .CameraMode }}</span>
 		<!-- Hierarchy UI -->
 		<div id="hierarchyArea" class="edPanelBg sideBarStandard" ondrop="hierarchyDrop">
-			<input type="text" placeholder="Search..." onsubmit="hierarchySearch" onchange="hierarchySearch" />
+			<input type="text" class="hierarchySearch" placeholder="Search..." onsubmit="hierarchySearch" onchange="hierarchySearch" />
 			<div id="entityList">
 				<div id="entityTemplate" class="hierarchyEntry" onclick="selectEntity" ondragstart="entityDragStart" ondrop="entityDrop" ondragenter="entityDragEnter" ondragleave="entityDragExit">
 					<img class="entryEye" src="editor/textures/icons/eye_open.png" onclick="entityToggleVisibility" />
