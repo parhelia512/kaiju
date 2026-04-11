@@ -166,14 +166,14 @@ jobs:
       - name: Build editor (Debug)
         working-directory: ./src
         run: |
-          go build -tags="debug,editor" -o ../kaiju ./
-          ls -lh ../kaiju
+          go build -tags="debug,editor" -o ../kaiju-linux ./
+          ls -lh ../kaiju-linux
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: kaiju-editor-linux
-          path: kaiju
+          path: kaiju-linux
           retention-days: 7
 
   build-macos:
