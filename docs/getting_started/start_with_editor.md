@@ -10,6 +10,11 @@ The best way to get started with the engine is to get the editor up and running 
 ## Installing the editor
 Kaiju is a portable program and doesn't require installation at this time. You can either [download a prebuilt version](https://github.com/KaijuEngine/kaiju/tags) or [build from source](../engine/build_from_source.md).
 
+**WINDOWS NOTE:** If you have any errors or missing DLL files when trying to run,
+please see the [Windows Development](https://kaijuengine.com/engine/build_from_source/#windows-development)
+section of the building from source page. You may need Vulkan SDK, DirectX runtime,
+and/or MinGW built dlls.
+
 ## Learn through the Sudoku series
 <iframe width="560" height="315" src="https://www.youtube.com/embed/cmjX_M6lEZE?si=ZiCpQOjbgfp_9AV6" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 

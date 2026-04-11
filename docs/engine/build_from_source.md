@@ -38,6 +38,9 @@ Expected output: amd64
 - To build the exe, run:
   - `go build -ldflags="-s -w" -tags="editor" -o ../ ./`
 
+**NOTE:** If you get an error stating "`XINPUT1_3.dll` was not found", then
+you'll need to install the [DirectX runtime from Microsoft](https://www.microsoft.com/en-us/download/details.aspx?id=35). This is required for console controller support on Windows.
+
 ## Linux development
 - Ensure you've got `gcc` installed
 - Ensure you've got the X11 libs installed (xlib)
