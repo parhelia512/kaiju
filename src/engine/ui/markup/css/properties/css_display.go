@@ -38,6 +38,7 @@ package properties
 
 import (
 	"errors"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/rules"
@@ -46,11 +47,17 @@ import (
 
 // block|inline|inline-block|flex|inline-flex|grid|inline-grid|flow-root|none|contents|block flex|block flow|block flow-root|block grid|inline flex|inline flow|inline flow-root|inline grid|table|table-row|list-item|inherit|initial|revert|revert-layer|unset
 func (p Display) Process(panel *ui.Panel, elm *document.Element, values []rules.PropertyValue, host *engine.Host) error {
+	if len(values) == 0 {
+		return errors.New("no values for display")
+	}
 	switch values[0].Str {
 	case "none":
 		panel.Base().Hide()
 		return nil
+	case "grid", "inline-grid", "block grid", "inline grid":
+		panel.SetGrid(0)
+		return nil
 	default:
-		return errors.New("Display not implemented")
+		return nil
 	}
 }

@@ -37,7 +37,9 @@
 package properties
 
 import (
-	"errors"
+	"strconv"
+	"strings"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/rules"
@@ -45,7 +47,29 @@ import (
 )
 
 func (p GridTemplateColumns) Process(panel *ui.Panel, elm *document.Element, values []rules.PropertyValue, host *engine.Host) error {
-	problems := []error{errors.New("GridTemplateColumns not implemented")}
-
-	return problems[0]
+	if len(values) == 0 {
+		return nil
+	}
+	if values[0].Str == "initial" || values[0].Str == "none" {
+		panel.SetGrid(0)
+		return nil
+	}
+	cols := 3
+	str := values[0].Str
+	if n, err := strconv.Atoi(str); err == nil && n > 0 {
+		cols = n
+	} else if strings.Contains(str, "repeat(") {
+		if idx := strings.Index(str, "("); idx > 0 {
+			part := strings.TrimSpace(str[idx+1:])
+			if comma := strings.Index(part, ","); comma > 0 {
+				if n, err := strconv.Atoi(strings.TrimSpace(part[:comma])); err == nil && n > 0 {
+					cols = n
+				}
+			}
+		}
+	} else if len(values) > 1 {
+		cols = len(values)
+	}
+	panel.SetGrid(cols)
+	return nil
 }

@@ -38,13 +38,14 @@ package properties
 
 import (
 	"fmt"
+	"strings"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/functions"
 	"kaijuengine.com/engine/ui/markup/css/helpers"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
-	"strings"
 )
 
 func (p Width) Process(panel *ui.Panel, elm *document.Element, values []rules.PropertyValue, host *engine.Host) error {
@@ -69,15 +70,25 @@ func (p Width) Process(panel *ui.Panel, elm *document.Element, values []rules.Pr
 				l.ScaleWidth(float32(host.Window.Width()) * width)
 				return nil
 			}
-			pLayout := ui.FirstOnEntity(l.Ui().Entity().Parent).Layout()
-			os := pLayout.PixelSize().X()
-			s := os
-			s -= pLayout.Padding().Horizontal()
-			s -= pLayout.Border().Horizontal()
-			if os > 0 && s < 0 {
-				s = 0.001
+			pUI := ui.FirstOnEntity(l.Ui().Entity().Parent)
+			if pUI != nil {
+				parentPanel := pUI.ToPanel()
+				if parentPanel.IsGrid() {
+					// Child % width resolves to grid cell width (fixes div{ width: 100%; } in grid)
+					cellW := parentPanel.GridCellWidth()
+					l.ScaleWidth(cellW * width)
+					return nil
+				}
+				pLayout := pUI.Layout()
+				os := pLayout.PixelSize().X()
+				s := os
+				s -= pLayout.Padding().Horizontal()
+				s -= pLayout.Border().Horizontal()
+				if os > 0 && s < 0 {
+					s = 0.001
+				}
+				l.ScaleWidth(s * width)
 			}
-			l.ScaleWidth(s * width)
 		} else if values[0].IsFunction() {
 			if values[0].Str == "calc" {
 				val := values[0]

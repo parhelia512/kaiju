@@ -37,15 +37,19 @@
 package properties
 
 import (
-	"errors"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
+	"kaijuengine.com/engine/ui/markup/css/helpers"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
 )
 
 func (p ColumnGap) Process(panel *ui.Panel, elm *document.Element, values []rules.PropertyValue, host *engine.Host) error {
-	problems := []error{errors.New("ColumnGap not implemented")}
-
-	return problems[0]
+	if len(values) == 0 || values[0].Str == "initial" || values[0].Str == "inherit" {
+		return nil
+	}
+	gap := helpers.NumFromLength(values[0].Str, host.Window)
+	current := panel.GridGap()
+	panel.SetGridGap(gap, current.Y())
+	return nil
 }

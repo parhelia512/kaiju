@@ -116,6 +116,9 @@ type panelData struct {
 	drawing                   rendering.Drawing
 	transparentDrawing        rendering.Drawing
 	fitContent                ContentFit
+	isGrid                    bool
+	gridColumns               int
+	gridGap                   matrix.Vec2
 	requestScrollX            requestScroll
 	requestScrollY            requestScroll
 	overflow                  Overflow
@@ -162,6 +165,9 @@ func (panel *Panel) Init(texture *rendering.Texture, elmType ElementType) {
 	pd.scrollEvent = 0
 	pd.scrollDirection = PanelScrollDirectionNone
 	pd.fitContent = ContentFitBoth
+	pd.isGrid = false
+	pd.gridColumns = 0
+	pd.gridGap = matrix.Vec2Zero()
 	pd.enforcedColorStack = make([]matrix.Color, 0)
 	panel.postLayoutUpdate = panel.panelPostLayoutUpdate
 	panel.render = panel.panelRender
@@ -456,45 +462,51 @@ func (p *Panel) panelPostLayoutUpdate() {
 		pd.requestScrollY.requested = false
 	}
 	offsetStart := matrix.Vec2{-pd.scroll.X(), pd.scroll.Y()}
-	rows := make([]rowBuilder, 0)
 	ps := p.layout.PixelSize()
-	areaWidth := ps.X()
 	maxSize := matrix.Vec2{}
-	for _, kid := range p.entity.Children {
-		if !kid.IsActive() || kid.IsDestroyed() {
-			continue
-		}
-		kui := FirstOnEntity(kid)
-		if kui == nil {
-			slog.Error("No UI component on entity")
-			continue
-		}
-		kLayout := kui.Layout()
-		switch kLayout.Positioning() {
-		case PositioningAbsolute:
-		case PositioningRelative:
-			fallthrough
-		case PositioningStatic:
-			if len(rows) == 0 || !rows[len(rows)-1].addElement(areaWidth, kui) {
-				rows = append(rows, rowBuilder{})
-				rows[len(rows)-1].addElement(areaWidth, kui)
-			}
-		case PositioningFixed:
-		case PositioningSticky:
-		}
-	}
-	nextPos := offsetStart
-	nextPos[matrix.Vx] += p.layout.padding.Left() + p.layout.border.Left()
-	addY := p.layout.padding.Top() + p.layout.border.Top()
-	nextPos[matrix.Vy] += addY
-	maxSize[matrix.Vy] += addY
 	maxRowsX := matrix.Float(0)
-	for i := range rows {
-		rows[i].setElements(nextPos[matrix.Vx], nextPos[matrix.Vy])
-		addY = rows[i].height + rows[i].maxMarginTop + rows[i].maxMarginBottom
-		maxRowsX = max(maxRowsX, rows[i].x)
+	if pd.isGrid && pd.gridColumns > 0 {
+		maxSize = p.layoutGridChildren(pd, offsetStart, ps)
+		maxRowsX = maxSize.X()
+	} else {
+		rows := make([]rowBuilder, 0)
+		areaWidth := ps.X()
+		for _, kid := range p.entity.Children {
+			if !kid.IsActive() || kid.IsDestroyed() {
+				continue
+			}
+			kui := FirstOnEntity(kid)
+			if kui == nil {
+				slog.Error("No UI component on entity")
+				continue
+			}
+			kLayout := kui.Layout()
+			switch kLayout.Positioning() {
+			case PositioningAbsolute:
+			case PositioningRelative:
+				fallthrough
+			case PositioningStatic:
+				if len(rows) == 0 || !rows[len(rows)-1].addElement(areaWidth, kui) {
+					rows = append(rows, rowBuilder{})
+					rows[len(rows)-1].addElement(areaWidth, kui)
+				}
+			case PositioningFixed:
+			case PositioningSticky:
+			}
+		}
+		nextPos := offsetStart
+		nextPos[matrix.Vx] += p.layout.padding.Left() + p.layout.border.Left()
+		addY := p.layout.padding.Top() + p.layout.border.Top()
 		nextPos[matrix.Vy] += addY
 		maxSize[matrix.Vy] += addY
+		maxRowsX = matrix.Float(0)
+		for i := range rows {
+			rows[i].setElements(nextPos[matrix.Vx], nextPos[matrix.Vy])
+			addY = rows[i].height + rows[i].maxMarginTop + rows[i].maxMarginBottom
+			maxRowsX = max(maxRowsX, rows[i].x)
+			nextPos[matrix.Vy] += addY
+			maxSize[matrix.Vy] += addY
+		}
 	}
 	bounds := matrix.Vec2{maxSize.X(), maxSize.Y()}
 	if p.FittingContent() {
@@ -787,6 +799,130 @@ func (p *Panel) SetScrollDirection(direction PanelScrollDirection) {
 		pd.scrollBarY = p.createScrollBar()
 		p.AddChild((*UI)(pd.scrollBarY))
 	}
+}
+
+func (p *Panel) IsGrid() bool { return p.PanelData().isGrid }
+
+func (p *Panel) GridColumns() int { return p.PanelData().gridColumns }
+
+func (p *Panel) GridGap() matrix.Vec2 { return p.PanelData().gridGap }
+
+// GridCellWidth returns the computed width of a single grid column (based on current
+// panel dimensions, column count, and gap). Used by CSS width % processing so
+// children (e.g. div{width:100%}) fit their grid cell instead of full parent.
+func (p *Panel) GridCellWidth() float32 {
+	pd := p.PanelData()
+	if !pd.isGrid || pd.gridColumns <= 0 {
+		return p.layout.PixelSize().X()
+	}
+	ps := p.layout.PixelSize()
+	innerW := ps.X() - p.layout.padding.Horizontal() - p.layout.border.Horizontal()
+	gapX := pd.gridGap.X()
+	if gapX < 0 {
+		gapX = 0
+	}
+	colW := (innerW - float32(pd.gridColumns-1)*gapX) / float32(pd.gridColumns)
+	if colW < 1 {
+		colW = 1
+	}
+	return colW
+}
+
+// SetGrid enables CSS Grid-like layout with the given number of columns.
+// Children will be placed in row-major order into the grid cells.
+// Column widths are computed by dividing available width by columns (accounting for gaps).
+// Use SetGridGap to control spacing between items. This works with the existing
+// fit content and scrolling systems.
+func (p *Panel) SetGrid(columns int) {
+	pd := p.PanelData()
+	if columns <= 0 {
+		columns = 3 // default for display: grid or auto
+	}
+	if pd.isGrid && pd.gridColumns == columns {
+		return
+	}
+	pd.isGrid = true
+	pd.gridColumns = columns
+	if pd.gridGap.X() == 0 && pd.gridGap.Y() == 0 {
+		pd.gridGap = matrix.NewVec2(8, 8) // sensible default gap like CSS
+	}
+	p.Base().SetDirty(DirtyTypeLayout)
+}
+
+func (p *Panel) SetGridGap(x, y float32) {
+	pd := p.PanelData()
+	if matrix.Approx(pd.gridGap.X(), x) && matrix.Approx(pd.gridGap.Y(), y) {
+		return
+	}
+	pd.gridGap.SetX(x)
+	pd.gridGap.SetY(y)
+	p.Base().SetDirty(DirtyTypeLayout)
+}
+
+func (p *Panel) layoutGridChildren(pd *panelData, offsetStart matrix.Vec2, ps matrix.Vec2) matrix.Vec2 {
+	defer tracing.NewRegion("Panel.layoutGridChildren").End()
+	innerLeft := p.layout.padding.Left() + p.layout.border.Left()
+	innerTop := p.layout.padding.Top() + p.layout.border.Top()
+	startX := offsetStart.X() + innerLeft
+	startY := offsetStart.Y() + innerTop
+	innerWidth := ps.X() - p.layout.padding.Horizontal() - p.layout.border.Horizontal()
+	if innerWidth < 1 {
+		innerWidth = 100
+	}
+	gapX := pd.gridGap.X()
+	if gapX < 0 {
+		gapX = 0
+	}
+	gapY := pd.gridGap.Y()
+	if gapY < 0 {
+		gapY = 0
+	}
+	colWidth := (innerWidth - float32(pd.gridColumns-1)*gapX) / float32(pd.gridColumns)
+	if colWidth < 1 {
+		colWidth = 1
+	}
+	col := 0
+	y := startY
+	rowMaxHeight := float32(0)
+	contentSize := matrix.Vec2{innerWidth, innerTop}
+	for _, kid := range p.entity.Children {
+		if !kid.IsActive() || kid.IsDestroyed() {
+			continue
+		}
+		kui := FirstOnEntity(kid)
+		if kui == nil {
+			slog.Error("No UI component on entity")
+			continue
+		}
+		kLayout := kui.Layout()
+		switch kLayout.Positioning() {
+		case PositioningAbsolute, PositioningFixed, PositioningSticky:
+			continue
+		}
+		kSize := kLayout.PixelSize()
+		margin := kLayout.Margin()
+		cellX := startX + float32(col)*(colWidth+gapX)
+		x := cellX + margin.X() // left aligned like CSS start
+		itemY := y + margin.Y()
+		kLayout.SetRowLayoutOffset(matrix.NewVec2(x, itemY))
+		right := x + kSize.X() + margin.Z()
+		contentSize.SetX(matrix.Max(contentSize.X(), right))
+		itemHeight := kSize.Y() + margin.Vertical()
+		rowMaxHeight = matrix.Max(rowMaxHeight, itemHeight)
+		col++
+		if col >= pd.gridColumns {
+			y += rowMaxHeight + gapY
+			contentSize.SetY(y - offsetStart.Y())
+			rowMaxHeight = 0
+			col = 0
+		}
+	}
+	if rowMaxHeight > 0 {
+		y += rowMaxHeight + gapY
+		contentSize.SetY(y - offsetStart.Y())
+	}
+	contentSize.SetY(contentSize.Y() + p.layout.padding.Bottom() + p.layout.border.Bottom())
+	return contentSize
 }
 
 func (p *Panel) createScrollBar() *Panel {
