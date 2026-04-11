@@ -37,13 +37,14 @@
 package ui
 
 import (
-	"kaijuengine.com/engine"
-	"kaijuengine.com/klib"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"sort"
 	"sync"
 	"weak"
+
+	"kaijuengine.com/engine"
+	"kaijuengine.com/klib"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type requestState = int
@@ -191,8 +192,9 @@ func (group *Group) lateUpdate() {
 								shouldContinue = false
 							}
 						}
-					case EventTypeExit, EventTypeClick, EventTypeRightClick,
-						EventTypeDoubleClick, EventTypeDropExit,
+					case EventTypeExit, EventTypeDropExit:
+						req.target.ExecuteEvent(req.eventType)
+					case EventTypeClick, EventTypeRightClick, EventTypeDoubleClick,
 						EventTypeDragEnd, EventTypeDrop, EventTypeScroll:
 						if req.target.ExecuteEvent(req.eventType) {
 							shouldContinue = false
