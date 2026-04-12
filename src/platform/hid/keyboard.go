@@ -38,6 +38,7 @@ package hid
 
 import (
 	"log/slog"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -63,6 +64,8 @@ const (
 	KeyboardKeyRightCtrl
 	KeyboardKeyLeftShift
 	KeyboardKeyRightShift
+	KeyboardKeyLeftMeta
+	KeyboardKeyRightMeta
 	KeyboardKeyA
 	KeyboardKeyB
 	KeyboardKeyC
@@ -225,6 +228,16 @@ func (k Keyboard) HasCtrl() bool {
 	return k.KeyHeld(KeyboardKeyLeftCtrl) || k.KeyHeld(KeyboardKeyRightCtrl)
 }
 
+// HasCtrlOrMeta checks if the meta key is pressed on Darwin, or the ctrl key on
+// Windows and Linux.
+func (k Keyboard) HasCtrlOrMeta() bool {
+	if runtime.GOOS == "darwin" {
+		return k.HasMeta()
+	}
+
+	return k.HasCtrl()
+}
+
 func (k Keyboard) HasShift() bool {
 	return k.KeyHeld(KeyboardKeyLeftShift) || k.KeyHeld(KeyboardKeyRightShift)
 }
@@ -233,8 +246,12 @@ func (k Keyboard) HasAlt() bool {
 	return k.KeyHeld(KeyboardKeyLeftAlt) || k.KeyHeld(KeyboardKeyRightAlt)
 }
 
+func (k Keyboard) HasMeta() bool {
+	return k.KeyHeld(KeyboardKeyLeftMeta) || k.KeyHeld(KeyboardKeyRightMeta)
+}
+
 func (k Keyboard) HasModifier() bool {
-	return k.HasCtrl() || k.HasShift() || k.HasAlt()
+	return k.HasCtrl() || k.HasMeta() || k.HasShift() || k.HasAlt()
 }
 
 func (k Keyboard) IsToggleKey(key KeyboardKey) bool {

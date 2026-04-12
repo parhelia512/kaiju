@@ -118,7 +118,7 @@ func (hui *WorkspaceHierarchyUI) processHotkeys(host *engine.Host) {
 		} else {
 			hui.hierarchyArea.UI.Show()
 		}
-	} else if kb.HasCtrl() && kb.KeyDown(hid.KeyboardKeyT) {
+	} else if kb.HasCtrlOrMeta() && kb.KeyDown(hid.KeyboardKeyT) {
 		w := hui.workspace.Value()
 		w.stageView.Manager().CreateTemplateFromSelected(w.ed.Events(), w.ed.Project())
 	}
@@ -130,7 +130,7 @@ func (hui *WorkspaceHierarchyUI) selectEntity(e *document.Element) {
 	w := hui.workspace.Value()
 	kb := &w.Host.Window.Keyboard
 	man := w.stageView.Manager()
-	if kb.HasCtrl() {
+	if kb.HasCtrlOrMeta() {
 		man.SelectToggleEntityById(id)
 	} else if kb.HasShift() {
 		man.SelectWithChildrenOrSingleEntityById(id)

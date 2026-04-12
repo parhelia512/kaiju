@@ -223,12 +223,10 @@ func ToKeyboardKey(nativeKey int) KeyboardKey {
 		return KeyboardKeyLeftAlt
 	case 0x3D:
 		return KeyboardKeyRightAlt
-	// macOS Command keys map to Ctrl for shortcuts (Cmd+C, Cmd+V, etc.)
-	// This allows engine's Ctrl+C/V/X clipboard shortcuts to work with Cmd key
 	case 0x37:
-		return KeyboardKeyLeftCtrl // Left Command → Left Ctrl
+		return KeyboardKeyLeftMeta
 	case 0x36:
-		return KeyboardKeyRightCtrl // Right Command → Right Ctrl
+		return KeyboardKeyRightMeta
 
 	// Special keys
 	case 0x39:

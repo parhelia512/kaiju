@@ -39,12 +39,13 @@ package editor
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+
 	"kaijuengine.com/editor/editor_overlay/confirm_prompt"
 	"kaijuengine.com/editor/editor_overlay/new_project"
 	"kaijuengine.com/editor/project"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
 )
 
 func (ed *Editor) setProjectName(name string) {
@@ -108,7 +109,7 @@ func (ed *Editor) openProject(path string) {
 	// to force updating engine code in projects. This makes it easier than
 	// bumping the engine version to do the same thing (or deleting kaiju src)
 	kb := &ed.host.Window.Keyboard
-	forceReplace := kb.HasShift() || kb.HasCtrl()
+	forceReplace := kb.HasShift() || kb.HasCtrlOrMeta()
 	if projectVersion != EditorVersion || !hasEngineSource || forceReplace {
 		title := "Upgrade project"
 		description := "Your project is for an older version of the editor, would you like to upgrade it? Please make sure you've backed up your project (with VCS for example) before proceeding."

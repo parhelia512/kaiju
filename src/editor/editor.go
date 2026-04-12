@@ -37,6 +37,9 @@
 package editor
 
 import (
+	"log/slog"
+	"time"
+
 	"kaijuengine.com/build"
 	"kaijuengine.com/editor/editor_embedded_content"
 	"kaijuengine.com/editor/editor_events"
@@ -64,8 +67,6 @@ import (
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"time"
 )
 
 // Editor is the entry point structure for the entire editor. It acts as the
@@ -211,7 +212,7 @@ func (ed *Editor) update(deltaTime float64) {
 		return
 	}
 	kb := &ed.host.Window.Keyboard
-	if kb.HasCtrl() && !ed.IsInputFocused() {
+	if kb.HasCtrlOrMeta() && !ed.IsInputFocused() {
 		if kb.KeyDown(hid.KeyboardKeyZ) {
 			if !kb.HasShift() {
 				ed.history.Undo()
@@ -237,7 +238,7 @@ func (ed *Editor) update(deltaTime float64) {
 		return
 	}
 	if kb.KeyDown(hid.KeyboardKeyF5) {
-		if kb.HasCtrl() {
+		if kb.HasCtrlOrMeta() {
 			if kb.HasShift() {
 				ed.BuildAndRun(project.GameBuildModeRelease)
 			} else {
@@ -255,6 +256,9 @@ func (ed *Editor) update(deltaTime float64) {
 func processWorkspaceHotkeys(ed *Editor, kb *hid.Keyboard) {
 	for _, hk := range ed.currentWorkspace.Hotkeys() {
 		if hk.Ctrl && !kb.HasCtrl() {
+			continue
+		}
+		if hk.Meta && !kb.HasMeta() {
 			continue
 		}
 		if hk.Shift && !kb.HasShift() {

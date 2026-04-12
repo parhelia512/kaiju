@@ -37,6 +37,10 @@
 package transform_tools
 
 import (
+	"log/slog"
+	"slices"
+	"weak"
+
 	"kaijuengine.com/editor/editor_controls"
 	"kaijuengine.com/editor/editor_settings"
 	"kaijuengine.com/editor/editor_stage_manager/data_binding_renderer"
@@ -50,9 +54,6 @@ import (
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"slices"
-	"weak"
 )
 
 type TransformTool struct {
@@ -434,7 +435,7 @@ func (t *TransformTool) updateDrag(host *engine.Host) {
 		t.lastHit = point.Add(delta)
 	}
 	if !t.lastHit.Equals(point) {
-		t.transform(delta, host.Window.Keyboard.HasCtrl())
+		t.transform(delta, host.Window.Keyboard.HasCtrlOrMeta())
 		t.lastHit = point
 		for _, e := range sel {
 			for _, db := range e.DataBindings() {

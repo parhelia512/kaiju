@@ -41,6 +41,7 @@ import "kaijuengine.com/platform/hid"
 type HotKey struct {
 	Keys  []hid.KeyboardKey
 	Ctrl  bool
+	Meta  bool
 	Shift bool
 	Alt   bool
 	Call  func()

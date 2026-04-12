@@ -395,7 +395,13 @@ func (input *Input) arrowMoveCursor(kb *hid.Keyboard, dir int) {
 	data := input.InputData()
 	currentPos := data.cursorOffset
 	newPos := data.cursorOffset + dir
-	if kb.HasCtrl() {
+	if kb.HasMeta() {
+		if dir < 0 {
+			newPos = 0
+		} else {
+			newPos = utf8.RuneCountInString(data.label.Text())
+		}
+	} else if kb.HasCtrl() || kb.HasAlt() {
 		newPos = input.findNextBreak(newPos, dir)
 	}
 	input.moveCursor(newPos)
@@ -788,7 +794,7 @@ func (input *Input) keyPressed(keyId int, keyState hid.KeyState) {
 			kb := &host.Window.Keyboard
 			c := kb.KeyToRune(keyId)
 			if c != 0 {
-				if !kb.HasCtrl() {
+				if !kb.HasCtrlOrMeta() {
 					if kb.IsToggleKeyOn(hid.KeyboardKeyCapsLock) {
 						input.InsertText(string(unicode.ToUpper(c)))
 					} else {
@@ -902,7 +908,10 @@ func (input *Input) backspace(kb *hid.Keyboard) {
 	ld := data.label.LabelData()
 	if data.highlight.entity.IsActive() {
 		input.deleteSelection(false)
-	} else if kb.HasCtrl() {
+	} else if kb.HasMeta() {
+		input.setSelect(0, data.cursorOffset)
+		input.deleteSelection(false)
+	} else if kb.HasCtrl() || kb.HasAlt() {
 		from := input.findNextBreak(data.cursorOffset-1, -1)
 		input.setSelect(from, data.cursorOffset)
 		input.deleteSelection(false)

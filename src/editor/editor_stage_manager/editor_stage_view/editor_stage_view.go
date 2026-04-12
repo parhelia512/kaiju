@@ -37,12 +37,14 @@
 package editor_stage_view
 
 import (
+	"log/slog"
+	"weak"
+
 	"kaijuengine.com/editor/editor_controls"
 	"kaijuengine.com/editor/editor_stage_manager"
 	"kaijuengine.com/editor/editor_stage_manager/data_binding_renderer"
 	"kaijuengine.com/editor/editor_stage_manager/editor_stage_view/select_tool"
 	"kaijuengine.com/editor/editor_stage_manager/editor_stage_view/transform_tools"
-
 	"kaijuengine.com/editor/project"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/assets"
@@ -51,8 +53,6 @@ import (
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"weak"
 )
 
 type StageView struct {
@@ -130,7 +130,7 @@ func (v *StageView) Update(deltaTime float64, proj *project.Project) bool {
 	kb := &v.host.Window.Keyboard
 	if kb.KeyDown(hid.KeyboardKeyDelete) {
 		v.manager.DestroySelected()
-	} else if kb.HasCtrl() && kb.KeyDown(hid.KeyboardKeyD) {
+	} else if kb.HasCtrlOrMeta() && kb.KeyDown(hid.KeyboardKeyD) {
 		v.DuplicateSelected(proj)
 		return true
 	}

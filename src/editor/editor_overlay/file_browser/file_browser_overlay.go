@@ -38,6 +38,13 @@ package file_browser
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"unicode"
+
 	"kaijuengine.com/editor/editor_overlay/input_prompt"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
@@ -47,12 +54,6 @@ import (
 	"kaijuengine.com/platform/filesystem"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"os"
-	"path/filepath"
-	"runtime"
-	"slices"
-	"unicode"
 )
 
 type FileBrowser struct {
@@ -412,12 +413,12 @@ func (fb *FileBrowser) selectEntry(e *document.Element) {
 			fb.doc.SetElementClassesWithoutApply(target, "entry", "selected")
 			fb.selected = append(fb.selected, target)
 		}
-	} else if kb.HasCtrl() && slices.Contains(fb.selected, e) {
+	} else if kb.HasCtrlOrMeta() && slices.Contains(fb.selected, e) {
 		idx := slices.Index(fb.selected, e)
 		fb.selected = klib.RemoveUnordered(fb.selected, idx)
 		fb.doc.SetElementClassesWithoutApply(e, "entry")
 	} else {
-		if !fb.config.MultiSelect || !kb.HasCtrl() {
+		if !fb.config.MultiSelect || !kb.HasCtrlOrMeta() {
 			fb.clearSelection()
 		}
 		fb.doc.SetElementClassesWithoutApply(e, "entry", "selected")
