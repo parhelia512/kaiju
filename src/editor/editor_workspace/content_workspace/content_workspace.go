@@ -39,6 +39,15 @@ package content_workspace
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
+	"slices"
+	"strings"
+	"weak"
+
 	"kaijuengine.com/editor/editor_events"
 	"kaijuengine.com/editor/editor_overlay/confirm_prompt"
 	"kaijuengine.com/editor/editor_overlay/context_menu"
@@ -53,14 +62,6 @@ import (
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
-	"slices"
-	"strings"
-	"weak"
 )
 
 type ContentWorkspace struct {
@@ -455,10 +456,10 @@ func (w *ContentWorkspace) clickEntry(e *document.Element) {
 			}
 			w.appendSelected(t)
 		}
-	} else if kb.HasCtrl() && slices.Contains(w.selectedContent, e) {
+	} else if kb.HasCtrlOrMeta() && slices.Contains(w.selectedContent, e) {
 		w.removeSelected(e)
 	} else {
-		if !kb.HasCtrl() {
+		if !kb.HasCtrlOrMeta() {
 			w.clearSelection()
 		}
 		w.appendSelected(e)

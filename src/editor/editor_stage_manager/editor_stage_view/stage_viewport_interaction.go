@@ -66,7 +66,7 @@ func (v *StageView) processViewportInteractions() {
 		ray := v.camera.RayCast(m)
 		if kb.HasShift() {
 			v.manager.TryAppendSelect(ray)
-		} else if kb.HasCtrl() {
+		} else if kb.HasCtrlOrMeta() {
 			v.manager.TryToggleSelect(ray)
 		} else {
 			v.manager.TrySelect(ray)

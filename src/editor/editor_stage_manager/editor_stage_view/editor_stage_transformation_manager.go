@@ -121,7 +121,7 @@ func (t *TransformationManager) Update(host *engine.Host) {
 		}
 	}
 	ss := t.snapSettings
-	snap := kb.HasCtrl()
+	snap := kb.HasCtrlOrMeta()
 	t.isBusy = t.translateTool.Update(host, snap, ss.TranslateIncrement) ||
 		t.rotationTool.Update(host, snap, ss.RotateIncrement) ||
 		t.scalingTool.Update(host, snap, ss.ScaleIncrement)
