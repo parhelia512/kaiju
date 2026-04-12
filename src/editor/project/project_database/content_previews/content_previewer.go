@@ -147,7 +147,7 @@ func (p *ContentPreviewer) nextPreview() {
 		p.mutex.Unlock()
 		return
 	}
-	if len(p.pending) > 0 {
+	for len(p.pending) > 0 && id == "" {
 		id = p.pending[0]
 		p.pending = p.pending[1:]
 	}
