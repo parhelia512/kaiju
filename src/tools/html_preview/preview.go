@@ -39,6 +39,11 @@ package html_preview
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/engine/host_container"
@@ -49,10 +54,6 @@ import (
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/filesystem"
 	"kaijuengine.com/platform/profiler/tracing"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 type Preview struct {
@@ -182,8 +183,4 @@ func SetupConsole(host *engine.Host) {
 		}
 		return fmt.Sprintf("Previewing file: %s", filePath)
 	})
-	//console.For(host).AddCommand("reloadui", "Reloads all of the UI elements from disk", func(*engine.Host, string) string {
-	//	document.Debug.ReloadStylesEvent.Execute()
-	//	return ""
-	//})
 }

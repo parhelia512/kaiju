@@ -38,6 +38,14 @@ package document
 
 import (
 	"html/template"
+	"log/slog"
+	"runtime"
+	"slices"
+	"sort"
+	"strconv"
+	"strings"
+	"weak"
+
 	"kaijuengine.com/debug"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/systems/events"
@@ -48,13 +56,6 @@ import (
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"runtime"
-	"slices"
-	"sort"
-	"strconv"
-	"strings"
-	"weak"
 )
 
 type TemplateIndexedAny struct {
@@ -83,10 +84,6 @@ var funcMap = template.FuncMap{
 		return out
 	},
 }
-
-//var Debug = struct {
-//	ReloadStylesEvent events.Event
-//}{}
 
 type Document struct {
 	host             weak.Pointer[engine.Host]
@@ -509,9 +506,6 @@ func (d *Document) Destroy() {
 	}
 	clear(d.funcMap)
 	*d = Document{}
-	//if build.Debug {
-	//	Debug.ReloadStylesEvent.Remove(d.Debug.ReloadEventId)
-	//}
 }
 
 func (d *Document) MarkDirty() {
