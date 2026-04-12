@@ -61,6 +61,49 @@ func (g *GPUDevice) MeshIsReady(mesh Mesh) bool {
 	return mesh.MeshId.vertexBuffer.IsValid()
 }
 
+// UpdateMeshVertices re-uploads vertex data to an existing mesh's GPU
+// buffer via a staging buffer copy. The vertex count must match the
+// original; use CreateMesh for topology changes.
+func (g *GPUDevice) UpdateMeshVertices(mesh *Mesh, verts []Vertex) {
+	defer tracing.NewRegion("GPUDevice.UpdateMeshVertices").End()
+	if uint32(len(verts)) != mesh.MeshId.vertexCount {
+		return
+	}
+	g.updateVertexBufferImpl(mesh.MeshId.vertexBuffer, verts)
+}
+
+// CreateDynamicMesh creates a mesh with a HOST_VISIBLE vertex buffer that
+// can be updated directly via MapMemory without staging buffers or GPU
+// synchronization. Use for meshes that change frequently (e.g. terrain
+// during brush edits). The index buffer is still DEVICE_LOCAL.
+func (g *GPUDevice) CreateDynamicMesh(mesh *Mesh, verts []Vertex, indices []uint32) {
+	defer tracing.NewRegion("GPUDevice.CreateDynamicMesh").End()
+	id := &mesh.MeshId
+	id.vertexCount = uint32(len(verts))
+	id.indexCount = uint32(len(indices))
+	id.vertexBuffer, id.vertexBufferMemory, _ = g.createDynamicVertexBufferImpl(verts)
+	id.indexBuffer, id.indexBufferMemory, _ = g.CreateIndexBuffer(indices)
+	runtime.AddCleanup(mesh, func(state MeshCleanup) {
+		d := state.device.Value()
+		if d == nil {
+			return
+		}
+		d.Painter.preRuns = append(d.Painter.preRuns, func() {
+			d.destroyMeshHandle(state.id)
+		})
+	}, MeshCleanup{mesh.MeshId, weak.Make(g)})
+}
+
+// UpdateDynamicMeshVertices writes vertex data directly to a HOST_VISIBLE
+// vertex buffer. No staging buffer, no command buffer, no fence wait.
+func (g *GPUDevice) UpdateDynamicMeshVertices(mesh *Mesh, verts []Vertex) {
+	defer tracing.NewRegion("GPUDevice.UpdateDynamicMeshVertices").End()
+	if uint32(len(verts)) != mesh.MeshId.vertexCount {
+		return
+	}
+	g.updateDynamicVertexBufferImpl(mesh.MeshId.vertexBufferMemory, verts)
+}
+
 func (g *GPUDevice) CreateMesh(mesh *Mesh, verts []Vertex, indices []uint32) {
 	defer tracing.NewRegion("GPUDevice.CreateMesh").End()
 	id := &mesh.MeshId

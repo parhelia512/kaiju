@@ -77,6 +77,60 @@ func (g *GPUDevice) createVertexBufferImpl(verts []Vertex) (GPUBuffer, GPUDevice
 	return vertexBuffer, vertexBufferMemory, nil
 }
 
+func (g *GPUDevice) updateVertexBufferImpl(dst GPUBuffer, verts []Vertex) error {
+	vertBuff := klib.StructSliceToByteArray(verts)
+	if len(vertBuff) <= 0 {
+		return errors.New("buffer size is 0")
+	}
+	bufferSize := uintptr(len(vertBuff))
+	stagingBuffer, stagingBufferMemory, err := g.CreateBuffer(
+		bufferSize, GPUBufferUsageTransferSrcBit,
+		GPUMemoryPropertyHostVisibleBit|GPUMemoryPropertyHostCoherentBit)
+	if err != nil {
+		slog.Error("Failed to create staging buffer for vertex update")
+		return err
+	}
+	var data unsafe.Pointer
+	g.MapMemory(stagingBufferMemory, 0, bufferSize, 0, &data)
+	g.Memcopy(data, vertBuff)
+	g.UnmapMemory(stagingBufferMemory)
+	g.CopyBuffer(stagingBuffer, dst, bufferSize)
+	g.DestroyBuffer(stagingBuffer)
+	g.LogicalDevice.dbg.remove(stagingBuffer.handle)
+	g.FreeMemory(stagingBufferMemory)
+	g.LogicalDevice.dbg.remove(stagingBufferMemory.handle)
+	return nil
+}
+
+func (g *GPUDevice) createDynamicVertexBufferImpl(verts []Vertex) (GPUBuffer, GPUDeviceMemory, error) {
+	vertBuff := klib.StructSliceToByteArray(verts)
+	if len(vertBuff) <= 0 {
+		return GPUBuffer{}, GPUDeviceMemory{}, errors.New("buffer size is 0")
+	}
+	bufferSize := uintptr(len(vertBuff))
+	buffer, memory, err := g.CreateBuffer(
+		bufferSize, GPUBufferUsageVertexBufferBit,
+		GPUMemoryPropertyHostVisibleBit|GPUMemoryPropertyHostCoherentBit)
+	if err != nil {
+		slog.Error("Failed to create dynamic vertex buffer")
+		return buffer, memory, err
+	}
+	var data unsafe.Pointer
+	g.MapMemory(memory, 0, bufferSize, 0, &data)
+	g.Memcopy(data, vertBuff)
+	g.UnmapMemory(memory)
+	return buffer, memory, nil
+}
+
+func (g *GPUDevice) updateDynamicVertexBufferImpl(memory GPUDeviceMemory, verts []Vertex) {
+	vertBuff := klib.StructSliceToByteArray(verts)
+	bufferSize := uintptr(len(vertBuff))
+	var data unsafe.Pointer
+	g.MapMemory(memory, 0, bufferSize, 0, &data)
+	g.Memcopy(data, vertBuff)
+	g.UnmapMemory(memory)
+}
+
 func (g *GPUDevice) createIndexBufferImpl(indices []uint32) (GPUBuffer, GPUDeviceMemory, error) {
 	var indexBuffer GPUBuffer
 	var indexBufferMemory GPUDeviceMemory

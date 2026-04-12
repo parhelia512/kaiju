@@ -299,6 +299,9 @@ func (ui *UI) Clean() {
 	for !stabilized && maxIterations > 0 {
 		stabilized = true
 		for i := range tree {
+			if !tree[i].IsActive() {
+				continue
+			}
 			tree[i].cleanDirty()
 			tree[i].Layout().update()
 			tree[i].postLayoutUpdate()
@@ -307,6 +310,9 @@ func (ui *UI) Clean() {
 		maxIterations--
 	}
 	for i := range tree {
+		if !tree[i].IsActive() {
+			continue
+		}
 		tree[i].GenerateScissor()
 		tree[i].render()
 	}

@@ -102,6 +102,33 @@ func (m *MeshCache) Mesh(key string, verts []Vertex, indexes []uint32) *Mesh {
 	}
 }
 
+// DynamicMesh creates or retrieves a mesh backed by a HOST_VISIBLE vertex
+// buffer, suitable for frequent CPU updates without GPU synchronization.
+func (m *MeshCache) DynamicMesh(key string, verts []Vertex, indexes []uint32) *Mesh {
+	defer tracing.NewRegion("MeshCache.DynamicMesh").End()
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	if mesh, ok := m.meshes[key]; ok {
+		return mesh
+	}
+	mesh := NewDynamicMesh(key, verts, indexes)
+	m.pendingMeshes = append(m.pendingMeshes, mesh)
+	m.meshes[key] = mesh
+	return mesh
+}
+
+// UpdateMeshVertices queues a vertex data re-upload for an existing mesh.
+// The vertex count must match the original. The update is processed in
+// the next CreatePending call alongside new mesh creations.
+func (m *MeshCache) UpdateMeshVertices(key string, verts []Vertex) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	if mesh, ok := m.meshes[key]; ok && mesh.IsReady() {
+		mesh.pendingVerts = verts
+		m.pendingMeshes = append(m.pendingMeshes, mesh)
+	}
+}
+
 func (m *MeshCache) CreatePending() {
 	defer tracing.NewRegion("MeshCache.CreatePending").End()
 	m.mutex.Lock()
