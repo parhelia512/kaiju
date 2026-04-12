@@ -143,21 +143,19 @@ func (k KaijuMesh) GenerateBVH(threads *concurrent.Threads, transform *matrix.Tr
 	group := sync.WaitGroup{}
 	construct := func(from, to int) {
 		for i := from; i < to; i += 3 {
-			for i := 0; i < len(k.Indexes); i += 3 {
-				points := [3]matrix.Vec3{
-					k.Verts[k.Indexes[i]].Position,
-					k.Verts[k.Indexes[i+1]].Position,
-					k.Verts[k.Indexes[i+2]].Position,
-				}
-				tris[i/3] = collision.DetailedTriangleFromPoints(points)
+			points := [3]matrix.Vec3{
+				k.Verts[k.Indexes[i]].Position,
+				k.Verts[k.Indexes[i+1]].Position,
+				k.Verts[k.Indexes[i+2]].Position,
 			}
+			tris[i/3] = collision.DetailedTriangleFromPoints(points)
 		}
 		group.Done()
 	}
 	work := make([]func(int), len(tris))
 	group.Add(len(work))
 	for i := range work {
-		work[i] = func(int) { construct(i*3, (i+3)*3) }
+		work[i] = func(int) { construct(i*3, (i+1)*3) }
 	}
 	threads.AddWork(work)
 	group.Wait()
