@@ -63,11 +63,12 @@ const (
 )
 
 const (
-	horizontalPadding float32 = 5.0
-	cursorWidth       float32 = 2.0
-	cursorBlinkRate   float32 = 0.75
-	verticalPadding   float32 = 3.0
-	cursorY           float32 = 2
+	horizontalPadding      float32 = 5.0
+	cursorWidth            float32 = 2.0
+	cursorBlinkRate        float32 = 0.75
+	verticalPadding        float32 = 3.0
+	cursorY                float32 = 2
+	holdKeyPressedDuration int64   = 500
 )
 
 type inputData struct {
@@ -418,6 +419,7 @@ func (input *Input) arrowMoveCursor(kb *hid.Keyboard, dir int) {
 	} else {
 		input.resetSelect()
 	}
+	input.showCursor()
 }
 
 func (input *Input) textRightOf(pos int, outLen *int) string {
@@ -847,8 +849,20 @@ func (input *Input) keyPressed(keyId int, keyState hid.KeyState) {
 			case hid.KeyboardKeyBackspace:
 				prev := kb.GetKeyLastClicked(keyId)
 				dt := time.Since(prev)
-				if dt.Milliseconds() > 500 {
+				if dt.Milliseconds() > holdKeyPressedDuration {
 					input.backspace(kb)
+				}
+			case hid.KeyboardKeyLeft:
+				prev := kb.GetKeyLastClicked(keyId)
+				dt := time.Since(prev)
+				if dt.Milliseconds() > holdKeyPressedDuration {
+					input.arrowMoveCursor(kb, -1)
+				}
+			case hid.KeyboardKeyRight:
+				prev := kb.GetKeyLastClicked(keyId)
+				dt := time.Since(prev)
+				if dt.Milliseconds() > holdKeyPressedDuration {
+					input.arrowMoveCursor(kb, 1)
 				}
 			}
 		}

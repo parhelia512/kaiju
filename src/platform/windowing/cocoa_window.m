@@ -216,7 +216,7 @@ static NSEvent* handleEvent(NSEvent* e) {
 		case NSEventTypeKeyDown:
 		case NSEventTypeKeyUp:
 			// Skip auto‑repeat key‑down events
-			if (e.type == NSEventTypeKeyDown && e.isARepeat) {
+			if (e.type == NSEventTypeKeyDown && e.isARepeat && e.keyCode != 0x7B && e.keyCode != 0x7C) {
 				break;
 			}
 			shared_mem_add_event(sm, (WindowEvent){
