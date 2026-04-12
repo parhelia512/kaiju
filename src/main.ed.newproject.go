@@ -39,10 +39,11 @@
 package main
 
 import (
-	"kaiju/editor"
-	"kaiju/editor/project"
-	"kaiju/engine"
 	"log/slog"
+
+	"kaijuengine.com/editor"
+	"kaijuengine.com/editor/project"
+	"kaijuengine.com/engine"
 )
 
 func createNewProjectCLI(path string) {
