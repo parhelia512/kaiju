@@ -38,6 +38,13 @@ package ui_workspace
 
 import (
 	"encoding/json"
+	"log/slog"
+	"os"
+	"os/exec"
+	"strconv"
+	"strings"
+	"time"
+
 	"kaijuengine.com/editor/editor_overlay/file_browser"
 	"kaijuengine.com/editor/editor_workspace/common_workspace"
 	"kaijuengine.com/editor/project/project_file_system"
@@ -50,12 +57,6 @@ import (
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/filesystem"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"os"
-	"os/exec"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const updateInterval = 1.0
@@ -85,6 +86,7 @@ func (w *UIWorkspace) Initialize(host *engine.Host, ed UIWorkspaceEditorInterfac
 	w.ratio = matrix.NewVec2(16, 9)
 	w.CommonWorkspace.InitializeWithUI(host,
 		"editor/ui/workspace/ui_workspace.go.html", w.ratio, map[string]func(*document.Element){
+			"clickFile":         w.clickFile,
 			"clickEdit":         w.clickEdit,
 			"clickLoadData":     w.clickLoadData,
 			"changeWidthRatio":  w.changeWidthRatio,
@@ -115,6 +117,23 @@ func (w *UIWorkspace) Close() {
 
 func (w *UIWorkspace) Hotkeys() []common_workspace.HotKey {
 	return []common_workspace.HotKey{}
+}
+
+func (w *UIWorkspace) clickFile(e *document.Element) {
+	w.ed.BlurInterface()
+	file_browser.Show(w.Host, file_browser.Config{
+		Title:        "Load HTML file",
+		StartingPath: w.ed.ProjectFileSystem().FullPath(""),
+		ExtFilter:    []string{".html"},
+		OnlyFiles:    true,
+		OnCancel:     w.ed.FocusInterface,
+		OnConfirm: func(paths []string) {
+			w.ed.FocusInterface()
+			if paths[0] != "" {
+				w.OpenHtml(paths[0])
+			}
+		},
+	})
 }
 
 func (w *UIWorkspace) clickEdit(e *document.Element) {
@@ -246,6 +265,8 @@ func (w *UIWorkspace) OpenHtml(html string) {
 			w.html, w.bindingData, nil, w.previewArea); err == nil {
 			w.previewDoc = doc
 			w.pullStyles()
+		} else {
+			slog.Error("failed to load the html file", "error", err)
 		}
 	})
 	w.lastMod = time.Now()
