@@ -38,16 +38,15 @@ package editor_embedded_content
 
 import (
 	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"kaijuengine.com/editor/project/project_file_system"
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/platform/filesystem"
 	"kaijuengine.com/platform/profiler/tracing"
-	"os"
-	"path/filepath"
-	"strings"
 )
-
-const absoluteFilePrefix = ':'
 
 type EditorContent struct {
 	Pfs *project_file_system.FileSystem
@@ -112,8 +111,8 @@ func (e EditorContent) findFile(key string) string {
 
 func (e EditorContent) Read(key string) ([]byte, error) {
 	defer tracing.NewRegion("EditorContent.Read: " + key).End()
-	if key[0] == absoluteFilePrefix {
-		return filesystem.ReadFile(key[1:])
+	if filepath.IsAbs(key) {
+		return filesystem.ReadFile(key)
 	}
 	b, err := project_file_system.EngineFS.ReadFile(toEmbedPath(key))
 	if err != nil && e.Pfs != nil {
@@ -135,8 +134,8 @@ func (e EditorContent) Exists(key string) bool {
 	if strings.TrimSpace(key) == "" {
 		return false
 	}
-	if key[0] == absoluteFilePrefix {
-		return filesystem.FileExists(key[1:])
+	if filepath.IsAbs(key) {
+		return filesystem.FileExists(key)
 	}
 	f, err := project_file_system.EngineFS.Open(toEmbedPath(key))
 	if err != nil {

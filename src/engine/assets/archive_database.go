@@ -37,13 +37,13 @@
 package assets
 
 import (
+	"path/filepath"
+	"runtime"
+
 	"kaijuengine.com/engine/assets/content_archive"
 	"kaijuengine.com/platform/filesystem"
 	"kaijuengine.com/platform/profiler/tracing"
-	"runtime"
 )
-
-const absoluteFilePrefix = ':'
 
 type ArchiveDatabase struct {
 	archive     *content_archive.Archive
@@ -92,7 +92,7 @@ func (a *ArchiveDatabase) ReadText(key string) (string, error) {
 
 func (a *ArchiveDatabase) Read(key string) ([]byte, error) {
 	defer tracing.NewRegion("ArchiveDatabase.Read: " + key).End()
-	if key[0] == absoluteFilePrefix {
+	if filepath.IsAbs(key) {
 		return filesystem.ReadFile(key[1:])
 	}
 	return a.archive.Read(key)
@@ -100,7 +100,7 @@ func (a *ArchiveDatabase) Read(key string) ([]byte, error) {
 
 func (a *ArchiveDatabase) Exists(key string) bool {
 	defer tracing.NewRegion("ArchiveDatabase.Exists: " + key).End()
-	if key[0] == absoluteFilePrefix {
+	if filepath.IsAbs(key) {
 		return filesystem.FileExists(key[1:])
 	}
 	return a.archive.Exists(key)
