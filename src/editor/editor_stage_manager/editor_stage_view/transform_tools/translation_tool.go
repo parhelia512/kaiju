@@ -54,11 +54,23 @@ const (
 	translationGizmoTotalHeight = translationGizmoShaftHeight + translationGizmoArrowHeight
 	translationGizmoTotalRadius = max(translationGizmoShaftRadius, translationGizmoArrowRadius)
 	translationGizmoScale       = 0.1
+
+	translationGizmoPlaneSideLen            = 0.125
+	translationPlaneDistanceFromGizmoOrigin = 0.5
+)
+
+type TranslationHitEnum int
+
+const (
+	TRANSLATION_TYPE_ARROW TranslationHitEnum = iota
+	TRANSLATION_TYPE_PLANE
+	TRANSLATION_TYPE_NONE
 )
 
 type TranslationTool struct {
 	root          matrix.Transform
 	arrows        [3]TranslationToolArrow
+	planes        [3]TranslationToolPlane
 	lastCamPos    matrix.Vec3
 	lastHit       matrix.Vec3
 	rootHitOffset matrix.Vec3
@@ -67,6 +79,7 @@ type TranslationTool struct {
 	OnDragMove    events.EventWithArg[matrix.Vec3]
 	OnDragEnd     events.EventWithArg[matrix.Vec3]
 	currentAxis   int
+	currentType   TranslationHitEnum
 	dragging      bool
 	visible       bool
 }
@@ -77,12 +90,22 @@ type TranslationToolArrow struct {
 	hitBox     collision.AABB
 }
 
+type TranslationToolPlane struct {
+	shaderData rendering.DrawInstance
+	transform  matrix.Transform
+	hitBox     collision.AABB
+}
+
 func (t *TranslationTool) Initialize(host *engine.Host) {
 	t.root.Initialize(host.WorkGroup())
 	t.currentAxis = -1
+	t.currentType = TRANSLATION_TYPE_NONE
 	for i := range t.arrows {
 		t.arrows[i].Initialize(host, i)
 		t.arrows[i].transform.SetParent(&t.root)
+
+		t.planes[i].Initialize(host, i)
+		t.planes[i].transform.SetParent(&t.root)
 	}
 	t.Hide()
 }
@@ -113,6 +136,44 @@ func (a *TranslationToolArrow) Initialize(host *engine.Host, vec int) {
 		ViewCuller: &host.Cameras.Primary,
 	}
 	host.Drawings.AddDrawing(draw)
+
+}
+
+func (p *TranslationToolPlane) Initialize(host *engine.Host, vec int) {
+	p.transform.Initialize(host.WorkGroup())
+
+	m := rendering.NewMeshUnitQuad(host.MeshCache())
+	mat, _ := host.MaterialCache().Material("gizmo_overlay.material")
+	p.shaderData = shader_data_registry.Create("unlit")
+	sd := p.shaderData.(*shader_data_registry.ShaderDataUnlit)
+
+	var dist matrix.Float = translationPlaneDistanceFromGizmoOrigin
+
+	p.transform.SetScale(matrix.NewVec3(translationGizmoPlaneSideLen, translationGizmoPlaneSideLen, translationGizmoPlaneSideLen))
+
+	switch vec {
+	case matrix.Vx:
+		p.transform.SetRotation(matrix.NewVec3(0, 0, -90))
+		p.transform.SetLocalPosition(matrix.NewVec3(dist, dist, 0))
+		sd.Color = matrix.ColorRed()
+	case matrix.Vy:
+		p.transform.SetLocalPosition(matrix.NewVec3(0, dist, dist))
+		p.transform.SetRotation(matrix.NewVec3(0, 90, 0))
+		sd.Color = matrix.ColorGreen()
+	case matrix.Vz:
+		p.transform.SetRotation(matrix.NewVec3(-90, 0, 0))
+		p.transform.SetLocalPosition(matrix.NewVec3(dist, 0, dist))
+		sd.Color = matrix.ColorBlue()
+	}
+	draw := rendering.Drawing{
+		Material:   mat,
+		Mesh:       m,
+		ShaderData: p.shaderData,
+		Transform:  &p.transform,
+		ViewCuller: &host.Cameras.Primary,
+	}
+	host.Drawings.AddDrawing(draw)
+
 }
 
 func (t *TranslationTool) Show(pos matrix.Vec3) {
@@ -120,6 +181,7 @@ func (t *TranslationTool) Show(pos matrix.Vec3) {
 	t.root.SetPosition(pos)
 	for i := range t.arrows {
 		t.arrows[i].shaderData.Activate()
+		t.planes[i].shaderData.Activate()
 	}
 	t.updateHitBoxes()
 }
@@ -128,6 +190,7 @@ func (t *TranslationTool) Hide() {
 	t.visible = false
 	for i := range t.arrows {
 		t.arrows[i].shaderData.Deactivate()
+		t.planes[i].shaderData.Deactivate()
 	}
 	t.currentAxis = -1
 	t.dragging = false
@@ -183,6 +246,23 @@ func (t *TranslationTool) updateHitBoxes() {
 			t.arrows[i].hitBox.Extent.SetZ(arrowLen)
 		}
 	}
+
+	r = 0
+	for i := range t.planes {
+		len := matrix.Float(translationGizmoPlaneSideLen * scale)
+		t.planes[i].hitBox = collision.AABB{
+			Center: t.planes[i].transform.WorldPosition(),
+			Extent: matrix.NewVec3(len, len, len),
+		}
+		switch i {
+		case matrix.Vx:
+			t.planes[i].hitBox.Extent.SetZ(r)
+		case matrix.Vy:
+			t.planes[i].hitBox.Extent.SetX(r)
+		case matrix.Vz:
+			t.planes[i].hitBox.Extent.SetY(r)
+		}
+	}
 }
 
 func (t *TranslationTool) hitCheck(host *engine.Host, cam cameras.Camera) {
@@ -192,19 +272,44 @@ func (t *TranslationTool) hitCheck(host *engine.Host, cam cameras.Camera) {
 	ray := cam.RayCast(host.Window.Cursor.Position())
 	dist := matrix.FloatMax
 	target := -1
+	targetType := TRANSLATION_TYPE_NONE
+
 	for i := range t.arrows {
 		if hit, ok := t.arrows[i].hitBox.RayHit(ray); ok {
 			d := ray.Origin.Distance(hit)
 			if d < dist {
 				target = i
+				targetType = TRANSLATION_TYPE_ARROW
 				t.lastHit = hit
 				dist = d
 			}
 		}
 	}
-	if t.currentAxis != target {
-		if t.currentAxis != -1 {
-			sd := t.arrows[t.currentAxis].shaderData.(*shader_data_registry.ShaderDataUnlit)
+
+	for i := range t.planes {
+		if hit, ok := t.planes[i].hitBox.RayHit(ray); ok {
+			d := ray.Origin.Distance(hit)
+			if d < dist {
+				target = i
+				targetType = TRANSLATION_TYPE_PLANE
+				t.lastHit = hit
+				dist = d
+			}
+		}
+	}
+
+	if t.currentType != targetType || t.currentAxis != target {
+		//resetting color from yellow to original
+		if t.currentAxis != -1 && t.currentType != TRANSLATION_TYPE_NONE {
+			var sd *shader_data_registry.ShaderDataUnlit
+			switch t.currentType {
+			case TRANSLATION_TYPE_PLANE:
+				sd = t.planes[t.currentAxis].shaderData.(*shader_data_registry.ShaderDataUnlit)
+
+			default:
+				sd = t.arrows[t.currentAxis].shaderData.(*shader_data_registry.ShaderDataUnlit)
+			}
+
 			switch t.currentAxis {
 			case matrix.Vx:
 				sd.Color = matrix.ColorRed()
@@ -214,9 +319,18 @@ func (t *TranslationTool) hitCheck(host *engine.Host, cam cameras.Camera) {
 				sd.Color = matrix.ColorBlue()
 			}
 		}
+
 		t.currentAxis = target
-		if target != -1 {
-			sd := t.arrows[t.currentAxis].shaderData.(*shader_data_registry.ShaderDataUnlit)
+		t.currentType = targetType
+
+		if target != -1 && targetType != TRANSLATION_TYPE_NONE {
+			var sd *shader_data_registry.ShaderDataUnlit
+			switch targetType {
+			case TRANSLATION_TYPE_PLANE:
+				sd = t.planes[t.currentAxis].shaderData.(*shader_data_registry.ShaderDataUnlit)
+			default:
+				sd = t.arrows[t.currentAxis].shaderData.(*shader_data_registry.ShaderDataUnlit)
+			}
 			sd.Color = matrix.ColorYellow()
 		}
 	}
@@ -236,9 +350,19 @@ func (t *TranslationTool) processDrag(host *engine.Host, cam cameras.Camera, sna
 		// if ok {
 		// 	host.Window.SetCursorPosition(int(p.X()), int(p.Y()))
 		// }
-		for i := range t.arrows {
-			if i != t.currentAxis {
-				t.arrows[i].shaderData.Deactivate()
+
+		switch t.currentType {
+		case TRANSLATION_TYPE_ARROW:
+			for i := range t.arrows {
+				if i != t.currentAxis {
+					t.arrows[i].shaderData.Deactivate()
+				}
+			}
+		case TRANSLATION_TYPE_PLANE:
+			for i := range t.planes {
+				if i != t.currentAxis {
+					t.planes[i].shaderData.Deactivate()
+				}
 			}
 		}
 		t.OnDragStart.Execute(t.root.Position())
@@ -261,13 +385,29 @@ func (t *TranslationTool) processDrag(host *engine.Host, cam cameras.Camera, sna
 				p.SetY(matrix.Floor(p.Y()/snapScale) * snapScale)
 				p.SetZ(matrix.Floor(p.Z()/snapScale) * snapScale)
 			}
-			switch t.currentAxis {
-			case matrix.Vx:
-				rp.SetX(p.X())
-			case matrix.Vy:
-				rp.SetY(p.Y())
-			case matrix.Vz:
-				rp.SetZ(p.Z())
+
+			switch t.currentType {
+			case TRANSLATION_TYPE_ARROW:
+				switch t.currentAxis {
+				case matrix.Vx:
+					rp.SetX(p.X())
+				case matrix.Vy:
+					rp.SetY(p.Y())
+				case matrix.Vz:
+					rp.SetZ(p.Z())
+				}
+			case TRANSLATION_TYPE_PLANE:
+				switch t.currentAxis {
+				case matrix.Vx:
+					rp.SetX(p.X())
+					rp.SetY(p.Y())
+				case matrix.Vy:
+					rp.SetY(p.Y())
+					rp.SetZ(p.Z())
+				case matrix.Vz:
+					rp.SetZ(p.Z())
+					rp.SetX(p.X())
+				}
 			}
 			t.root.SetPosition(rp)
 			t.updateHitBoxes()
@@ -278,6 +418,7 @@ func (t *TranslationTool) processDrag(host *engine.Host, cam cameras.Camera, sna
 			t.OnDragEnd.Execute(t.root.Position())
 			for i := range t.arrows {
 				t.arrows[i].shaderData.Activate()
+				t.planes[i].shaderData.Activate()
 			}
 		}
 	}
