@@ -79,6 +79,7 @@ type Mesh struct {
 	pendingVerts   []Vertex
 	pendingIndexes []uint32
 	bounds         collision.AABB
+	dynamic        bool
 }
 
 func NewMesh(key string, verts []Vertex, indexes []uint32) *Mesh {
@@ -99,17 +100,36 @@ func NewMesh(key string, verts []Vertex, indexes []uint32) *Mesh {
 	return m
 }
 
+func NewDynamicMesh(key string, verts []Vertex, indexes []uint32) *Mesh {
+	m := NewMesh(key, verts, indexes)
+	m.dynamic = true
+	return m
+}
+
 func (m *Mesh) SetKey(key string) {
 	m.key = key
 }
 
 func (m *Mesh) DelayedCreate(device *GPUDevice) {
 	defer tracing.NewRegion("Mesh.DelayedCreate").End()
-	if len(m.pendingVerts) > 0 {
-		device.CreateMesh(m, m.pendingVerts, m.pendingIndexes)
-		m.pendingVerts = make([]Vertex, 0)
-		m.pendingIndexes = make([]uint32, 0)
+	if len(m.pendingVerts) == 0 {
+		return
 	}
+	if m.IsReady() {
+		if m.dynamic {
+			device.UpdateDynamicMeshVertices(m, m.pendingVerts)
+		} else {
+			device.UpdateMeshVertices(m, m.pendingVerts)
+		}
+	} else {
+		if m.dynamic {
+			device.CreateDynamicMesh(m, m.pendingVerts, m.pendingIndexes)
+		} else {
+			device.CreateMesh(m, m.pendingVerts, m.pendingIndexes)
+		}
+	}
+	m.pendingVerts = make([]Vertex, 0)
+	m.pendingIndexes = make([]uint32, 0)
 }
 
 func (m Mesh) Key() string            { return m.key }
