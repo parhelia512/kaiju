@@ -45,11 +45,15 @@
 #include <string.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
 #include <X11/Xlib.h>
 #include <X11/Xcursor/Xcursor.h>
 #include <X11/XKBlib.h>
 #include <X11/Xatom.h>
 #include <X11/extensions/Xrandr.h>
+#include <linux/joystick.h>
 
 // Cursor docs
 // https://tronche.com/gui/x/xlib/appendix/b/
@@ -148,6 +152,35 @@ void window_main(const char* windowTitle,
 	}
 	x11State->CLIPBOARD = XInternAtom(d, "CLIPBOARD", 0);
 	XSetWMProtocols(d, w, &x11State->WM_DELETE_WINDOW, 1);
+	// Initialize controller states
+	for (int i = 0; i < MAX_CONTROLLERS; i++) {
+		x11State->controllers[i].fd = -1;
+		x11State->controllers[i].connected = false;
+	}
+	// Scan for available game controllers
+	for (int i = 0; i < MAX_CONTROLLERS; i++) {
+		char devicePath[64];
+		snprintf(devicePath, sizeof(devicePath), "/dev/input/js%d", i);
+		int fd = open(devicePath, O_RDONLY | O_NONBLOCK);
+		if (fd >= 0) {
+			x11State->controllers[i].fd = fd;
+			x11State->controllers[i].connected = true;
+			x11State->controllers[i].buttonState = 0;
+			for (int axis = 0; axis < 8; axis++) {
+				x11State->controllers[i].axisState[axis] = 0;
+			}
+			// Get controller name via ioctl
+			if (ioctl(fd, JSIOCGNAME(sizeof(x11State->controllers[i].name)), x11State->controllers[i].name) < 0) {
+				strncpy(x11State->controllers[i].name, "Unknown Controller", sizeof(x11State->controllers[i].name) - 1);
+			}
+			// Get number of axes and buttons
+			uint8_t numAxes = 0, numButtons = 0;
+			ioctl(fd, JSIOCGAXES, &numAxes);
+			ioctl(fd, JSIOCGBUTTONS, &numButtons);
+			x11State->controllers[i].numAxes = numAxes;
+			x11State->controllers[i].numButtons = numButtons;
+		}
+	}
 	shared_mem_add_event(&x11State->sm, (WindowEvent) {
 		.type = WINDOW_EVENT_TYPE_SET_HANDLE,
 		.setHandle = {
@@ -176,8 +209,159 @@ static inline void lock_cursor_position(X11State* s) {
 	set_cursor_position_relative_to_window(s, s->sm.lockCursor.x, s->sm.lockCursor.y);
 }
 
+// Linux joystick deadzone values (matching XInput)
+#define JOYSTICK_DEADZONE_AXIS 7849  // ~24% of 32768
+#define JOYSTICK_DEADZONE_TRIGGER 30  // ~12% of 255
+#define JOYSTICK_HAT_DEADZONE 16384   // half of full hat axis range
+
+static inline int16_t apply_axis_deadzone(int16_t value, int16_t deadzone) {
+	if (value < 0) {
+		if (-value < deadzone) return 0;
+		return value;
+	}
+	if (value < deadzone) return 0;
+	return value;
+}
+
+static inline uint8_t apply_trigger_deadzone(uint8_t value, uint8_t deadzone) {
+	if (value < deadzone) return 0;
+	return value;
+}
+
 void window_poll_controller(void* x11State) {
-	// TODO:  Implement for controllers
+	X11State* s = x11State;
+	struct js_event evt;
+	for (int i = 0; i < MAX_CONTROLLERS; i++) {
+		if (!s->controllers[i].connected || s->controllers[i].fd < 0) {
+			// Try to reconnect
+			char devicePath[64];
+			snprintf(devicePath, sizeof(devicePath), "/dev/input/js%d", i);
+			int fd = open(devicePath, O_RDONLY | O_NONBLOCK);
+			if (fd >= 0) {
+				s->controllers[i].fd = fd;
+				s->controllers[i].connected = true;
+				uint8_t numAxes = 0, numButtons = 0;
+				ioctl(fd, JSIOCGAXES, &numAxes);
+				ioctl(fd, JSIOCGBUTTONS, &numButtons);
+				s->controllers[i].numAxes = numAxes;
+				s->controllers[i].numButtons = numButtons;
+				// Initialize state (this was the missing piece — analogs were garbage/old memory,
+				// deadzone turned everything to 0; triggers start released at -32768)
+				s->controllers[i].buttonState = 0;
+				if (numAxes >= 1) {
+					s->controllers[i].axisState[0] = 0;
+				}
+				if (numAxes >= 2) {
+					s->controllers[i].axisState[1] = 0;
+				}
+				if (numAxes >= 3) {
+					s->controllers[i].axisState[2] = 0;
+				}
+				if (numAxes >= 4) {
+					s->controllers[i].axisState[3] = 0;
+				}
+				if (numAxes >= 5) {
+					s->controllers[i].axisState[4] = -32768; // left trigger released
+				}
+				if (numAxes >= 6) {
+					s->controllers[i].axisState[5] = -32768; // right trigger released
+				}
+				if (numAxes >= 7) {
+					s->controllers[i].axisState[6] = 0;     // hat X
+				}
+				if (numAxes >= 8) {
+					s->controllers[i].axisState[7] = 0;     // hat Y
+				}
+				// Flush any initialization events from the device
+				while (read(fd, &evt, sizeof(evt)) > 0) { /* flush */ }
+				shared_mem_add_event(&s->sm, (WindowEvent) {
+					.type = WINDOW_EVENT_TYPE_CONTROLLER_STATE,
+					.controllerState = {
+						.controllerId = i,
+						.connectionType = WINDOW_EVENT_CONTROLLER_CONNECTION_TYPE_CONNECTED,
+					}
+				});
+			}
+			continue;
+		}
+		// Read all available events for this controller to keep state current
+		fd_set fdset;
+		struct timeval tv;
+		int16_t thumbLX = 0, thumbLY = 0, thumbRX = 0, thumbRY = 0;
+		uint8_t leftTrigger = 0, rightTrigger = 0;
+		uint16_t buttons = s->controllers[i].buttonState;
+		while (true) {
+			FD_ZERO(&fdset);
+			FD_SET(s->controllers[i].fd, &fdset);
+			tv.tv_sec = 0;
+			tv.tv_usec = 0;
+			int ready = select(s->controllers[i].fd + 1, &fdset, NULL, NULL, &tv);
+			if (ready <= 0) break;
+			int bytesRead = read(s->controllers[i].fd, &evt, sizeof(evt));
+			if (bytesRead != sizeof(evt)) break;
+			unsigned char type = evt.type & ~JS_EVENT_INIT;
+			if (type == JS_EVENT_BUTTON && evt.number < 16) {
+				if (evt.value) {
+					s->controllers[i].buttonState |= (1u << evt.number);
+				} else {
+					s->controllers[i].buttonState &= ~(1u << evt.number);
+				}
+				buttons = s->controllers[i].buttonState;
+			} else if (type == JS_EVENT_AXIS && evt.number < 8) {
+				s->controllers[i].axisState[evt.number] = (int16_t)evt.value;
+			}
+		}
+		if (s->controllers[i].numAxes > 0) {
+			thumbLX = apply_axis_deadzone(s->controllers[i].axisState[0], JOYSTICK_DEADZONE_AXIS);
+			if (s->controllers[i].numAxes > 1) {
+				thumbLY = -apply_axis_deadzone(s->controllers[i].axisState[1], JOYSTICK_DEADZONE_AXIS);
+			}
+			if (s->controllers[i].numAxes > 2) {
+				leftTrigger = apply_trigger_deadzone((uint8_t)((s->controllers[i].axisState[2] + 32768) >> 8), JOYSTICK_DEADZONE_TRIGGER);
+			}
+			if (s->controllers[i].numAxes > 3) {
+				thumbRX = apply_axis_deadzone(s->controllers[i].axisState[3], JOYSTICK_DEADZONE_AXIS);
+			}
+			if (s->controllers[i].numAxes > 4) {
+				thumbRY = -apply_axis_deadzone(s->controllers[i].axisState[4], JOYSTICK_DEADZONE_AXIS);
+			}
+			if (s->controllers[i].numAxes > 5) {
+				rightTrigger = apply_trigger_deadzone((uint8_t)((s->controllers[i].axisState[5] + 32768) >> 8), JOYSTICK_DEADZONE_TRIGGER);
+			}
+			if (s->controllers[i].numAxes > 6) {
+				int16_t hatX = s->controllers[i].axisState[6];
+				if (hatX < -JOYSTICK_HAT_DEADZONE) {
+					buttons |= (1u << 14); // D-Pad Left
+				}
+				if (hatX > JOYSTICK_HAT_DEADZONE)  {
+					buttons |= (1u << 15); // D-Pad Right
+				}
+			}
+			if (s->controllers[i].numAxes > 7) {
+				int16_t hatY = s->controllers[i].axisState[7];
+				if (hatY < -JOYSTICK_HAT_DEADZONE) {
+					buttons |= (1u << 12); // D-Pad Up
+				}
+				if (hatY > JOYSTICK_HAT_DEADZONE) {
+					buttons |= (1u << 13); // D-Pad Down
+				}
+			}
+		}
+		shared_mem_add_event(&s->sm, (WindowEvent) {
+			.type = WINDOW_EVENT_TYPE_CONTROLLER_STATE,
+			.controllerState = {
+				.controllerId = i,
+				.connectionType = WINDOW_EVENT_CONTROLLER_CONNECTION_TYPE_CONNECTED,
+				.buttons = buttons,
+				.thumbLX = thumbLX,
+				.thumbLY = thumbLY,
+				.thumbRX = thumbRX,
+				.thumbRY = thumbRY,
+				.leftTrigger = leftTrigger,
+				.rightTrigger = rightTrigger,
+			}
+		});
+	}
 }
 
 void window_poll(void* x11State) {
@@ -361,6 +545,14 @@ void window_poll(void* x11State) {
 
 void window_destroy(void* x11State) {
 	X11State* s = x11State;
+	// Close any open controller file descriptors
+	for (int i = 0; i < MAX_CONTROLLERS; i++) {
+		if (s->controllers[i].fd >= 0) {
+			close(s->controllers[i].fd);
+			s->controllers[i].fd = -1;
+			s->controllers[i].connected = false;
+		}
+	}
 	if (s->w) {
 		XDestroyWindow(s->d, s->w);
 	}
