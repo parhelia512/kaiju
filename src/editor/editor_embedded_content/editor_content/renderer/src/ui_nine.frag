@@ -68,7 +68,7 @@ void main(void) {
 		}
         vec4 borderColor = fragBorderColorsLTRB[sideIdx];
 		// Border radius
-		float dist = roundedBoxSDF(centerPixPos, size, fragBorderRadius);
+		float dist = roundedBoxSDF(centerPixPos, size, fragBorderRadius+fragBorderSize);
 		float smoothedAlpha = 1.0-smoothstep(0.0, edgeSoftness, dist);
 		// Border size
 		centerPixPos.x += fragBorderSize.x/2.0-fragBorderSize.z/2.0;
