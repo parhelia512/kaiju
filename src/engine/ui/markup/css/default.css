@@ -399,25 +399,25 @@ ul {
 var {
 	font-style: italic; 
 }
-button {
+button, .button {
 	padding: 2px 5px 2px 5px;
 	font-size: 16px;
 	text-align: center;
 	vertical-align: middle;
 	overflow: hidden;
-	border: 2px solid #202020;
+	border: 2px solid #1C1C1C;
 	border-radius: 5px;
 	background-color: rgb(59, 59, 59);
 	/* background-image: url("input_atlas.png");
 	background-position: 64px 64px;
 	background-size: 64px 64px; */
 }
-button:hover {
+button:hover, .button:hover {
 	background-color: #575757;
 	/* background-image: url("input_atlas.png");
 	background-position: 0 64px; */
 }
-button:active {
+button:active, .button:active {
 	padding: 4px 5px 0px 5px;
 	background-color: rgb(59, 59, 59);
 	/* background-image: url("input_atlas.png");
@@ -442,7 +442,7 @@ input[type="text"]:focus {
 }
 .filterBtn {
 	padding: 2px 5px;
-	background-color: #20222A;
+	background-color: #1C1C1C;
 	border: 2px solid #292C34;
 	border-radius: 12px;
 	color: #AAA;
@@ -476,10 +476,10 @@ input[type="text"]:focus {
 	color: #999;
 }
 .edPanelBg {
-	background-color: #1C1C1C;
+	background-color: #292929;
 }
 .edPanelBgDark {
-	background-color: #151515;
+	background-color: #1C1C1C;
 }
 .edPanelBgHoverable {
 	color: #AAA;
