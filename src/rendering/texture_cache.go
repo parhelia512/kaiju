@@ -117,6 +117,7 @@ func (t *TextureCache) InsertRawTexture(key string, data []byte, width, height i
 	defer tracing.NewRegion("TextureCache.InsertTexture").End()
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
+	key = selectKey(key)
 	if texture, ok := t.textures[filter][key]; ok {
 		return texture, nil
 	}
@@ -134,7 +135,7 @@ func (t *TextureCache) InsertImageTexture(key string, imageData []byte, filter T
 	defer tracing.NewRegion("TextureCache.InsertImageTexture").End()
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
-	// Check if already exists
+	key = selectKey(key)
 	if texture, ok := t.textures[filter][key]; ok {
 		return texture, nil
 	}
