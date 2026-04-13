@@ -400,32 +400,28 @@ var {
 	font-style: italic; 
 }
 button {
-	padding: 5px 10px 5px 10px;
+	padding: 2px 5px 2px 5px;
 	font-size: 16px;
 	text-align: center;
 	vertical-align: middle;
 	overflow: hidden;
-	/* background-color: #20222A;
-	border: 2px solid #292C34; */
-	/* border-radius: 7px; */
-	background-color: #373737;
-	background-image: url("input_atlas.png");
+	border: 2px solid #202020;
+	border-radius: 5px;
+	background-color: rgb(59, 59, 59);
+	/* background-image: url("input_atlas.png");
 	background-position: 64px 64px;
-	background-size: 64px 64px;
+	background-size: 64px 64px; */
 }
 button:hover {
-	/* background-color: #721e21;
-	border: 2px solid #a72a2f; */
 	background-color: #575757;
-	background-image: url("input_atlas.png");
-	background-position: 0 64px;
+	/* background-image: url("input_atlas.png");
+	background-position: 0 64px; */
 }
 button:active {
-	padding: 10px 10px 0px 10px;
-	/* background-color: #611a1c;
-	border: 2px solid #8d2528; */
-	background-image: url("input_atlas.png");
-	background-position: 64px 0;
+	padding: 4px 5px 0px 5px;
+	background-color: rgb(59, 59, 59);
+	/* background-image: url("input_atlas.png");
+	background-position: 64px 0; */
 }
 /** Unconventional helpers **/
 .centerText { text-align: center; }
