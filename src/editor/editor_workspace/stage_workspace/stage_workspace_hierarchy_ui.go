@@ -99,7 +99,7 @@ func (hui *WorkspaceHierarchyUI) hierarchySearch(e *document.Element) {
 	defer tracing.NewRegion("WorkspaceHierarchyUI.hierarchySearch").End()
 	q := strings.ToLower(e.UI.ToInput().Text())
 	for i := range hui.entityList.Children[1:] {
-		lbl := hui.entityList.Children[i+1].Children[2].InnerLabel()
+		lbl := entryNameLabel(hui.entityList.Children[i+1])
 		if strings.Contains(strings.ToLower(lbl.Text()), q) {
 			hui.entityList.Children[i+1].UI.Show()
 		} else {
@@ -276,7 +276,7 @@ func (hui *WorkspaceHierarchyUI) entityCreated(e *editor_stage_manager.StageEnti
 	w.Doc.SetElementId(cpy, e.StageData.Description.Id)
 	img := cpy.Children[0].UI.ToImage()
 	img.Base().ToPanel().SetUseBlending(true)
-	cpy.Children[2].InnerLabel().SetText(e.Name())
+	entryNameLabel(cpy).SetText(e.Name())
 	activateEvtId := e.OnActivate.Add(func() {
 		img.SetTexture(hui.textureFromString("editor/textures/icons/eye_open.png"))
 	})
@@ -357,7 +357,7 @@ func (hui *WorkspaceHierarchyUI) setIndent(row *document.Element) {
 		parentCount++
 		parent = parent.Parent.Value()
 	}
-	row.Children[1].UI.ToPanel().Base().Layout().SetPadding(float32(parentCount*10), 0, 0, 0)
+	entryNameSpan(row).Base().Layout().SetPadding(float32(parentCount*10), 0, 0, 0)
 }
 
 func (hui *WorkspaceHierarchyUI) dragStopped() {
@@ -381,7 +381,7 @@ func (hui *WorkspaceHierarchyUI) buildEntityClasses(e *document.Element, additio
 func (hui *WorkspaceHierarchyUI) updateEntityName(id, name string) {
 	defer tracing.NewRegion("WorkspaceHierarchyUI.updateEntityName").End()
 	if e, ok := hui.workspace.Value().Doc.GetElementById(id); ok {
-		e.Children[0].InnerLabel().SetText(name)
+		entryNameLabel(e).SetText(name)
 	}
 }
 
@@ -393,4 +393,12 @@ func (hui *WorkspaceHierarchyUI) extendHeight() {
 func (hui *WorkspaceHierarchyUI) standardHeight() {
 	defer tracing.NewRegion("WorkspaceHierarchyUI.standardHeight").End()
 	hui.workspace.Value().Doc.SetElementClasses(hui.hierarchyArea, "edPanelBg", "sideBarStandard")
+}
+
+func entryNameSpan(row *document.Element) *ui.Panel {
+	return row.Children[1].Children[0].UI.ToPanel()
+}
+
+func entryNameLabel(row *document.Element) *ui.Label {
+	return row.Children[1].Children[0].InnerLabel()
 }

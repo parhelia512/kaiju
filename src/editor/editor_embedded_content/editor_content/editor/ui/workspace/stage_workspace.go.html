@@ -138,6 +138,7 @@
 			.entryEye { background-color: rgb(200, 200, 200); }
 			.entryEye:hover { background-color: rgb(255, 255, 255); }
 			.entryEye:active { background-color: rgb(200, 200, 200); }
+			.entryName { width: calc(100% - 2em); }
 			#hierarchyDragPreview {
 				position: absolute;
 				width: 2em;
@@ -241,8 +242,9 @@
 			<div id="entityList">
 				<div id="entityTemplate" class="hierarchyEntry" onclick="selectEntity" ondragstart="entityDragStart" ondrop="entityDrop" ondragenter="entityDragEnter" ondragleave="entityDragExit">
 					<img class="entryEye" src="editor/textures/icons/eye_open.png" onclick="entityToggleVisibility" />
-					<span class="entrySpaces"></span>
-					<span>Name...</span>
+					<div class="entryName">
+						<span>Name...</span>
+					</div>
 				</div>
 			</div>
 		</div>
