@@ -302,6 +302,10 @@ void* cocoa_create_window(const char* title,
 
 			win.title = [NSString stringWithUTF8String:title];
 
+			if (x < 0 || y < 0) {
+				[win center];
+			}
+
 			// Window delegate (retained via associated object)
 			WindowDelegate* winDelegate = [WindowDelegate new];
 			objc_setAssociatedObject(win, "windowDelegate",
@@ -455,7 +459,6 @@ double cocoa_get_backing_scale_factor(void* nsWindow) {
 	if (!nsWindow) {
 		return result;
 	}
-/*
 	dispatch_sync(dispatch_get_main_queue(), ^{
 		@autoreleasepool {
 			NSWindow* window = (__bridge NSWindow*)nsWindow;
@@ -470,7 +473,6 @@ double cocoa_get_backing_scale_factor(void* nsWindow) {
 			}
 		}
 	});
-*/
 	return result;
 }
 
