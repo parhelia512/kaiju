@@ -37,8 +37,9 @@
 package collision
 
 import (
-	"kaijuengine.com/matrix"
 	"math"
+
+	"kaijuengine.com/matrix"
 )
 
 // AABB is an axis-aligned bounding box
@@ -74,8 +75,8 @@ func AABBFromMinMax(min, max matrix.Vec3) AABB {
 
 func AABBFromTransform(transform *matrix.Transform) AABB {
 	return AABB{
-		Center: transform.Position(),
-		Extent: transform.Scale(),
+		Center: transform.WorldPosition(),
+		Extent: transform.WorldScale(),
 	}
 }
 

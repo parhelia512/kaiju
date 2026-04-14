@@ -249,6 +249,7 @@ func (m *StageManager) SelectionBounds() collision.AABB {
 		var b collision.AABB
 		if e.StageData.Bvh != nil {
 			b = e.StageData.Bvh.Bounds()
+			b.Extent.MultiplyAssign(e.Transform.WorldScale())
 			b.Center.AddAssign(p)
 		} else {
 			b = collision.AABBFromTransform(&e.Transform)
