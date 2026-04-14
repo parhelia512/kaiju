@@ -45,7 +45,6 @@
 				width: calc(100% - 1em);
 				height: 2em;
 				margin-left: 0.25em;
-				margin-bottom: 0.5em;
 			}
 			.entry {
 				width: 5em;
@@ -97,9 +96,8 @@
 				width: 18%;
 				color: white;
 				border-right: 2px solid black;
-				padding: 5px;
 			}
-			.topSearch { margin-top: 0.5em; }
+			.topSearch { margin-top: 0.5em; margin-bottom: 0.5em; }
 			.sideBarStandard { height: calc(70% - 3em); }
 			.sideBarTall { height: calc(100% - 3em); }
 			#entityList {
@@ -172,11 +170,10 @@
 				overflow-y: scroll;
 				border-left: 2px solid black;
 			}
-			.smallInput, .smallerInput {
+			.smallInput, .smallerInput, .tformInput {
 				width: 4.3em;
 				height: 1.2em;
 				font-size: 0.8em;
-				margin-left: 0.3em;
 			}
 			.smallerInput {
 				width: 3.15em;
@@ -232,6 +229,16 @@
 				font-size: 0.7em;
 				font-family: 'MaterialIcons-Regular';
 			}
+			.tformInput { margin-left: 0; }
+			.tformX, .tformY, .tformZ {
+				height: 1.2em;
+				padding-left: 3px;
+				margin-left: 0.25em;
+				margin-bottom: 0.5em;
+			}
+			.tformX { background-color: #A00; }
+			.tformY { background-color: #080; }
+			.tformZ { background-color: #00C; }
 		</style>
 	</head>
 	<body>
@@ -255,17 +262,17 @@
 			<div class="detailsBody">
 				<input id="detailsName" type="text" placeholder="Name..." onsubmit="submitDetailsName" data-copypaste="entityName" onrightclick="onRightClick" />
 				<div data-copypaste="entityPosition" onrightclick="onRightClick">Position</div>
-				<input id="detailsPosX" class="smallInput" type="text" placeholder="X..." onchange="setPosX" />
-				<input id="detailsPosY" class="smallInput" type="text" placeholder="Y..." onchange="setPosY" />
-				<input id="detailsPosZ" class="smallInput" type="text" placeholder="Z..." onchange="setPosZ" />
+				<span class="tformX"></span><input id="detailsPosX" class="tformInput" type="text" placeholder="X..." onchange="setPosX" />
+				<span class="tformY"></span><input id="detailsPosY" class="tformInput" type="text" placeholder="Y..." onchange="setPosY" />
+				<span class="tformZ"></span><input id="detailsPosZ" class="tformInput" type="text" placeholder="Z..." onchange="setPosZ" />
 				<div data-copypaste="entityRotation" onrightclick="onRightClick">Rotation</div>
-				<input id="detailsRotX" class="smallInput" type="text" placeholder="X..." onchange="setRotX" />
-				<input id="detailsRotY" class="smallInput" type="text" placeholder="Y..." onchange="setRotY" />
-				<input id="detailsRotZ" class="smallInput" type="text" placeholder="Z..." onchange="setRotZ" />
+				<span class="tformX"></span><input id="detailsRotX" class="tformInput" type="text" placeholder="X..." onchange="setRotX" />
+				<span class="tformY"></span><input id="detailsRotY" class="tformInput" type="text" placeholder="Y..." onchange="setRotY" />
+				<span class="tformZ"></span><input id="detailsRotZ" class="tformInput" type="text" placeholder="Z..." onchange="setRotZ" />
 				<div data-copypaste="entityScale" onrightclick="onRightClick">Scale</div>
-				<input id="detailsScaleX" class="smallInput" type="text" placeholder="X..." onchange="setScaleX" />
-				<input id="detailsScaleY" class="smallInput" type="text" placeholder="Y..." onchange="setScaleY" />
-				<input id="detailsScaleZ" class="smallInput" type="text" placeholder="Z..." onchange="setScaleZ" />
+				<span class="tformX"></span><input id="detailsScaleX" class="tformInput" type="text" placeholder="X..." onchange="setScaleX" />
+				<span class="tformY"></span><input id="detailsScaleY" class="tformInput" type="text" placeholder="Y..." onchange="setScaleY" />
+				<span class="tformZ"></span><input id="detailsScaleZ" class="tformInput" type="text" placeholder="Z..." onchange="setScaleZ" />
 				<div id="detailsMultiSelect">Multiple objects selected...</div>
 				<div id="shaderInstanceData" class="dataTable">
 					<div id="shaderInstanceDataList">
