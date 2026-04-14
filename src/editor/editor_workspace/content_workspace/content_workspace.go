@@ -296,16 +296,18 @@ func (w *ContentWorkspace) focusContent(id string) {
 
 func (w *ContentWorkspace) contentPreviewGenerated(id string) {
 	defer tracing.NewRegion("ContentWorkspace.contentPreviewGenerated").End()
-	elm, ok := w.Doc.GetElementById(id)
-	if !ok {
-		return
-	}
-	tex, err := w.editor.ContentPreviewer().LoadPreviewImage(id)
-	if err != nil {
-		return
-	}
-	img := elm.Children[0].UI.ToPanel()
-	img.SetBackground(tex)
+	w.Host.RunOnMainThread(func() {
+		elm, ok := w.Doc.GetElementById(id)
+		if !ok {
+			return
+		}
+		tex, err := w.editor.ContentPreviewer().LoadPreviewImage(id)
+		if err != nil {
+			return
+		}
+		img := elm.Children[0].UI.ToPanel()
+		img.SetBackground(tex)
+	})
 }
 
 func (w *ContentWorkspace) loadEntryImage(e *document.Element, cc *content_database.CachedContent) {
