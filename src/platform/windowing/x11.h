@@ -40,7 +40,32 @@
 
 #include <X11/Xlib.h>
 #include <X11/extensions/Xrandr.h>
+#include <linux/joystick.h>
+#include <linux/input.h>
+#include <stdbool.h>
 #include "shared_mem.h"
+
+#ifndef MAX_CONTROLLERS
+#define MAX_CONTROLLERS 4
+#endif
+
+#ifndef EVIOCGABS
+#define EVIOCGABS(axis) _IOR('E', 0x20 + (axis), struct input_absinfo)
+#endif
+
+#ifndef EVIOCGKEY
+#define EVIOCGKEY(len) _IOR('E', 0x2f, unsigned char[len])
+#endif
+
+typedef struct {
+	int fd;
+	bool connected;
+	char name[128];
+	uint8_t numAxes;
+	uint8_t numButtons;
+	uint16_t buttonState;
+	int16_t axisState[8];
+} ControllerInfo;
 
 typedef struct {
 	float dpmm;
@@ -64,6 +89,7 @@ typedef struct {
 	Atom CLIPBOARD;
 	MonitorInfo monitorCache;
 	int monitorCacheDirty;
+	ControllerInfo controllers[MAX_CONTROLLERS];
 } X11State;
 
 unsigned int get_toggle_key_state();
