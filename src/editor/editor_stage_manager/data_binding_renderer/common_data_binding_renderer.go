@@ -37,6 +37,8 @@
 package data_binding_renderer
 
 import (
+	"log/slog"
+
 	"kaijuengine.com/editor/editor_stage_manager"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/assets"
@@ -44,7 +46,6 @@ import (
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
-	"log/slog"
 )
 
 func commonAttached(host *engine.Host, manager *editor_stage_manager.StageManager, target *editor_stage_manager.StageEntity, iconName string) rendering.DrawInstance {
@@ -77,8 +78,8 @@ func commonAttached(host *engine.Host, manager *editor_stage_manager.StageManage
 		}
 		host.Drawings.AddDrawing(draw)
 	})
-	box := collision.AABBFromTransform(&target.Transform)
-	box.Extent.ScaleAssign(0.5)
+	box := collision.AABB{}
+	box.Extent = target.Transform.WorldScale().Scale(0.5)
 	target.StageData.Bvh = collision.NewBVH([]collision.HitObject{box}, &target.Transform, target)
 	manager.AddBVH(target.StageData.Bvh, &target.Transform)
 	target.OnDeactivate.Add(sd.Deactivate)
