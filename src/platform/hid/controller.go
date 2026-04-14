@@ -192,17 +192,17 @@ func (c *Controller) Axis(id, stick int) float32 {
 }
 
 // IsButtonUp returns true if the button is up
-func (c *Controller) IsButtonUp(id, button int) bool {
+func (c *Controller) IsButtonUp(id, button ControllerButton) bool {
 	return c.devices[id].buttons[button] == controllerButtonStateUp
 }
 
 // IsButtonDown returns true if the button is down
-func (c *Controller) IsButtonDown(id, button int) bool {
+func (c *Controller) IsButtonDown(id, button ControllerButton) bool {
 	return c.devices[id].buttons[button] == controllerButtonStateDown
 }
 
 // IsButtonHeld returns true if the button is held
-func (c *Controller) IsButtonHeld(id, button int) bool {
+func (c *Controller) IsButtonHeld(id, button ControllerButton) bool {
 	return c.devices[id].buttons[button] == controllerButtonStateHeld
 }
 
