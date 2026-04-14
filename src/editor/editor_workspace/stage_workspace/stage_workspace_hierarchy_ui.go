@@ -37,6 +37,7 @@
 package stage_workspace
 
 import (
+	"slices"
 	"strings"
 	"weak"
 
@@ -45,6 +46,7 @@ import (
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/document"
+	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/platform/windowing"
@@ -174,7 +176,7 @@ func (hui *WorkspaceHierarchyUI) entityToggleVisibility(e *document.Element) {
 
 type HierarchyEntityDragData struct {
 	hui *WorkspaceHierarchyUI
-	id  string
+	ids []string
 }
 
 func (d HierarchyEntityDragData) DragUpdate() {
@@ -191,7 +193,14 @@ func (hui *WorkspaceHierarchyUI) entityDragStart(e *document.Element) {
 	if id == "" {
 		return
 	}
-	windowing.SetDragData(HierarchyEntityDragData{hui, id})
+	dragData := HierarchyEntityDragData{hui: hui}
+	w := hui.workspace.Value()
+	selection := w.stageView.Manager().Selection()
+	dragData.ids = make([]string, len(selection))
+	for i := range selection {
+		dragData.ids[i] = selection[i].StageData.Description.Id
+	}
+	windowing.SetDragData(dragData)
 	windowing.OnDragStop.Add(hui.dragStopped)
 	hui.hierarchyDragPreview.UI.Show()
 }
@@ -204,20 +213,20 @@ func (hui *WorkspaceHierarchyUI) entityDrop(e *document.Element) {
 	}
 	windowing.SetDragData(nil)
 	id := e.Attribute("id")
-	if dd.id == id {
-		return
-	}
+	dd.ids = klib.SlicesRemoveElement(dd.ids, id)
 	w := hui.workspace.Value()
 	man := w.stageView.Manager()
-	child, ok := man.EntityById(dd.id)
-	if !ok {
-		return
+	for i := range dd.ids {
+		child, ok := man.EntityById(dd.ids[i])
+		if !ok {
+			return
+		}
+		parent, ok := man.EntityById(id)
+		if !ok {
+			return
+		}
+		man.SetEntityParent(child, parent)
 	}
-	parent, ok := man.EntityById(id)
-	if !ok {
-		return
-	}
-	man.SetEntityParent(child, parent)
 	hui.clearElementDragEnterColor(e)
 }
 
@@ -228,7 +237,7 @@ func (hui *WorkspaceHierarchyUI) entityDragEnter(e *document.Element) {
 		return
 	}
 	id := e.Attribute("id")
-	if dd.id == id {
+	if slices.Contains(dd.ids, id) {
 		return
 	}
 	hui.workspace.Value().Doc.SetElementClasses(
@@ -241,7 +250,7 @@ func (hui *WorkspaceHierarchyUI) entityDragExit(e *document.Element) {
 	if !ok {
 		return
 	}
-	if dd.id == e.Attribute("id") {
+	if slices.Contains(dd.ids, e.Attribute("id")) {
 		return
 	}
 	hui.clearElementDragEnterColor(e)
@@ -256,11 +265,13 @@ func (hui *WorkspaceHierarchyUI) hierarchyDrop(*document.Element) {
 	windowing.SetDragData(nil)
 	w := hui.workspace.Value()
 	man := w.stageView.Manager()
-	child, ok := man.EntityById(dd.id)
-	if !ok || child.Parent == nil {
-		return
+	for i := range dd.ids {
+		child, ok := man.EntityById(dd.ids[i])
+		if !ok || child.Parent == nil {
+			return
+		}
+		man.SetEntityParent(child, nil)
 	}
-	man.SetEntityParent(child, nil)
 }
 
 func (hui *WorkspaceHierarchyUI) clearElementDragEnterColor(e *document.Element) {
