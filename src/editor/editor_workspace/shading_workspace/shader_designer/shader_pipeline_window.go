@@ -39,15 +39,16 @@ package shader_designer
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
+	"os"
+	"path/filepath"
+
 	"kaijuengine.com/editor/editor_workspace/common_workspace"
 	"kaijuengine.com/editor/project/project_database/content_database"
 	"kaijuengine.com/editor/project/project_file_system"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup"
 	"kaijuengine.com/engine/ui/markup/document"
-	"log/slog"
-	"os"
-	"path/filepath"
 )
 
 func (win *ShaderDesigner) reloadPipelineDoc() {

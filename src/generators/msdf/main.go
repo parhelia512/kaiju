@@ -41,12 +41,13 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"kaijuengine.com/klib"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"kaijuengine.com/klib"
 )
 
 const binDir = "../tools/content_tools/"

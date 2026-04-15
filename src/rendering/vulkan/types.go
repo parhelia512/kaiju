@@ -45,8 +45,9 @@ package vulkan
 */
 import "C"
 import (
-	"kaijuengine.com/rendering/vulkan_const"
 	"unsafe"
+
+	"kaijuengine.com/rendering/vulkan_const"
 )
 
 type Char = C.char

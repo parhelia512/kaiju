@@ -38,6 +38,7 @@ package pseudos
 
 import (
 	"errors"
+
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
 )

@@ -37,8 +37,9 @@
 package rendering
 
 import (
-	"kaijuengine.com/engine/assets"
 	"log/slog"
+
+	"kaijuengine.com/engine/assets"
 )
 
 const (

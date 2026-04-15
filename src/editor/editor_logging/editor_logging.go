@@ -37,13 +37,14 @@
 package editor_logging
 
 import (
-	"kaijuengine.com/engine"
-	"kaijuengine.com/engine/systems/logging"
-	"kaijuengine.com/platform/profiler/tracing"
 	"strings"
 	"sync"
 	"time"
 	"weak"
+
+	"kaijuengine.com/engine"
+	"kaijuengine.com/engine/systems/logging"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type Logging struct {

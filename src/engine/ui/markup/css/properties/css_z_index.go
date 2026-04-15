@@ -38,11 +38,12 @@ package properties
 
 import (
 	"errors"
+	"strconv"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
-	"strconv"
 )
 
 func (p ZIndex) Process(panel *ui.Panel, elm *document.Element, values []rules.PropertyValue, host *engine.Host) error {

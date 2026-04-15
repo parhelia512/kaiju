@@ -37,9 +37,10 @@
 package rendering
 
 import (
-	"kaijuengine.com/klib"
 	"sort"
 	"unsafe"
+
+	"kaijuengine.com/klib"
 )
 
 type ShaderDraw struct {

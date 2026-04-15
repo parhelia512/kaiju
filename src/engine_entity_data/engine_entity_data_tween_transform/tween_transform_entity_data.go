@@ -37,12 +37,13 @@
 package engine_entity_data_tween_transform
 
 import (
+	"time"
+	"weak"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/encoding/pod"
 	"kaijuengine.com/engine/systems/tweening"
 	"kaijuengine.com/matrix"
-	"time"
-	"weak"
 )
 
 var bindingKey = ""

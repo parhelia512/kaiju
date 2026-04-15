@@ -38,9 +38,10 @@ package rendering
 
 import (
 	"errors"
-	"kaijuengine.com/klib"
 	"log/slog"
 	"unsafe"
+
+	"kaijuengine.com/klib"
 )
 
 func (g *GPUDevice) createVertexBufferImpl(verts []Vertex) (GPUBuffer, GPUDeviceMemory, error) {

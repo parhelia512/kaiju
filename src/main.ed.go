@@ -40,6 +40,7 @@ package main
 
 import (
 	"embed"
+
 	"kaijuengine.com/bootstrap"
 	"kaijuengine.com/editor"
 	"kaijuengine.com/editor/project/project_file_system"

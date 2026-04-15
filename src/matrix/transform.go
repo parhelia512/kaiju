@@ -37,11 +37,12 @@
 package matrix
 
 import (
+	"slices"
+	"sync"
+
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/concurrent"
 	"kaijuengine.com/platform/profiler/tracing"
-	"slices"
-	"sync"
 )
 
 const (

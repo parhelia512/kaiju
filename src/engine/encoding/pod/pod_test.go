@@ -38,8 +38,9 @@ package pod
 
 import (
 	"bytes"
-	"kaijuengine.com/matrix"
 	"testing"
+
+	"kaijuengine.com/matrix"
 )
 
 // SimpleTypes tests encoding and decoding of basic primitive types

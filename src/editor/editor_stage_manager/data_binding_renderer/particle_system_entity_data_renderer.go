@@ -37,6 +37,8 @@
 package data_binding_renderer
 
 import (
+	"log/slog"
+
 	"kaijuengine.com/editor/codegen/entity_data_binding"
 	"kaijuengine.com/editor/editor_stage_manager"
 	"kaijuengine.com/engine"
@@ -44,7 +46,6 @@ import (
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
 	"kaijuengine.com/rendering/vfx"
-	"log/slog"
 )
 
 type particleSystemGizmo struct {

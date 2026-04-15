@@ -38,15 +38,16 @@ package sponsors
 
 import (
 	"encoding/json"
+	"log/slog"
+	"net/http"
+	"slices"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"net/http"
-	"slices"
 )
 
 type Sponsors struct {

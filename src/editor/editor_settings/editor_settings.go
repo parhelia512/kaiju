@@ -38,13 +38,14 @@ package editor_settings
 
 import (
 	"encoding/json"
-	"kaijuengine.com/platform/filesystem"
-	"kaijuengine.com/platform/profiler/tracing"
 	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
+
+	"kaijuengine.com/platform/filesystem"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 const (

@@ -37,14 +37,15 @@
 package context_menu
 
 import (
+	"log/slog"
+	"strconv"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"strconv"
 )
 
 var existing *ContextMenu

@@ -38,6 +38,7 @@ package project
 
 import (
 	"encoding/json"
+
 	"kaijuengine.com/editor/project/project_database/content_database"
 	"kaijuengine.com/engine/stages"
 	"kaijuengine.com/platform/profiler/tracing"

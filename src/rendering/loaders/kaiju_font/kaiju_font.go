@@ -38,6 +38,7 @@ package kaiju_font
 
 import (
 	"bytes"
+
 	"kaijuengine.com/engine/encoding/pod"
 )
 

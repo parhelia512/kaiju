@@ -38,10 +38,11 @@ package rendering
 
 import (
 	"fmt"
+	"math"
+
 	"kaijuengine.com/engine/collision"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
-	"math"
 )
 
 type MeshDrawMode = int

@@ -40,14 +40,15 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"path/filepath"
+	"strconv"
+	"strings"
+
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
 	"kaijuengine.com/rendering/loaders/load_result"
-	"path/filepath"
-	"strconv"
-	"strings"
 )
 
 type objLibrary struct {

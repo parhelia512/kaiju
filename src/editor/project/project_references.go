@@ -41,14 +41,15 @@ import (
 	"encoding/json"
 	"io"
 	"io/fs"
-	"kaijuengine.com/editor/project/project_database/content_database"
-	"kaijuengine.com/editor/project/project_file_system"
-	"kaijuengine.com/engine/stages"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"kaijuengine.com/editor/project/project_database/content_database"
+	"kaijuengine.com/editor/project/project_file_system"
+	"kaijuengine.com/engine/stages"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type ContentReference struct {

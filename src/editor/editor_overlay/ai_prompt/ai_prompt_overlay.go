@@ -37,6 +37,9 @@
 package ai_prompt
 
 import (
+	"log/slog"
+	"strings"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup"
@@ -44,8 +47,6 @@ import (
 	"kaijuengine.com/ollama"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"strings"
 )
 
 const systemPrompt = `You are a helpful assistant for the Kaiju game engine with access to tools. When calling a tool, respond ONLY with valid JSON in this exact format:

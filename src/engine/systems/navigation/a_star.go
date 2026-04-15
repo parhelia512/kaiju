@@ -38,6 +38,7 @@ package navigation
 
 import (
 	"container/heap"
+
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 )

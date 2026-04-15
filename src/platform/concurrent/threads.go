@@ -38,9 +38,10 @@ package concurrent
 
 import (
 	"container/list"
-	"kaijuengine.com/platform/profiler/tracing"
 	"runtime"
 	"sync"
+
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type Threads struct {

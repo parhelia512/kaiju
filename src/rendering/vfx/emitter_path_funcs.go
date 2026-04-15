@@ -37,10 +37,11 @@
 package vfx
 
 import (
-	"kaijuengine.com/klib"
-	"kaijuengine.com/matrix"
 	"log/slog"
 	"math"
+
+	"kaijuengine.com/klib"
+	"kaijuengine.com/matrix"
 )
 
 var pathFunctions = map[string]func(t float64) matrix.Vec3{}

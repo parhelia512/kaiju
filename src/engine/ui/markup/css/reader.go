@@ -37,6 +37,8 @@
 package css
 
 import (
+	"slices"
+
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/helpers"
 	"kaijuengine.com/engine/ui/markup/css/pseudos"
@@ -44,7 +46,6 @@ import (
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/windowing"
-	"slices"
 )
 
 type CSSMap map[*ui.UI][]rules.Rule

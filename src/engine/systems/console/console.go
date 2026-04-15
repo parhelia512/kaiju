@@ -37,6 +37,9 @@
 package console
 
 import (
+	"strings"
+	"weak"
+
 	"kaijuengine.com/debug"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
@@ -45,8 +48,6 @@ import (
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
-	"strings"
-	"weak"
 )
 
 type ConsoleFunc func(*engine.Host, string) string

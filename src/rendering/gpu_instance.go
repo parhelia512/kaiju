@@ -37,8 +37,9 @@
 package rendering
 
 import (
-	"kaijuengine.com/platform/profiler/tracing"
 	"unsafe"
+
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type GPUInstance struct {

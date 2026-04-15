@@ -37,17 +37,18 @@
 package host_container
 
 import (
+	"log/slog"
+	"runtime"
+	"strconv"
+	"strings"
+	"weak"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/engine/systems/logging"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/chrono"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"runtime"
-	"strconv"
-	"strings"
-	"weak"
 )
 
 type Container struct {

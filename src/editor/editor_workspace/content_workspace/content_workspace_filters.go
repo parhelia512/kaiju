@@ -37,10 +37,11 @@
 package content_workspace
 
 import (
+	"strings"
+
 	"kaijuengine.com/editor/project/project_database/content_database"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/profiler/tracing"
-	"strings"
 )
 
 func ShouldShowContent(query, id string, typeFilters, tagFilters map[string]struct{}, cdb *content_database.Cache) bool {

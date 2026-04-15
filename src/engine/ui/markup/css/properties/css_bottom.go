@@ -38,12 +38,13 @@ package properties
 
 import (
 	"errors"
+	"strings"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/helpers"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
-	"strings"
 )
 
 // auto|length|initial|inherit

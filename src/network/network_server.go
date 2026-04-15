@@ -38,8 +38,6 @@ package network
 
 import (
 	"fmt"
-	"kaijuengine.com/engine"
-	"kaijuengine.com/platform/concurrent"
 	"log/slog"
 	"net"
 	"sort"
@@ -48,6 +46,9 @@ import (
 	"sync"
 	"time"
 	"unsafe"
+
+	"kaijuengine.com/engine"
+	"kaijuengine.com/platform/concurrent"
 )
 
 type ClientMessage struct {

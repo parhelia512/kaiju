@@ -49,8 +49,9 @@ package vulkan
 */
 import "C"
 import (
-	vkc "kaijuengine.com/rendering/vulkan_const"
 	"unsafe"
+
+	vkc "kaijuengine.com/rendering/vulkan_const"
 )
 
 const (

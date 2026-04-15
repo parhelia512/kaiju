@@ -37,9 +37,10 @@
 package memento
 
 import (
+	"reflect"
+
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/profiler/tracing"
-	"reflect"
 )
 
 type History struct {

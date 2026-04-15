@@ -48,12 +48,13 @@ import "C"
 
 import (
 	"fmt"
-	"kaijuengine.com/build"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"unsafe"
+
+	"kaijuengine.com/build"
 
 	"golang.org/x/sys/windows"
 )

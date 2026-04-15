@@ -38,13 +38,14 @@ package document
 
 import (
 	"errors"
+	"slices"
+	"weak"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/systems/events"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/klib"
-	"slices"
-	"weak"
 )
 
 var (

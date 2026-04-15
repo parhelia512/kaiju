@@ -37,9 +37,10 @@
 package bootstrap
 
 import (
+	"reflect"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/assets"
-	"reflect"
 )
 
 // GameInterface is the primary interface to implement in order to bootstrap

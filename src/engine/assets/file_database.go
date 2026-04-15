@@ -37,8 +37,9 @@
 package assets
 
 import (
-	"kaijuengine.com/platform/profiler/tracing"
 	"os"
+
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type FileDatabase struct {

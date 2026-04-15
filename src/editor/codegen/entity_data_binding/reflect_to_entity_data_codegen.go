@@ -37,8 +37,9 @@
 package entity_data_binding
 
 import (
-	"kaijuengine.com/editor/codegen"
 	"reflect"
+
+	"kaijuengine.com/editor/codegen"
 )
 
 func ToDataBinding(name string, target any) EntityDataEntry {

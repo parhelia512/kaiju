@@ -37,11 +37,12 @@
 package data_binding_renderer
 
 import (
+	"weak"
+
 	"kaijuengine.com/editor/codegen/entity_data_binding"
 	"kaijuengine.com/editor/editor_stage_manager"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/platform/profiler/tracing"
-	"weak"
 )
 
 var renderers = map[string]DataBindingRenderer{}

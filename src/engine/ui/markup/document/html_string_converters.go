@@ -37,10 +37,11 @@
 package document
 
 import (
-	"kaijuengine.com/matrix"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"kaijuengine.com/matrix"
 )
 
 func asFloat(valStr string) float32 {

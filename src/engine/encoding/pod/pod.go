@@ -38,10 +38,11 @@ package pod
 
 import (
 	"fmt"
-	"kaijuengine.com/engine/collision"
-	"kaijuengine.com/matrix"
 	"reflect"
 	"sync"
+
+	"kaijuengine.com/engine/collision"
+	"kaijuengine.com/matrix"
 )
 
 const (

@@ -38,10 +38,11 @@ package vfx
 
 import (
 	"encoding/json"
+	"slices"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/profiler/tracing"
-	"slices"
 )
 
 type ParticleSystemSpec []EmitterConfig

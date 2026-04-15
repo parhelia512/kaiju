@@ -199,11 +199,11 @@ func (l *State) OpenLibraries() error {
 		return errors.New("failed to open the libraries for lua")
 	}
 	vms[l.state] = l
-	
+
 	// Sandbox the Lua environment by removing dangerous libraries
 	// that allow file system access and command execution
 	l.disableDangerousLibraries()
-	
+
 	return nil
 }
 
@@ -212,23 +212,23 @@ func (l *State) OpenLibraries() error {
 func (l *State) disableDangerousLibraries() {
 	// Use DoString to safely remove dangerous global functions
 	// This is safer than direct C API calls
-	
+
 	// Remove os library - prevents OS command execution and file system access
 	l.DoString("os = nil")
-	
+
 	// Remove io library - prevents arbitrary file I/O operations
 	l.DoString("io = nil")
-	
+
 	// Remove debug library - prevents debugging and introspection attacks
 	l.DoString("debug = nil")
-	
+
 	// Remove package library - prevents module loading attacks
 	l.DoString("package = nil")
-	
+
 	// Remove load and loadstring functions - prevents dynamic code loading
 	l.DoString("load = nil")
 	l.DoString("loadstring = nil")
-	
+
 	// Remove dofile function - prevents loading and executing arbitrary files
 	l.DoString("dofile = nil")
 }

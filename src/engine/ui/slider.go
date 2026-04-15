@@ -37,11 +37,12 @@
 package ui
 
 import (
+	"weak"
+
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"weak"
 )
 
 type sliderData struct {

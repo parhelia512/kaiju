@@ -77,9 +77,10 @@ import "C"
 import (
 	"errors"
 	"image"
+	"unsafe"
+
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/hid"
-	"unsafe"
 
 	"golang.design/x/clipboard"
 )

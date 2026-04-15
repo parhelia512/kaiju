@@ -37,13 +37,14 @@
 package lighting
 
 import (
+	"sort"
+
 	"kaijuengine.com/debug"
 	"kaijuengine.com/engine/pooling"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"sort"
 )
 
 type LightEntry struct {

@@ -37,9 +37,10 @@
 package editor
 
 import (
-	"kaijuengine.com/platform/profiler/tracing"
 	"time"
 	"weak"
+
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 func (ed *Editor) setupWindowActivity() {

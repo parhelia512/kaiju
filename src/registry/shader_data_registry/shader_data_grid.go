@@ -37,9 +37,10 @@
 package shader_data_registry
 
 import (
+	"unsafe"
+
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/rendering"
-	"unsafe"
 )
 
 func init() {

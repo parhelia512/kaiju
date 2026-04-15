@@ -38,17 +38,18 @@ package common_workspace
 
 import (
 	"fmt"
-	"kaijuengine.com/editor/codegen/reflect_helpers"
-	"kaijuengine.com/editor/project/project_database/content_database"
-	"kaijuengine.com/engine/ui"
-	"kaijuengine.com/engine/ui/markup/document"
-	"kaijuengine.com/rendering"
 	"reflect"
 	"regexp"
 	"slices"
 	"sort"
 	"strconv"
 	"strings"
+
+	"kaijuengine.com/editor/codegen/reflect_helpers"
+	"kaijuengine.com/editor/project/project_database/content_database"
+	"kaijuengine.com/engine/ui"
+	"kaijuengine.com/engine/ui/markup/document"
+	"kaijuengine.com/rendering"
 )
 
 type DataUISection struct {

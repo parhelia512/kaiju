@@ -37,13 +37,14 @@
 package document
 
 import (
+	"slices"
+	"strings"
+	"weak"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/systems/events"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/matrix"
-	"slices"
-	"strings"
-	"weak"
 
 	"golang.org/x/net/html"
 )

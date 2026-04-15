@@ -37,12 +37,13 @@
 package shader_designer
 
 import (
+	"slices"
+	"weak"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/rendering"
-	"slices"
-	"weak"
 )
 
 const (

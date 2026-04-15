@@ -37,8 +37,9 @@
 package stage_workspace
 
 import (
-	"kaijuengine.com/platform/profiler/tracing"
 	"reflect"
+
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type detailsDataChangeHistory struct {

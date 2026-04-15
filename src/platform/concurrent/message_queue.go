@@ -37,8 +37,9 @@
 package concurrent
 
 import (
-	"kaijuengine.com/klib"
 	"sync"
+
+	"kaijuengine.com/klib"
 )
 
 type MessageQueue[T any] struct {

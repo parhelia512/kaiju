@@ -37,9 +37,10 @@
 package plugins
 
 import (
+	"reflect"
+
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
-	"reflect"
 )
 
 var (

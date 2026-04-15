@@ -38,11 +38,12 @@ package rendering
 
 import (
 	"encoding/json"
-	"kaijuengine.com/engine/assets"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"sync"
 	"weak"
+
+	"kaijuengine.com/engine/assets"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type MaterialCache struct {

@@ -37,10 +37,11 @@
 package rendering
 
 import (
+	"weak"
+
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/platform/profiler/tracing"
 	vk "kaijuengine.com/rendering/vulkan"
-	"weak"
 )
 
 type ShaderType int

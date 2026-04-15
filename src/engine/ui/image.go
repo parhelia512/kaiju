@@ -37,12 +37,13 @@
 package ui
 
 import (
+	"log/slog"
+	"slices"
+
 	"kaijuengine.com/engine/systems/visual2d/sprite"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"slices"
 )
 
 type Image Panel

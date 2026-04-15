@@ -37,11 +37,12 @@
 package stage_workspace
 
 import (
+	"weak"
+
 	"kaijuengine.com/editor/codegen/entity_data_binding"
 	"kaijuengine.com/editor/editor_stage_manager"
 	"kaijuengine.com/editor/editor_stage_manager/data_binding_renderer"
 	"kaijuengine.com/platform/profiler/tracing"
-	"weak"
 )
 
 type EntityDataAttachHistory struct {

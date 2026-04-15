@@ -38,10 +38,11 @@ package project
 
 import (
 	"encoding/json"
+	"log/slog"
+
 	"kaijuengine.com/editor/editor_controls"
 	"kaijuengine.com/editor/project/project_file_system"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
 )
 
 type Settings struct {

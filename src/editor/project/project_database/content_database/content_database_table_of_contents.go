@@ -38,6 +38,7 @@ package content_database
 
 import (
 	"bytes"
+
 	"kaijuengine.com/editor/project/project_file_system"
 	"kaijuengine.com/engine/assets/content_archive"
 	"kaijuengine.com/engine/assets/table_of_contents"

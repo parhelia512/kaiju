@@ -38,14 +38,15 @@ package content_database
 
 import (
 	"io/fs"
-	"kaijuengine.com/editor/project/project_file_system"
-	"kaijuengine.com/engine/systems/events"
-	"kaijuengine.com/klib"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
+
+	"kaijuengine.com/editor/project/project_file_system"
+	"kaijuengine.com/engine/systems/events"
+	"kaijuengine.com/klib"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 // Cache is an in-memory cache of all of the content in the project. It

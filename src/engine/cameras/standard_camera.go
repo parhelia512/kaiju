@@ -37,11 +37,12 @@
 package cameras
 
 import (
+	"math"
+	"slices"
+
 	"kaijuengine.com/engine/collision"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
-	"math"
-	"slices"
 )
 
 type StandardCamera struct {

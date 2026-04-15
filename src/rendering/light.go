@@ -37,14 +37,15 @@
 package rendering
 
 import (
+	"log/slog"
+	"unsafe"
+	"weak"
+
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/engine/cameras"
 	"kaijuengine.com/engine/collision"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/rendering/vulkan_const"
-	"log/slog"
-	"unsafe"
-	"weak"
 )
 
 const (

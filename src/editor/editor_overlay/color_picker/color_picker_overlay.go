@@ -38,16 +38,17 @@ package color_picker
 
 import (
 	"fmt"
+	"log/slog"
+	"math"
+	"strconv"
+	"strings"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"math"
-	"strconv"
-	"strings"
 )
 
 type ColorPicker struct {

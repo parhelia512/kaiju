@@ -355,15 +355,15 @@ func (w *SettingsWorkspace) uiData() settingsWorkspaceData {
 
 func (w *SettingsWorkspace) funcMap() map[string]func(*document.Element) {
 	return map[string]func(*document.Element){
-		"showProjectSettings":   w.showProjectSettings,
-		"showEditorSettings":    w.showEditorSettings,
-		"showPluginSettings":    w.showPluginSettings,
-		"valueChanged":          w.valueChanged,
-		"openPluginWebsite":     w.openPluginWebsite,
-		"togglePlugin":          w.togglePlugin,
-		"clickOpenPlugins":      w.clickOpenPlugins,
-		"recompileEditor":       w.recompileEditor,
-		"addPluginFromGit":      w.addPluginFromGit,
+		"showProjectSettings": w.showProjectSettings,
+		"showEditorSettings":  w.showEditorSettings,
+		"showPluginSettings":  w.showPluginSettings,
+		"valueChanged":        w.valueChanged,
+		"openPluginWebsite":   w.openPluginWebsite,
+		"togglePlugin":        w.togglePlugin,
+		"clickOpenPlugins":    w.clickOpenPlugins,
+		"recompileEditor":     w.recompileEditor,
+		"addPluginFromGit":    w.addPluginFromGit,
 	}
 }
 

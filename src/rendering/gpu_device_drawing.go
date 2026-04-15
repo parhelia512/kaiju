@@ -38,9 +38,10 @@ package rendering
 
 import (
 	"errors"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"unsafe"
+
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 func (g *GPUDevice) Draw(renderPass *RenderPass, drawings []ShaderDraw, lights LightsForRender, shadows []TextureId) {

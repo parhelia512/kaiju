@@ -37,15 +37,16 @@
 package ui
 
 import (
+	"runtime"
+	"sync"
+	"weak"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/pooling"
 	"kaijuengine.com/engine/systems/events"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/platform/windowing"
-	"runtime"
-	"sync"
-	"weak"
 )
 
 type Manager struct {

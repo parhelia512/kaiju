@@ -38,11 +38,12 @@ package project_file_system
 
 import (
 	"errors"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 const (

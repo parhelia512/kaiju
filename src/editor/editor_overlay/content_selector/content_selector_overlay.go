@@ -37,6 +37,9 @@
 package content_selector
 
 import (
+	"log/slog"
+	"strings"
+
 	"kaijuengine.com/editor/project/project_database/content_database"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/assets"
@@ -45,8 +48,6 @@ import (
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"strings"
 )
 
 type ContentSelector struct {

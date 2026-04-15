@@ -39,11 +39,12 @@ package pod
 import (
 	"fmt"
 	"io"
-	"kaijuengine.com/klib"
 	"math"
 	"reflect"
 	"slices"
 	"strings"
+
+	"kaijuengine.com/klib"
 )
 
 type Encoder struct {

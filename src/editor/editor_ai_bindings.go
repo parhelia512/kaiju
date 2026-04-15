@@ -38,6 +38,7 @@ package editor
 
 import (
 	_ "embed"
+
 	"kaijuengine.com/klib"
 	"kaijuengine.com/ollama"
 )

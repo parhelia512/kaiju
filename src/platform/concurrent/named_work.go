@@ -37,9 +37,10 @@
 package concurrent
 
 import (
+	"sync"
+
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/profiler/tracing"
-	"sync"
 )
 
 type WorkGroup struct {

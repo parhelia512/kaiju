@@ -39,8 +39,9 @@ package vulkan
 import (
 	"bytes"
 	"fmt"
-	"kaijuengine.com/rendering/vulkan_const"
 	"unsafe"
+
+	"kaijuengine.com/rendering/vulkan_const"
 )
 
 // #include "kaiju_vulkan.h"

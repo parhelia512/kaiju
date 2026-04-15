@@ -38,6 +38,8 @@ package properties
 
 import (
 	"errors"
+	"slices"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/helpers"
@@ -45,7 +47,6 @@ import (
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/windowing"
-	"slices"
 )
 
 func paddingSizeFromString(elm *document.Element, str string, idx matrix.VectorComponent, window *windowing.Window) (matrix.Vec4, error) {

@@ -37,13 +37,14 @@
 package engine
 
 import (
+	"log/slog"
+	"sync"
+
 	"kaijuengine.com/engine/physics"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/concurrent"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"sync"
 )
 
 type StagePhysicsEntry struct {

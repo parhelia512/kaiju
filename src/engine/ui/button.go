@@ -37,9 +37,10 @@
 package ui
 
 import (
+	"weak"
+
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/rendering"
-	"weak"
 )
 
 type buttonData struct {

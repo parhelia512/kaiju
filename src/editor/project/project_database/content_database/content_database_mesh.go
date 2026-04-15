@@ -40,6 +40,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+
 	"kaijuengine.com/editor/project/project_file_system"
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/klib"
@@ -48,11 +54,6 @@ import (
 	"kaijuengine.com/rendering/loaders"
 	"kaijuengine.com/rendering/loaders/kaiju_mesh"
 	"kaijuengine.com/rendering/loaders/load_result"
-	"log/slog"
-	"os"
-	"path/filepath"
-	"slices"
-	"strings"
 )
 
 func init() { addCategory(Mesh{}) }

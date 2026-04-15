@@ -37,10 +37,11 @@
 package rendering
 
 import (
+	"log/slog"
+
 	"kaijuengine.com/klib"
 	vk "kaijuengine.com/rendering/vulkan"
 	"kaijuengine.com/rendering/vulkan_const"
-	"log/slog"
 )
 
 const (

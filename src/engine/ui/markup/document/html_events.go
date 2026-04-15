@@ -37,9 +37,10 @@
 package document
 
 import (
+	"log/slog"
+
 	"kaijuengine.com/engine/systems/events"
 	"kaijuengine.com/engine/ui"
-	"log/slog"
 )
 
 func tryMap(attr string, elm *Element, evt *events.Event, funcMap map[string]func(*Element)) {

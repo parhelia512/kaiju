@@ -37,8 +37,9 @@
 package tweening
 
 import (
-	"kaijuengine.com/matrix"
 	"math"
+
+	"kaijuengine.com/matrix"
 )
 
 func easeLinear(t float32) float32 { return t }

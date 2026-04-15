@@ -38,6 +38,7 @@ package rendering
 
 import (
 	"encoding/json"
+
 	"kaijuengine.com/engine/assets"
 )
 

@@ -37,11 +37,12 @@
 package functions
 
 import (
+	"strconv"
+
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/matrix"
-	"strconv"
 )
 
 func (f Rgba) Process(panel *ui.Panel, elm *document.Element, value rules.PropertyValue) (string, error) {

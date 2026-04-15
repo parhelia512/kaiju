@@ -38,6 +38,10 @@ package menu_bar
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
+
 	"kaijuengine.com/editor/editor_overlay/create_entity_data"
 	"kaijuengine.com/editor/editor_overlay/file_browser"
 	"kaijuengine.com/editor/editor_overlay/input_prompt"
@@ -51,9 +55,6 @@ import (
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/filesystem"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"os"
-	"path/filepath"
 )
 
 type MenuBar struct {

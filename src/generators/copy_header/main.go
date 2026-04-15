@@ -1,12 +1,13 @@
 package main
 
 import (
-	"kaijuengine.com/platform/filesystem"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"unicode/utf8"
+
+	"kaijuengine.com/platform/filesystem"
 )
 
 const containsCheck = "Copyright (c) 2015-present Brent Farris."

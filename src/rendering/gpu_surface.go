@@ -37,9 +37,10 @@
 package rendering
 
 import (
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"unsafe"
+
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type GPUSurface struct {

@@ -37,8 +37,9 @@
 package navigation
 
 import (
-	"kaijuengine.com/matrix"
 	"testing"
+
+	"kaijuengine.com/matrix"
 )
 
 func TestAStar(t *testing.T) {

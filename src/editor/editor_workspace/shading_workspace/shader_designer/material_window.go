@@ -39,6 +39,12 @@ package shader_designer
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
+	"os"
+	"path/filepath"
+	"slices"
+	"weak"
+
 	"kaijuengine.com/editor/editor_overlay/content_selector"
 	"kaijuengine.com/editor/editor_workspace/common_workspace"
 	"kaijuengine.com/editor/project/project_database/content_database"
@@ -47,11 +53,6 @@ import (
 	"kaijuengine.com/engine/ui/markup"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"os"
-	"path/filepath"
-	"slices"
-	"weak"
 )
 
 func collectSpecificFileOptions(pfs *project_file_system.FileSystem, cache *content_database.Cache, cat content_database.ContentCategory) []ui.SelectOption {

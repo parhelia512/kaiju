@@ -37,6 +37,8 @@
 package ui
 
 import (
+	"weak"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/pooling"
 	"kaijuengine.com/engine/systems/events"
@@ -45,7 +47,6 @@ import (
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/platform/windowing"
 	"kaijuengine.com/rendering"
-	"weak"
 )
 
 type DirtyType = int

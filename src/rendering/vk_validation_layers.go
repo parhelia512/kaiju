@@ -37,8 +37,9 @@
 package rendering
 
 import (
-	"kaijuengine.com/klib"
 	"log/slog"
+
+	"kaijuengine.com/klib"
 
 	vk "kaijuengine.com/rendering/vulkan"
 )

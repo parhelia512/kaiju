@@ -39,11 +39,12 @@ package rendering
 import (
 	"encoding/json"
 	"errors"
-	vk "kaijuengine.com/rendering/vulkan"
-	"kaijuengine.com/rendering/vulkan_const"
 	"log/slog"
 	"math"
 	"strconv"
+
+	vk "kaijuengine.com/rendering/vulkan"
+	"kaijuengine.com/rendering/vulkan_const"
 )
 
 type RenderPassData struct {

@@ -40,10 +40,11 @@ import (
 	"errors"
 	"image"
 	"image/draw"
-	"kaijuengine.com/platform/hid"
-	"kaijuengine.com/platform/profiler/tracing"
 	"unicode/utf16"
 	"unsafe"
+
+	"kaijuengine.com/platform/hid"
+	"kaijuengine.com/platform/profiler/tracing"
 
 	"golang.design/x/clipboard"
 )

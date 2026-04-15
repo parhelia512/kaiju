@@ -41,14 +41,15 @@ import (
 	"encoding/binary"
 	"fmt"
 	"hash/crc32"
-	"kaijuengine.com/debug"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"unsafe"
+
+	"kaijuengine.com/debug"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type FileReader interface {

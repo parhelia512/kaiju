@@ -38,14 +38,15 @@ package properties
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/rendering"
-	"regexp"
-	"strings"
 )
 
 func (p BackgroundImage) Process(panel *ui.Panel, elm *document.Element, values []rules.PropertyValue, host *engine.Host) error {

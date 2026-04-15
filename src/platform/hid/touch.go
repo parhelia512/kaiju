@@ -37,8 +37,9 @@
 package hid
 
 import (
-	"kaijuengine.com/klib"
 	"slices"
+
+	"kaijuengine.com/klib"
 )
 
 const (

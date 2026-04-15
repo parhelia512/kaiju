@@ -39,15 +39,16 @@ package project_file_system
 import (
 	"errors"
 	"fmt"
-	"kaijuengine.com/editor/codegen"
-	"kaijuengine.com/klib"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
 	"runtime"
 	"strings"
+
+	"kaijuengine.com/editor/codegen"
+	"kaijuengine.com/klib"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 var modNameRe = regexp.MustCompile(`^module\s+(\w+)`)

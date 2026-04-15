@@ -39,6 +39,14 @@ package shader_designer
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"sort"
+	"strings"
+	"time"
+
 	"kaijuengine.com/editor/editor_workspace/common_workspace"
 	"kaijuengine.com/editor/project/project_database/content_database"
 	"kaijuengine.com/editor/project/project_file_system"
@@ -48,13 +56,6 @@ import (
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
 	"kaijuengine.com/rendering/glsl"
-	"log/slog"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"sort"
-	"strings"
-	"time"
 )
 
 func collectFileOptions(pfs *project_file_system.FileSystem) map[string][]ui.SelectOption {

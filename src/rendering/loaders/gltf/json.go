@@ -38,9 +38,10 @@ package gltf
 
 import (
 	"encoding/json"
+	"strings"
+
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/rendering/loaders/load_result"
-	"strings"
 )
 
 type Asset struct {
