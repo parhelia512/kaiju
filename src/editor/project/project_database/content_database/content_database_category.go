@@ -37,10 +37,11 @@
 package content_database
 
 import (
-	"kaijuengine.com/editor/project/project_file_system"
-	"kaijuengine.com/platform/profiler/tracing"
 	"path/filepath"
 	"strings"
+
+	"kaijuengine.com/editor/project/project_file_system"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 var (

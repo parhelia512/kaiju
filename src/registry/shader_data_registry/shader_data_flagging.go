@@ -37,9 +37,10 @@
 package shader_data_registry
 
 import (
-	"kaijuengine.com/rendering"
 	"reflect"
 	"unsafe"
+
+	"kaijuengine.com/rendering"
 )
 
 type StandardShaderDataFlags = uint32

@@ -40,6 +40,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
+	"reflect"
+	"slices"
+	"strconv"
+
 	"kaijuengine.com/editor/codegen/entity_data_binding"
 	"kaijuengine.com/editor/editor_overlay/color_picker"
 	"kaijuengine.com/editor/editor_overlay/confirm_prompt"
@@ -54,10 +59,6 @@ import (
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering/vfx"
-	"log/slog"
-	"reflect"
-	"slices"
-	"strconv"
 )
 
 type VfxWorkspace struct {

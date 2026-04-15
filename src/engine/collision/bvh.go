@@ -37,8 +37,9 @@
 package collision
 
 import (
-	"kaijuengine.com/matrix"
 	"sort"
+
+	"kaijuengine.com/matrix"
 )
 
 type HitObject interface {

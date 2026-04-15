@@ -38,12 +38,13 @@ package framework
 
 import (
 	"encoding/json"
+	"log/slog"
+
 	"kaijuengine.com/build"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/stages"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/matrix"
-	"log/slog"
 )
 
 // SpawnTemplate loads an entity template asset identified by `id` from the

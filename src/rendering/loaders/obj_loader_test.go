@@ -37,9 +37,10 @@
 package loaders
 
 import (
+	"testing"
+
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/matrix"
-	"testing"
 )
 
 func TestObjDecipherLine(t *testing.T) {

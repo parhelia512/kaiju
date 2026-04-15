@@ -39,6 +39,10 @@
 package bootstrap
 
 import (
+	"log/slog"
+	"runtime"
+	"time"
+
 	"kaijuengine.com/build"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/host_container"
@@ -47,9 +51,6 @@ import (
 	"kaijuengine.com/platform/profiler"
 	"kaijuengine.com/plugins"
 	"kaijuengine.com/tools/html_preview"
-	"log/slog"
-	"runtime"
-	"time"
 )
 
 var containerCleanedUp, hostCleanedUp, windowCleanedUp bool

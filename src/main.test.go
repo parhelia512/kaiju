@@ -39,12 +39,6 @@
 package main
 
 import (
-	"kaijuengine.com/bootstrap"
-	"kaijuengine.com/engine"
-	"kaijuengine.com/engine/assets"
-	"kaijuengine.com/matrix"
-	"kaijuengine.com/registry/shader_data_registry"
-	"kaijuengine.com/rendering"
 	"log/slog"
 	"math"
 	"os"
@@ -52,6 +46,13 @@ import (
 	"reflect"
 	"slices"
 	"strings"
+
+	"kaijuengine.com/bootstrap"
+	"kaijuengine.com/engine"
+	"kaijuengine.com/engine/assets"
+	"kaijuengine.com/matrix"
+	"kaijuengine.com/registry/shader_data_registry"
+	"kaijuengine.com/rendering"
 )
 
 const rawContentPath = `editor/editor_embedded_content/editor_content`

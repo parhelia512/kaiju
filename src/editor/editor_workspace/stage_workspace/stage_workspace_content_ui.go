@@ -38,6 +38,11 @@ package stage_workspace
 
 import (
 	"fmt"
+	"log/slog"
+	"slices"
+	"strings"
+	"weak"
+
 	"kaijuengine.com/editor/editor_events"
 	"kaijuengine.com/editor/editor_overlay/context_menu"
 	"kaijuengine.com/editor/editor_workspace/content_workspace"
@@ -50,10 +55,6 @@ import (
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/platform/windowing"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"slices"
-	"strings"
-	"weak"
 )
 
 type WorkspaceContentUI struct {

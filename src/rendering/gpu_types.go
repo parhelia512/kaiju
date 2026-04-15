@@ -37,8 +37,9 @@
 package rendering
 
 import (
-	"kaijuengine.com/matrix"
 	"unsafe"
+
+	"kaijuengine.com/matrix"
 )
 
 type GPUResult int32

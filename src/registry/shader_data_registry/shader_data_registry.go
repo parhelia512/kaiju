@@ -38,9 +38,10 @@ package shader_data_registry
 
 import (
 	"fmt"
+	"log/slog"
+
 	"kaijuengine.com/debug"
 	"kaijuengine.com/rendering"
-	"log/slog"
 )
 
 const fallback = "basic"

@@ -37,12 +37,13 @@
 package functions
 
 import (
+	"strconv"
+	"strings"
+
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/helpers"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
-	"strconv"
-	"strings"
 )
 
 type calcOp int

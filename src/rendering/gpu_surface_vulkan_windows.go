@@ -38,10 +38,11 @@ package rendering
 
 import (
 	"fmt"
+	"unsafe"
+
 	"kaijuengine.com/platform/profiler/tracing"
 	vk "kaijuengine.com/rendering/vulkan"
 	"kaijuengine.com/rendering/vulkan_const"
-	"unsafe"
 )
 
 func (g *GPUSurface) createImpl(instance *GPUInstance, window RenderingContainer) error {

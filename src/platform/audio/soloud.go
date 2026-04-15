@@ -39,10 +39,11 @@ package audio
 import (
 	"errors"
 	"fmt"
-	"kaijuengine.com/engine/assets"
-	"kaijuengine.com/klib"
 	"math"
 	"runtime"
+
+	"kaijuengine.com/engine/assets"
+	"kaijuengine.com/klib"
 )
 
 type AudioClip struct {

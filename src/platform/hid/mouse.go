@@ -37,8 +37,9 @@
 package hid
 
 import (
-	"kaijuengine.com/matrix"
 	"math"
+
+	"kaijuengine.com/matrix"
 )
 
 const (

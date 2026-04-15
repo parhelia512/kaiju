@@ -38,11 +38,12 @@ package rendering
 
 import (
 	"fmt"
-	"kaijuengine.com/build"
-	"kaijuengine.com/klib"
 	"log/slog"
 	"sync"
 	"unsafe"
+
+	"kaijuengine.com/build"
+	"kaijuengine.com/klib"
 )
 
 type memoryDebugger sync.Map

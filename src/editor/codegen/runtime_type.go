@@ -37,9 +37,10 @@
 package codegen
 
 import (
+	"reflect"
+
 	"kaijuengine.com/engine/encoding/pod"
 	"kaijuengine.com/platform/profiler/tracing"
-	"reflect"
 )
 
 type RuntimeType struct {

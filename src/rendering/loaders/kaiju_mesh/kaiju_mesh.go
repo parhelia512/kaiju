@@ -39,6 +39,10 @@ package kaiju_mesh
 import (
 	"bytes"
 	"encoding/gob"
+	"log/slog"
+	"slices"
+	"sync"
+
 	"kaijuengine.com/debug"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/collision"
@@ -46,9 +50,6 @@ import (
 	"kaijuengine.com/platform/concurrent"
 	"kaijuengine.com/rendering"
 	"kaijuengine.com/rendering/loaders/load_result"
-	"log/slog"
-	"slices"
-	"sync"
 )
 
 type AnimationPathType = int

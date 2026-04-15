@@ -39,13 +39,14 @@ package properties
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"strings"
 )
 
 func setChildrenFontFace(elm *document.Element, face rendering.FontFace) {

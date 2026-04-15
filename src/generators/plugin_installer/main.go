@@ -37,10 +37,11 @@
 package main
 
 import (
-	"kaijuengine.com/platform/filesystem"
 	"os"
 	"os/exec"
 	"time"
+
+	"kaijuengine.com/platform/filesystem"
 )
 
 // This program is used for installing a modified version of the editor.

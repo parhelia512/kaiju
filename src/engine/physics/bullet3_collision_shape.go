@@ -72,9 +72,10 @@ package physics
 */
 import "C"
 import (
-	"kaijuengine.com/matrix"
 	"runtime"
 	"unsafe"
+
+	"kaijuengine.com/matrix"
 )
 
 type CollisionShape struct{ ptr *C.btCollisionShape }

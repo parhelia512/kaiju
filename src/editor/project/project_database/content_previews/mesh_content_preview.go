@@ -38,6 +38,8 @@ package content_previews
 
 import (
 	"fmt"
+	"log/slog"
+
 	"kaijuengine.com/editor/project/project_database/content_database"
 	"kaijuengine.com/engine/cameras"
 	"kaijuengine.com/engine/collision"
@@ -46,7 +48,6 @@ import (
 	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
 	"kaijuengine.com/rendering/loaders/kaiju_mesh"
-	"log/slog"
 )
 
 func (p *ContentPreviewer) renderMesh(id string) {

@@ -38,10 +38,11 @@ package codegen
 
 import (
 	"bytes"
-	"kaijuengine.com/engine/encoding/pod"
 	"os"
 	"reflect"
 	"testing"
+
+	"kaijuengine.com/engine/encoding/pod"
 )
 
 func TestWalk(t *testing.T) {

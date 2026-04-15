@@ -39,6 +39,9 @@ package project
 import (
 	"bytes"
 	"encoding/json"
+	"log/slog"
+	"reflect"
+
 	"kaijuengine.com/editor/codegen/entity_data_binding"
 	"kaijuengine.com/editor/project/project_database/content_database"
 	"kaijuengine.com/engine/assets/content_archive"
@@ -46,8 +49,6 @@ import (
 	"kaijuengine.com/engine/stages"
 	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"reflect"
 )
 
 func (p *Project) initializeCustomSerializers() {

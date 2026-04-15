@@ -38,6 +38,8 @@ package shading_workspace
 
 import (
 	"encoding/json"
+	"log/slog"
+
 	"kaijuengine.com/editor/editor_stage_manager/editor_stage_view"
 	"kaijuengine.com/editor/editor_workspace/common_workspace"
 	"kaijuengine.com/editor/editor_workspace/shading_workspace/shader_designer"
@@ -47,7 +49,6 @@ import (
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"log/slog"
 )
 
 type ShadingWorkspace struct {

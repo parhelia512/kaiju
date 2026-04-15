@@ -37,12 +37,13 @@
 package rendering
 
 import (
+	"log/slog"
+	"unsafe"
+
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/profiler/tracing"
 	vk "kaijuengine.com/rendering/vulkan"
 	"kaijuengine.com/rendering/vulkan_const"
-	"log/slog"
-	"unsafe"
 )
 
 type ShaderPipelineData struct {

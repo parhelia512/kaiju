@@ -39,8 +39,6 @@ package glsl
 import (
 	"bufio"
 	"fmt"
-	"kaijuengine.com/klib/string_equations"
-	"kaijuengine.com/rendering"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -48,6 +46,9 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"kaijuengine.com/klib/string_equations"
+	"kaijuengine.com/rendering"
 )
 
 var (

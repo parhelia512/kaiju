@@ -40,9 +40,10 @@ package rendering
 
 import (
 	"fmt"
+	"unsafe"
+
 	vk "kaijuengine.com/rendering/vulkan"
 	"kaijuengine.com/rendering/vulkan_const"
-	"unsafe"
 )
 
 const (

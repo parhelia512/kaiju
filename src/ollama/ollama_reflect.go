@@ -39,11 +39,12 @@ package ollama
 import (
 	"encoding/json"
 	"fmt"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"reflect"
 	"regexp"
 	"strings"
+
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 var (

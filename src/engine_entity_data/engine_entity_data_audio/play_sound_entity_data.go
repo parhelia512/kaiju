@@ -37,11 +37,12 @@
 package engine_entity_data_audio
 
 import (
+	"log/slog"
+	"time"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/encoding/pod"
 	"kaijuengine.com/engine_entity_data/content_id"
-	"log/slog"
-	"time"
 )
 
 var soundBindingKey = ""

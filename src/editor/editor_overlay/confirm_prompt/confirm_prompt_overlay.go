@@ -37,12 +37,13 @@
 package confirm_prompt
 
 import (
+	"log/slog"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
 )
 
 type ConfirmPrompt struct {

@@ -37,12 +37,13 @@
 package ui
 
 import (
+	"slices"
+	"weak"
+
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"slices"
-	"weak"
 )
 
 const (

@@ -39,8 +39,9 @@
 package main
 
 import (
-	"kaijuengine.com/platform/windowing"
 	"runtime"
+
+	"kaijuengine.com/platform/windowing"
 )
 
 func main() {

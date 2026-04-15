@@ -37,11 +37,12 @@
 package rendering
 
 import (
+	"unsafe"
+
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	vk "kaijuengine.com/rendering/vulkan"
 	"kaijuengine.com/rendering/vulkan_const"
-	"unsafe"
 )
 
 var (

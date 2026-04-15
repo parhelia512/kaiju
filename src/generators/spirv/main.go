@@ -39,12 +39,13 @@ package main
 import (
 	_ "embed"
 	"encoding/json"
-	"kaijuengine.com/rendering"
-	"kaijuengine.com/rendering/glsl"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"kaijuengine.com/rendering"
+	"kaijuengine.com/rendering/glsl"
 )
 
 type Prebuilt struct {

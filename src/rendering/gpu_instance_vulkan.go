@@ -38,11 +38,12 @@ package rendering
 
 import (
 	"fmt"
+	"log/slog"
+	"unsafe"
+
 	"kaijuengine.com/platform/profiler/tracing"
 	vk "kaijuengine.com/rendering/vulkan"
 	"kaijuengine.com/rendering/vulkan_const"
-	"log/slog"
-	"unsafe"
 )
 
 /*

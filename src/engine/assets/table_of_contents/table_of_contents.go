@@ -39,6 +39,7 @@ package table_of_contents
 import (
 	"bytes"
 	"encoding/json"
+
 	"kaijuengine.com/build"
 	"kaijuengine.com/engine/encoding/pod"
 )

@@ -38,6 +38,8 @@ package reference_viewer
 
 import (
 	"fmt"
+	"log/slog"
+
 	"kaijuengine.com/editor/project"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/systems/events"
@@ -45,7 +47,6 @@ import (
 	"kaijuengine.com/engine/ui/markup"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
 )
 
 var existing *ReferenceViewer

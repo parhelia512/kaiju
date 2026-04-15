@@ -37,6 +37,8 @@
 package status_bar
 
 import (
+	"weak"
+
 	"kaijuengine.com/editor/common_interfaces"
 	"kaijuengine.com/editor/editor_logging"
 	"kaijuengine.com/editor/editor_overlay/context_menu"
@@ -46,7 +48,6 @@ import (
 	"kaijuengine.com/engine/ui/markup"
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/platform/profiler/tracing"
-	"weak"
 )
 
 const maxLogEntries = 100

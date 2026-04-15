@@ -37,10 +37,11 @@
 package framework
 
 import (
+	"math"
+
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/rendering/loaders/kaiju_mesh"
 	"kaijuengine.com/rendering/loaders/load_result"
-	"math"
 )
 
 type SkinAnimation struct {

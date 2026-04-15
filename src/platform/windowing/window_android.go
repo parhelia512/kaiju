@@ -41,10 +41,11 @@ package windowing
 import (
 	"fmt"
 	"image"
+	"unsafe"
+
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/hid"
 	"kaijuengine.com/platform/profiler/tracing"
-	"unsafe"
 )
 
 /*

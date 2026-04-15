@@ -39,8 +39,9 @@ package logging
 import (
 	"context"
 	"io"
-	"kaijuengine.com/build"
 	"log/slog"
+
+	"kaijuengine.com/build"
 )
 
 type RuntimeLogHandler struct {

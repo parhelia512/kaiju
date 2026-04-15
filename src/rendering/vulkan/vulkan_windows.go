@@ -49,8 +49,9 @@ package vulkan
 import "C"
 
 import (
-	"kaijuengine.com/rendering/vulkan_const"
 	"unsafe"
+
+	"kaijuengine.com/rendering/vulkan_const"
 )
 
 func Win32SurfaceCreateInfoKHRHelper(hwnd, hInstance unsafe.Pointer, instance Instance, surface *Surface) vulkan_const.Result {

@@ -39,12 +39,13 @@
 package filesystem
 
 import (
-	"kaijuengine.com/build"
-	"kaijuengine.com/klib"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"unsafe"
+
+	"kaijuengine.com/build"
+	"kaijuengine.com/klib"
 )
 
 func knownPaths() map[string]string {

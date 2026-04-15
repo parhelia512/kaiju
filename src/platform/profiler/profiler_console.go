@@ -39,17 +39,18 @@ package profiler
 import (
 	"bufio"
 	"fmt"
-	"kaijuengine.com/engine"
-	"kaijuengine.com/engine/systems/console"
-	"kaijuengine.com/klib"
-	"kaijuengine.com/klib/contexts"
-	"kaijuengine.com/platform/profiler/tracing"
 	"os"
 	"os/exec"
 	"runtime"
 	"runtime/pprof"
 	"strings"
 	"time"
+
+	"kaijuengine.com/engine"
+	"kaijuengine.com/engine/systems/console"
+	"kaijuengine.com/klib"
+	"kaijuengine.com/klib/contexts"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 func consoleTop(host *engine.Host) string {

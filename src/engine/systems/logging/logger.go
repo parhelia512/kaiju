@@ -39,10 +39,6 @@ package logging
 import (
 	"bufio"
 	"fmt"
-	"kaijuengine.com/build"
-	"kaijuengine.com/klib"
-	"kaijuengine.com/platform/filesystem"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -51,6 +47,11 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"kaijuengine.com/build"
+	"kaijuengine.com/klib"
+	"kaijuengine.com/platform/filesystem"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 const (

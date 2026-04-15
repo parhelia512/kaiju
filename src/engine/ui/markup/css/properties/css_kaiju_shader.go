@@ -38,12 +38,13 @@ package properties
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
-	"regexp"
-	"strings"
 )
 
 func (p KaijuMaterial) Process(panel *ui.Panel, elm *document.Element, values []rules.PropertyValue, host *engine.Host) error {

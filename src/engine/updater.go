@@ -37,11 +37,12 @@
 package engine
 
 import (
+	"sync"
+	"sync/atomic"
+
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/concurrent"
 	"kaijuengine.com/platform/profiler/tracing"
-	"sync"
-	"sync/atomic"
 )
 
 type UpdateId int

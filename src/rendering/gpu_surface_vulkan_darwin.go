@@ -1,3 +1,5 @@
+//go:build darwin && !ios
+
 /******************************************************************************/
 /* gpu_surface_vulkan_darwin.go                                               */
 /******************************************************************************/
@@ -34,15 +36,14 @@
 /* OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                              */
 /******************************************************************************/
 
-//go:build darwin && !ios
-
 package rendering
 
 import (
 	"fmt"
+	"unsafe"
+
 	vk "kaijuengine.com/rendering/vulkan"
 	"kaijuengine.com/rendering/vulkan_const"
-	"unsafe"
 )
 
 // macOS-specific Vulkan surface creation using NSView

@@ -37,12 +37,13 @@
 package rendering
 
 import (
-	"kaijuengine.com/platform/profiler/tracing"
-	vk "kaijuengine.com/rendering/vulkan"
-	"kaijuengine.com/rendering/vulkan_const"
 	"log/slog"
 	"strings"
 	"unsafe"
+
+	"kaijuengine.com/platform/profiler/tracing"
+	vk "kaijuengine.com/rendering/vulkan"
+	"kaijuengine.com/rendering/vulkan_const"
 )
 
 type GPUPhysicalDevice struct {

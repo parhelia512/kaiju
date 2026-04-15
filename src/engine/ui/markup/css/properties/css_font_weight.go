@@ -38,6 +38,7 @@ package properties
 
 import (
 	"errors"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup/css/rules"

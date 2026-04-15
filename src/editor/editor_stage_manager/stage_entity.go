@@ -37,11 +37,12 @@
 package editor_stage_manager
 
 import (
+	"unsafe"
+
 	"kaijuengine.com/editor/codegen/entity_data_binding"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
-	"unsafe"
 )
 
 type StageEntity struct {

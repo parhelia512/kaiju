@@ -38,14 +38,15 @@ package rendering
 
 import (
 	"fmt"
-	"kaijuengine.com/matrix"
-	"kaijuengine.com/platform/profiler/tracing"
-	vk "kaijuengine.com/rendering/vulkan"
-	"kaijuengine.com/rendering/vulkan_const"
 	"log/slog"
 	"runtime"
 	"unsafe"
 	"weak"
+
+	"kaijuengine.com/matrix"
+	"kaijuengine.com/platform/profiler/tracing"
+	vk "kaijuengine.com/rendering/vulkan"
+	"kaijuengine.com/rendering/vulkan_const"
 )
 
 type TextureCleanup struct {

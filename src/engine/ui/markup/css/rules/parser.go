@@ -38,9 +38,10 @@ package rules
 
 import (
 	"bytes"
-	"kaijuengine.com/engine/ui/markup/css/helpers"
 	"slices"
 	"strings"
+
+	"kaijuengine.com/engine/ui/markup/css/helpers"
 
 	"github.com/tdewolff/parse/v2"
 	"github.com/tdewolff/parse/v2/css"

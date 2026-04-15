@@ -37,6 +37,10 @@
 package engine_entity_data_skin_animation
 
 import (
+	"log/slog"
+	"strings"
+	"weak"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/encoding/pod"
 	"kaijuengine.com/engine_entity_data/content_id"
@@ -46,9 +50,6 @@ import (
 	"kaijuengine.com/rendering"
 	"kaijuengine.com/rendering/loaders/kaiju_mesh"
 	"kaijuengine.com/rendering/loaders/load_result"
-	"log/slog"
-	"strings"
-	"weak"
 )
 
 var bindingKey = ""

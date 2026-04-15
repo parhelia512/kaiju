@@ -39,12 +39,13 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"kaijuengine.com/klib"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+
+	"kaijuengine.com/klib"
 )
 
 func main() {

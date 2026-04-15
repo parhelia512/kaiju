@@ -38,6 +38,14 @@ package create_entity_data
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"text/template"
+	"unicode"
+
 	"kaijuengine.com/editor/editor_overlay/file_browser"
 	"kaijuengine.com/editor/project/project_file_system"
 	"kaijuengine.com/engine"
@@ -46,13 +54,6 @@ import (
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
-	"text/template"
-	"unicode"
 )
 
 type CreateEntityDataOverlay struct {

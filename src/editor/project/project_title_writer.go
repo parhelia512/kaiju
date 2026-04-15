@@ -38,10 +38,11 @@ package project
 
 import (
 	"fmt"
-	"kaijuengine.com/editor/project/project_file_system"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"os"
+
+	"kaijuengine.com/editor/project/project_file_system"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 const nameSetCodeTitleFileContentFormat = `package build

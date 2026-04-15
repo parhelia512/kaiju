@@ -39,13 +39,14 @@ package editor
 import (
 	"bytes"
 	"image/png"
+	"log/slog"
+	"reflect"
+
 	"kaijuengine.com/build"
 	"kaijuengine.com/editor/editor_embedded_content"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"reflect"
 )
 
 // EditorGame satisfies [bootstrap.GameInterface] and will allow the engine to

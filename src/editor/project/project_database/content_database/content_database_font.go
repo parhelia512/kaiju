@@ -38,10 +38,11 @@ package content_database
 
 import (
 	"fmt"
+	"path/filepath"
+
 	"kaijuengine.com/editor/project/project_file_system"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/tools/font_to_msdf"
-	"path/filepath"
 )
 
 func init() { addCategory(Font{}) }

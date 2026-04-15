@@ -39,10 +39,11 @@ package editor
 
 import (
 	"fmt"
-	"kaijuengine.com/build"
-	"kaijuengine.com/engine"
 	"log/slog"
 	"os"
+
+	"kaijuengine.com/build"
+	"kaijuengine.com/engine"
 )
 
 type autoTestStep struct {

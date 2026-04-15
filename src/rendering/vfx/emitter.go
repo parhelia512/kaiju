@@ -37,6 +37,10 @@
 package vfx
 
 import (
+	"log/slog"
+	"math/rand/v2"
+	"time"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/assets"
 	"kaijuengine.com/engine_entity_data/content_id"
@@ -44,9 +48,6 @@ import (
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/registry/shader_data_registry"
 	"kaijuengine.com/rendering"
-	"log/slog"
-	"math/rand/v2"
-	"time"
 )
 
 type Emitter struct {

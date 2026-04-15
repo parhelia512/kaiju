@@ -43,10 +43,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"kaijuengine.com/editor/project/project_file_system"
-	"kaijuengine.com/engine/assets/content_archive"
-	"kaijuengine.com/platform/filesystem"
-	"kaijuengine.com/platform/profiler/tracing"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -55,6 +51,11 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+
+	"kaijuengine.com/editor/project/project_file_system"
+	"kaijuengine.com/engine/assets/content_archive"
+	"kaijuengine.com/platform/filesystem"
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 func (p *Project) BuildRunAndroid(reader content_archive.FileReader, ndkHome, javaHome string, tags []string) error {

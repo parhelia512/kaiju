@@ -37,11 +37,12 @@
 package ui
 
 import (
+	"slices"
+	"unicode/utf8"
+
 	"kaijuengine.com/matrix"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
-	"slices"
-	"unicode/utf8"
 )
 
 const (

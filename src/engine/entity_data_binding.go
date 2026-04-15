@@ -38,11 +38,12 @@ package engine
 
 import (
 	"errors"
+	"log/slog"
+	"reflect"
+
 	"kaijuengine.com/build"
 	"kaijuengine.com/engine/encoding/pod"
 	"kaijuengine.com/matrix"
-	"log/slog"
-	"reflect"
 )
 
 var DebugEntityDataRegistry = map[string]EntityData{}

@@ -37,9 +37,10 @@
 package rendering
 
 import (
-	"kaijuengine.com/platform/profiler/tracing"
 	"runtime"
 	"weak"
+
+	"kaijuengine.com/platform/profiler/tracing"
 )
 
 type MeshCleanup struct {

@@ -38,13 +38,14 @@ package rendering
 
 import (
 	"errors"
+	"log/slog"
+	"unsafe"
+	"weak"
+
 	"kaijuengine.com/engine/pooling"
 	"kaijuengine.com/platform/profiler/tracing"
 	vk "kaijuengine.com/rendering/vulkan"
 	"kaijuengine.com/rendering/vulkan_const"
-	"log/slog"
-	"unsafe"
-	"weak"
 )
 
 type CommandRecorder struct {

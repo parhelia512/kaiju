@@ -37,6 +37,9 @@
 package data_binding_renderer
 
 import (
+	"strings"
+	"weak"
+
 	"kaijuengine.com/editor/codegen/entity_data_binding"
 	"kaijuengine.com/editor/editor_stage_manager"
 	"kaijuengine.com/engine"
@@ -49,8 +52,6 @@ import (
 	"kaijuengine.com/rendering"
 	"kaijuengine.com/rendering/loaders/kaiju_mesh"
 	"kaijuengine.com/rendering/loaders/load_result"
-	"strings"
-	"weak"
 )
 
 type skinAnimationGizmo struct {

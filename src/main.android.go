@@ -40,8 +40,9 @@ package main
 
 import (
 	"C"
-	"kaijuengine.com/engine/systems/logging"
 	"unsafe"
+
+	"kaijuengine.com/engine/systems/logging"
 )
 
 //export AndroidMain

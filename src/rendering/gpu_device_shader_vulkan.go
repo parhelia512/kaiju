@@ -38,14 +38,15 @@ package rendering
 
 import (
 	"errors"
-	"kaijuengine.com/engine/assets"
-	"kaijuengine.com/platform/profiler/tracing"
-	vk "kaijuengine.com/rendering/vulkan"
-	"kaijuengine.com/rendering/vulkan_const"
 	"log/slog"
 	"runtime"
 	"unsafe"
 	"weak"
+
+	"kaijuengine.com/engine/assets"
+	"kaijuengine.com/platform/profiler/tracing"
+	vk "kaijuengine.com/rendering/vulkan"
+	"kaijuengine.com/rendering/vulkan_const"
 )
 
 type ShaderCleanup struct {

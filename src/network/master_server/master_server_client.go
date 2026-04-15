@@ -37,12 +37,13 @@
 package master_server
 
 import (
+	"log/slog"
+	"unsafe"
+
 	"kaijuengine.com/debug"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/network"
-	"log/slog"
-	"unsafe"
 )
 
 const (

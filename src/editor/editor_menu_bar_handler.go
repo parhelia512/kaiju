@@ -37,6 +37,13 @@
 package editor
 
 import (
+	"log/slog"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"sync"
+	"text/template"
+
 	"kaijuengine.com/editor/editor_overlay/confirm_prompt"
 	"kaijuengine.com/editor/editor_overlay/input_prompt"
 	"kaijuengine.com/editor/editor_plugin"
@@ -44,12 +51,6 @@ import (
 	"kaijuengine.com/editor/project/project_database/content_database"
 	"kaijuengine.com/editor/project/project_file_system"
 	"kaijuengine.com/platform/profiler/tracing"
-	"log/slog"
-	"os/exec"
-	"path/filepath"
-	"strings"
-	"sync"
-	"text/template"
 )
 
 // StageWorkspaceSelected will inform the editor that the developer has

@@ -38,15 +38,16 @@ package content_workspace
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
+	"strings"
+
 	"kaijuengine.com/editor/editor_overlay/confirm_prompt"
 	"kaijuengine.com/editor/editor_overlay/input_prompt"
 	"kaijuengine.com/editor/editor_overlay/table_of_contents_overlay"
 	"kaijuengine.com/editor/project/project_database/content_database"
 	"kaijuengine.com/engine/assets/table_of_contents"
 	"kaijuengine.com/klib"
-	"log/slog"
-	"os"
-	"strings"
 )
 
 func (w *ContentWorkspace) requestCreateTableOfContents() {

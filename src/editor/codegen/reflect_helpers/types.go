@@ -37,12 +37,13 @@
 package reflect_helpers
 
 import (
-	"kaijuengine.com/klib"
-	"kaijuengine.com/matrix"
 	"log/slog"
 	"strconv"
 	"strings"
 	"unsafe"
+
+	"kaijuengine.com/klib"
+	"kaijuengine.com/matrix"
 )
 
 func bitSize[T klib.Number]() int { return int(unsafe.Sizeof(T(0))) * 8 }

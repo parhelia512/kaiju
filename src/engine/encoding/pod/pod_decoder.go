@@ -40,8 +40,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"kaijuengine.com/klib"
 	"reflect"
+
+	"kaijuengine.com/klib"
 )
 
 type Decoder struct {
