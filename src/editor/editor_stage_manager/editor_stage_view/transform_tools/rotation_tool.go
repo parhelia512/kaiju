@@ -231,14 +231,13 @@ func (t *RotationTool) processDrag(host *engine.Host, cam cameras.Camera, snap b
 	} else if t.dragging {
 		nml := matrix.Vec3Forward()
 		rp := t.root.Position()
-		cp := cam.Position()
 		switch t.currentAxis {
 		case matrix.Vx:
-			nml = matrix.NewVec3(rp.Subtract(cp).X(), 0, 0)
+			nml = matrix.NewVec3(1, 0, 0)
 		case matrix.Vy:
-			nml = matrix.NewVec3(0, cp.Subtract(rp).Y(), 0)
+			nml = matrix.NewVec3(0, 1, 0)
 		case matrix.Vz:
-			nml = matrix.NewVec3(0, 0, cp.Subtract(rp).Z())
+			nml = matrix.NewVec3(0, 0, 1)
 		}
 		if hit, ok := cam.TryPlaneHit(c.Position(), rp, nml); ok {
 			dir := hit.Subtract(t.root.Position()).Normal()
