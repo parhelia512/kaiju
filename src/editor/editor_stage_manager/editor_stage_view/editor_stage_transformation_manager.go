@@ -168,6 +168,7 @@ func (t *TransformationManager) translateEnd(pos matrix.Vec3) {
 	defer tracing.NewRegion("TransformationManager.translateEnd").End()
 	t.translateMove(pos)
 	t.history.Add(t.memento)
+	t.manager.RefitBVH(t.manager.Selection()[0])
 }
 
 func (t *TransformationManager) rotateStart(rot matrix.Vec4) {
@@ -205,6 +206,7 @@ func (t *TransformationManager) rotateEnd(rot matrix.Vec4) {
 	defer tracing.NewRegion("TransformationManager.rotateEnd").End()
 	t.rotateSpin(rot)
 	t.history.Add(t.memento)
+	t.manager.RefitBVH(t.manager.Selection()[0])
 }
 
 func (t *TransformationManager) scaleStart(scale matrix.Vec3) {
@@ -248,6 +250,7 @@ func (t *TransformationManager) scaleEnd(scale matrix.Vec3) {
 	defer tracing.NewRegion("TransformationManager.scaleEnd").End()
 	t.scaleScale(scale)
 	t.history.Add(t.memento)
+	t.manager.RefitBVH(t.manager.Selection()[0])
 }
 
 func (t *TransformationManager) setupMemento() {
