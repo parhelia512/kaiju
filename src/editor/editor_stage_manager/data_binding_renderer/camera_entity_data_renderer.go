@@ -62,9 +62,10 @@ type CameraEntityDataRenderer struct {
 }
 
 type cameraDataBindingDrawing struct {
-	key  string
-	sd   rendering.DrawInstance
-	icon rendering.DrawInstance
+	key     string
+	sd      rendering.DrawInstance
+	icon    rendering.DrawInstance
+	arrowSd rendering.DrawInstance
 }
 
 func (c *CameraEntityDataRenderer) Attached(host *engine.Host, manager *editor_stage_manager.StageManager, target *editor_stage_manager.StageEntity, data *entity_data_binding.EntityDataEntry) {
@@ -75,7 +76,43 @@ func (c *CameraEntityDataRenderer) Attached(host *engine.Host, manager *editor_s
 		c.Detatched(host, manager, target, data)
 	}
 	w, h := float32(host.Window.Width()), float32(host.Window.Height())
-	cam := cameras.NewStandardCamera(w, h, w, h, target.Transform.Position())
+	var camType int
+	for _, val := range data.Fields {
+		if val.Name == "Type" {
+			camType = val.Value.(int)
+			break
+		}
+	}
+
+	m := rendering.NewMeshArrow(host.MeshCache(),
+		1.5, 0.0125,
+		0.35, 0.175, 10)
+	mat, _ := host.MaterialCache().Material("gizmo_overlay.material")
+	arrowSd := shader_data_registry.Create("unlit").(*shader_data_registry.ShaderDataUnlit)
+	arrowSd.Color = matrix.ColorYellow()
+	// slog.Info("transforms", arrowSd.Transform())
+	// arrowSd.Transform().AddRotation(matrix.NewVec3(90, 0, 0))
+
+	host.Drawings.AddDrawing(rendering.Drawing{
+		Material:   mat,
+		Mesh:       m,
+		ShaderData: arrowSd,
+		Transform:  &target.Transform,
+		ViewCuller: &host.Cameras.Primary,
+	})
+
+	var cam cameras.Camera
+	switch engine_entity_data_camera.CameraType(camType) {
+	case engine_entity_data_camera.CameraTypeOrthographic:
+		cam = cameras.NewStandardCameraOrthographic(w, h, w, h, target.Transform.Position())
+	case engine_entity_data_camera.CameraTypeTurntable:
+		cam = cameras.ToTurntable(cameras.NewStandardCamera(w, h, w, h, target.Transform.Position()))
+	case engine_entity_data_camera.CameraTypePerspective:
+		fallthrough
+	default:
+		cam = cameras.NewStandardCamera(w, h, w, h, target.Transform.Position())
+	}
+
 	cam.SetProperties(
 		data.FieldValueByName("FOV").(float32),
 		data.FieldValueByName("NearPlane").(float32),
@@ -99,16 +136,18 @@ func (c *CameraEntityDataRenderer) Attached(host *engine.Host, manager *editor_s
 		ViewCuller: &host.Cameras.Primary,
 	})
 	sd.Deactivate()
-	c.Frustums[target] = cameraDataBindingDrawing{frustum.Key(), sd, icon}
+	c.Frustums[target] = cameraDataBindingDrawing{frustum.Key(), sd, icon, arrowSd}
 	target.OnActivate.Add(func() {
 		if d, ok := c.Frustums[target]; ok {
 			d.icon.Activate()
 			d.sd.Activate()
+			d.arrowSd.Activate()
 		}
 	})
 	target.OnDeactivate.Add(func() {
 		if d, ok := c.Frustums[target]; ok {
 			d.icon.Deactivate()
+			d.arrowSd.Deactivate()
 			d.sd.Deactivate()
 		}
 	})
