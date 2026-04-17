@@ -58,34 +58,46 @@ type ReferenceViewer struct {
 	OnClose       events.Event
 }
 
-func Show(host *engine.Host, project *project.Project, id string) (*ReferenceViewer, error) {
+func Show(host *engine.Host, p *project.Project, id string) (*ReferenceViewer, error) {
 	defer tracing.NewRegion("reference_viewer.Show").End()
 	// Only allow one context menu open at a time
 	if existing != nil {
 		existing.closeInternal(true)
 	}
-	o := &ReferenceViewer{}
-	o.uiMan.Init(host)
+	referenceViewer := &ReferenceViewer{}
+	referenceViewer.uiMan.Init(host)
 	var err error
-	o.doc, err = markup.DocumentFromHTMLAsset(&o.uiMan, "editor/ui/overlay/reference_viewer.go.html",
+	referenceViewer.doc, err = markup.DocumentFromHTMLAsset(&referenceViewer.uiMan, "editor/ui/overlay/reference_viewer.go.html",
 		nil, map[string]func(*document.Element){
-			"clickMiss": o.clickMiss,
+			"clickMiss": referenceViewer.clickMiss,
 		})
 	if err != nil {
-		return o, err
+		return referenceViewer, err
 	}
-	o.entryTemplate, _ = o.doc.GetElementById("entryTemplate")
-	o.entryTemplate.UI.Hide()
-	existing = o
+
+	referenceViewer.entryTemplate, _ = referenceViewer.doc.GetElementById("entryTemplate")
+	referenceViewer.entryTemplate.UI.Hide()
+	existing = referenceViewer
+
 	go func() {
-		if err := project.FindReferencesWithCallback(id, o.onFound); err != nil {
+		notFoundInfo := referenceViewer.doc.GetElementsByClass("not-found-info")[0]
+		notFoundInfo.UI.Hide()
+		searchInfo := referenceViewer.doc.GetElementsByClass("search-info")[0]
+
+		var hasReferences = false
+		if err := p.FindReferencesWithCallback(id, func(ref project.ContentReference) {
+			hasReferences = true
+			referenceViewer.onFound(ref)
+		}); err != nil {
 			slog.Error("failed to find all references for content", "error", err)
 		}
-		if o == existing {
-			o.doc.GetElementsByClass("note")[0].UI.Hide()
+		if referenceViewer == existing {
+			searchInfo.UI.Hide()
 		}
+		notFoundInfo.UI.ShowToggle(!hasReferences)
 	}()
-	return o, nil
+
+	return referenceViewer, nil
 }
 
 func (o *ReferenceViewer) onFound(newRef project.ContentReference) {
