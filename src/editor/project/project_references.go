@@ -80,6 +80,7 @@ func (p *Project) FindReferencesWithCallback(id string, onFound func(ref Content
 		p.findReferencesHtml,
 		p.findReferencesCss,
 		p.findReferencesCode,
+		p.findReferencesSettings,
 	}
 	for i := range funcs {
 		if err = funcs[i](id, onFound); err != nil {
@@ -186,7 +187,7 @@ func (p *Project) findReferencesCss(id string, onFound func(ref ContentReference
 }
 
 func (p *Project) findReferencesCode(id string, onFound func(ref ContentReference)) error {
-	defer tracing.NewRegion("Project.findReferencesCode").End()
+	defer tracing.NewRegion("Project.findReferencesSettings").End()
 	paths := []string{
 		p.fileSystem.FullPath(project_file_system.KaijuSrcFolder),
 		p.fileSystem.FullPath(project_file_system.ProjectCodeFolder),
@@ -220,6 +221,17 @@ func (p *Project) findReferencesCode(id string, onFound func(ref ContentReferenc
 		if wErr != nil {
 			return wErr
 		}
+	}
+	return nil
+}
+
+func (p *Project) findReferencesSettings(id string, onFound func(ref ContentReference)) error {
+	if p.Settings.EntryPointStage == id {
+		onFound(ContentReference{
+			Id:     "ProjectSettings",
+			Name:   "ProjectSettings",
+			Source: "ProjectSettings",
+		})
 	}
 	return nil
 }
