@@ -589,19 +589,19 @@ func (ui *UI) updateFromManager(deltaTime float64) {
 	}
 }
 
-func (ui *UI) Hide() {
-	defer tracing.NewRegion("UI.Hide").End()
-	ui.entity.Deactivate()
-}
-
 func (ui *UI) Show() {
 	defer tracing.NewRegion("UI.Show").End()
 	ui.entity.Activate()
 }
 
-func (ui *UI) ShowToggle(show bool) {
+func (ui *UI) Hide() {
+	defer tracing.NewRegion("UI.Hide").End()
+	ui.entity.Deactivate()
+}
+
+func (ui *UI) SetVisibility(visible bool) {
 	defer tracing.NewRegion("UI.ShowToggle").End()
-	if show {
+	if visible {
 		ui.entity.Activate()
 	} else {
 		ui.entity.Deactivate()

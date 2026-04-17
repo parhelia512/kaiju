@@ -74,16 +74,13 @@ func Show(host *engine.Host, p *project.Project, id string) (*ReferenceViewer, e
 	if err != nil {
 		return referenceViewer, err
 	}
-
 	referenceViewer.entryTemplate, _ = referenceViewer.doc.GetElementById("entryTemplate")
 	referenceViewer.entryTemplate.UI.Hide()
 	existing = referenceViewer
-
 	go func() {
 		notFoundInfo := referenceViewer.doc.GetElementsByClass("not-found-info")[0]
 		notFoundInfo.UI.Hide()
 		searchInfo := referenceViewer.doc.GetElementsByClass("search-info")[0]
-
 		var hasReferences = false
 		if err := p.FindReferencesWithCallback(id, func(ref project.ContentReference) {
 			hasReferences = true
@@ -94,7 +91,7 @@ func Show(host *engine.Host, p *project.Project, id string) (*ReferenceViewer, e
 		if referenceViewer == existing {
 			searchInfo.UI.Hide()
 		}
-		notFoundInfo.UI.ShowToggle(!hasReferences)
+		notFoundInfo.UI.SetVisibility(!hasReferences)
 	}()
 
 	return referenceViewer, nil
