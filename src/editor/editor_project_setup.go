@@ -41,12 +41,35 @@ import (
 	"fmt"
 	"log/slog"
 
+	"kaijuengine.com/build"
 	"kaijuengine.com/editor/editor_overlay/confirm_prompt"
 	"kaijuengine.com/editor/editor_overlay/new_project"
 	"kaijuengine.com/editor/project"
+	"kaijuengine.com/engine"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/platform/profiler/tracing"
 )
+
+func CreateNewProjectFromCLI(path string) {
+	if build.Editor {
+		proj := project.Project{}
+		templatePath := engine.LaunchParams.ProjectTemplate
+		if err := proj.Initialize(path, templatePath, EditorVersion); err != nil {
+			slog.Error("failed to create the project", "error", err, "path", path)
+			return
+		}
+		if name := engine.LaunchParams.ProjectName; name != "" {
+			proj.SetName(name)
+		}
+		if err := proj.Close(); err != nil {
+			slog.Error("failed to save the project configuration", "error", err)
+			return
+		}
+		slog.Info("successfully created blank project", "path", path)
+	} else {
+		slog.Error("the -newproject flag is only available in editor builds")
+	}
+}
 
 func (ed *Editor) setProjectName(name string) {
 	ed.host.RunOnMainThread(func() {

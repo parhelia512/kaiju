@@ -62,3 +62,5 @@ func init() {
 }
 
 func getGame() bootstrap.GameInterface { return editor.EditorGame{} }
+
+func createNewProjectCLI(path string) { editor.CreateNewProjectFromCLI(path) }

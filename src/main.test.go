@@ -172,3 +172,5 @@ func gameCopyEditorContent() error {
 	}
 	return nil
 }
+
+func createNewProjectCLI(path string) {}

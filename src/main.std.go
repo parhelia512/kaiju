@@ -37,12 +37,7 @@
 package main
 
 import (
-	"log/slog"
-
 	"kaijuengine.com/bootstrap"
-	"kaijuengine.com/build"
-	"kaijuengine.com/editor"
-	"kaijuengine.com/editor/project"
 	"kaijuengine.com/engine"
 	_ "kaijuengine.com/engine/ui/markup/css/properties" // Run init functions
 	_ "kaijuengine.com/engine_entity_data/content_id"   // Run the content id init
@@ -77,25 +72,4 @@ func _main(platformState any) {
 		profiler.StopPGOProfiler()
 	}
 	profiler.CleanupProfiler()
-}
-
-func createNewProjectCLI(path string) {
-	if build.Editor {
-		proj := project.Project{}
-		templatePath := engine.LaunchParams.ProjectTemplate
-		if err := proj.Initialize(path, templatePath, editor.EditorVersion); err != nil {
-			slog.Error("failed to create the project", "error", err, "path", path)
-			return
-		}
-		if name := engine.LaunchParams.ProjectName; name != "" {
-			proj.SetName(name)
-		}
-		if err := proj.Close(); err != nil {
-			slog.Error("failed to save the project configuration", "error", err)
-			return
-		}
-		slog.Info("successfully created blank project", "path", path)
-	} else {
-		slog.Error("the -newproject flag is only available in editor builds")
-	}
 }
