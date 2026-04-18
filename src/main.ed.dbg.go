@@ -46,6 +46,7 @@ import (
 	"kaijuengine.com/bootstrap"
 	"kaijuengine.com/editor"
 	"kaijuengine.com/editor/project/project_file_system"
+	"kaijuengine.com/engine"
 )
 
 type srcRoot struct{ *os.Root }
@@ -64,6 +65,10 @@ func init() {
 	project_file_system.EngineFS.EngineFileSystemInterface = srcRoot{fs}
 }
 
-func getGame() bootstrap.GameInterface { return editor.EditorGame{} }
-
-func createNewProjectCLI(path string) { editor.CreateNewProjectFromCLI(path) }
+func getGame() bootstrap.GameInterface {
+	if engine.LaunchParams.NewProject != "" {
+		editor.CreateNewProjectFromCLI(engine.LaunchParams.NewProject)
+		os.Exit(0)
+	}
+	return editor.EditorGame{}
+}
