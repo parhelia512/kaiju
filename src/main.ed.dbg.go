@@ -39,6 +39,7 @@
 package main
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -79,6 +80,7 @@ func getGame() bootstrap.GameInterface {
 		if err := project.TryUpgrade(); err != nil {
 			panic(err)
 		}
+		fmt.Printf("Project (%s) successfully upgraded", engine.LaunchParams.UpgradeProject)
 		os.Exit(0)
 	}
 	return editor.EditorGame{}
