@@ -44,6 +44,7 @@ import (
 
 	"kaijuengine.com/bootstrap"
 	"kaijuengine.com/editor"
+	"kaijuengine.com/editor/project"
 	"kaijuengine.com/editor/project/project_file_system"
 	"kaijuengine.com/engine"
 )
@@ -66,6 +67,16 @@ func init() {
 func getGame() bootstrap.GameInterface {
 	if engine.LaunchParams.NewProject != "" {
 		editor.CreateNewProjectFromCLI(engine.LaunchParams.NewProject)
+		os.Exit(0)
+	}
+	if engine.LaunchParams.UpgradeProject != "" {
+		project := project.Project{}
+		if err := project.Open(engine.LaunchParams.UpgradeProject); err != nil {
+			panic(err)
+		}
+		if err := project.TryUpgrade(); err != nil {
+			panic(err)
+		}
 		os.Exit(0)
 	}
 	return editor.EditorGame{}

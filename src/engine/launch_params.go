@@ -47,6 +47,7 @@ var LaunchParams = LaunchParameters{}
 type LaunchParameters struct {
 	Generate        string
 	NewProject      string
+	UpgradeProject  string
 	ProjectName     string
 	ProjectTemplate string
 	StartStage      string
@@ -58,6 +59,7 @@ type LaunchParameters struct {
 func LoadLaunchParams() {
 	flag.StringVar(&LaunchParams.Generate, "generate", "", "The generator to run: 'pluginapi'")
 	flag.StringVar(&LaunchParams.NewProject, "newproject", "", "Create a new blank project at the specified path")
+	flag.StringVar(&LaunchParams.UpgradeProject, "upgradeproject", "", "Upgrade the engine code at the specified path")
 	flag.StringVar(&LaunchParams.ProjectName, "projectname", "", "Name of the project to create (used with -newproject)")
 	flag.StringVar(&LaunchParams.ProjectTemplate, "projecttemplate", "", "Path to a template zip to use (used with -newproject)")
 	if build.Debug {
