@@ -29,7 +29,7 @@
 				position: absolute;
 				margin-left: 1em;
 			}
-			.confirm { right: 2em; background-color: var(--btn-primary-bg-color); }
+			.confirm { right: 2em; }
 			.cancel { left: 2em; }
 		</style>
 	</head>
@@ -40,7 +40,7 @@
 			<input id="input" type="text" placeholder="{{.Placeholder}}" value="{{.Value}}" onsubmit="confirm" />
 			<div class="btns">
 				<button class="cancel" onclick="cancel">{{.CancelText}}</button>
-				<button class="confirm" onclick="confirm">{{.ConfirmText}}</button>
+				<button class="confirm primary" onclick="confirm">{{.ConfirmText}}</button>
 			</div>
 		</div>
 	</body>

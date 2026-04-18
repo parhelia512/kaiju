@@ -423,6 +423,12 @@ button:active, .button:active {
 	/* background-image: url("input_atlas.png");
 	background-position: 64px 0; */
 }
+button .primary, .button primary {
+	background-color: #682A2D;
+}
+button .primary:hover, .button primary:hover {
+	background-color: #881E1E;
+}
 /** Unconventional helpers **/
 .centerText { text-align: center; }
 
@@ -430,7 +436,6 @@ button:active, .button:active {
 :root {
 	--ed-menu-bar-height: 24px;
 	--ed-status-bar-height: 1.3em;
-	--btn-primary-bg-color: #682A2D;
 }
 input[type="text"] {
 	color: white;
