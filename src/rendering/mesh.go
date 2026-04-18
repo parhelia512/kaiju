@@ -1255,12 +1255,12 @@ func NewMeshCone(cache *MeshCache, height, baseRadius float32, segments int, cap
 	return cache.Mesh(key, verts, indices)
 }
 
-func NewMeshArrow(cache *MeshCache, shaftLength, shaftRadius, tipHeight, tipRadius float32, segments int) *Mesh {
+func NewMeshArrowWithTransform(cache *MeshCache, shaftLength, shaftRadius, tipHeight, tipRadius float32, segments int, transform matrix.Mat4, uid string) *Mesh {
 	defer tracing.NewRegion("rendering.NewMeshArrow").End()
 	if segments < 3 {
 		segments = 3
 	}
-	key := fmt.Sprintf("arrow_%.2f_%.2f_%.2f_%.2f_%d", shaftLength, shaftRadius, tipHeight, tipRadius, segments)
+	key := fmt.Sprintf("arrow_%.2f_%.2f_%.2f_%.2f_%d_%s", shaftLength, shaftRadius, tipHeight, tipRadius, segments, uid)
 	if mesh, ok := cache.FindMesh(key); ok {
 		return mesh
 	}
@@ -1273,6 +1273,11 @@ func NewMeshArrow(cache *MeshCache, shaftLength, shaftRadius, tipHeight, tipRadi
 		tipVerts[i].Position[matrix.Vy] += shaftLength
 	}
 	verts := append(shaftVerts, tipVerts...)
+
+	for i := range verts {
+		verts[i].Position = matrix.Mat4MultiplyVec4(transform, verts[i].Position.AsVec4()).AsVec3()
+	}
+
 	indices := make([]uint32, 0, len(shaftIndices)+len(tipIndices))
 	indices = append(indices, shaftIndices...)
 	offset := uint32(len(shaftVerts))
@@ -1280,6 +1285,11 @@ func NewMeshArrow(cache *MeshCache, shaftLength, shaftRadius, tipHeight, tipRadi
 		indices = append(indices, tipIndices[i]+offset)
 	}
 	return cache.Mesh(key, verts, indices)
+}
+
+func NewMeshArrow(cache *MeshCache, shaftLength, shaftRadius, tipHeight, tipRadius float32, segments int) *Mesh {
+	return NewMeshArrowWithTransform(cache, shaftLength, shaftRadius,
+		tipHeight, tipRadius, segments, matrix.Mat4Identity(), "")
 }
 
 func meshCylinder(height, radius float32, segments int, capped bool) ([]Vertex, []uint32) {

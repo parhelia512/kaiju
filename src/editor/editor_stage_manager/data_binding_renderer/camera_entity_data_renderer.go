@@ -37,6 +37,7 @@
 package data_binding_renderer
 
 import (
+	"fmt"
 	"log/slog"
 
 	"kaijuengine.com/editor/codegen/entity_data_binding"
@@ -76,22 +77,19 @@ func (c *CameraEntityDataRenderer) Attached(host *engine.Host, manager *editor_s
 		c.Detatched(host, manager, target, data)
 	}
 	w, h := float32(host.Window.Width()), float32(host.Window.Height())
-	var camType int
-	for _, val := range data.Fields {
-		if val.Name == "Type" {
-			camType = val.Value.(int)
-			break
-		}
-	}
+	camType := data.FieldValueByName("Type").(int)
 
-	m := rendering.NewMeshArrow(host.MeshCache(),
+	identity := matrix.Mat4Identity()
+	identity.Rotate(matrix.NewVec3(90, 0, 0))
+
+	//* key name generation log needs to be confirmed
+	m := rendering.NewMeshArrowWithTransform(host.MeshCache(),
 		1.5, 0.0125,
-		0.35, 0.175, 10)
+		0.35, 0.175, 10, identity, fmt.Sprintf("%s", target.Name()))
+
 	mat, _ := host.MaterialCache().Material("gizmo_overlay.material")
 	arrowSd := shader_data_registry.Create("unlit").(*shader_data_registry.ShaderDataUnlit)
 	arrowSd.Color = matrix.ColorYellow()
-	// slog.Info("transforms", arrowSd.Transform())
-	// arrowSd.Transform().AddRotation(matrix.NewVec3(90, 0, 0))
 
 	host.Drawings.AddDrawing(rendering.Drawing{
 		Material:   mat,
