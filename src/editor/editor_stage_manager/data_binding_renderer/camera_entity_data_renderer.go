@@ -52,6 +52,15 @@ import (
 	"kaijuengine.com/rendering"
 )
 
+const (
+	minimumCameraWidth          = 0.1
+	minimumCameraHeight         = 0.1
+	translationGizmoShaftHeight = 1.5
+	translationGizmoShaftRadius = 0.025
+	translationGizmoArrowHeight = 0.35
+	translationGizmoArrowRadius = 0.175
+)
+
 func init() {
 	AddRenderer(engine_entity_data_camera.BindingKey(), &CameraEntityDataRenderer{
 		Frustums: make(map[*editor_stage_manager.StageEntity]cameraDataBindingDrawing),
@@ -76,33 +85,38 @@ func (c *CameraEntityDataRenderer) Attached(host *engine.Host, manager *editor_s
 		slog.Error("there is an internal error in state for the editor's CameraEntityDataRenderer, show was called before any hide happened. Double selected the same target?")
 		c.Detatched(host, manager, target, data)
 	}
-	// w, h := float32(host.Window.Width()), float32(host.Window.Height())
-	var w, h float32 = 0.1, 0.1
+
+	var w, h float32 = minimumCameraWidth, minimumCameraHeight
 	if val := data.FieldValueByName("Width"); val != nil {
-		if f, ok := val.(float32); ok && f > 0 {
+		if f, ok := val.(float32); ok && f >= minimumCameraWidth {
 			w = f
 		}
 	}
 
 	if val := data.FieldValueByName("Height"); val != nil {
-		if f, ok := val.(float32); ok && f > 0 {
+		if f, ok := val.(float32); ok && f > minimumCameraHeight {
 			h = f
 		}
 	}
 
-	camType := data.FieldValueByName("Type").(int)
+	var camType int = 0
+	if val := data.FieldValueByName("Type"); val != nil {
+		if f, ok := val.(int); ok && f >= 0 {
+			camType = f
+		}
+	}
 
 	identity := matrix.Mat4Identity()
 	identity.Rotate(matrix.NewVec3(90, 0, 0))
 
 	//* key name generation log needs to be confirmed
 	m := rendering.NewMeshArrowWithTransform(host.MeshCache(),
-		1.5, 0.0125,
-		0.35, 0.175, 10, identity, fmt.Sprintf("%s", target.Name()))
+		translationGizmoShaftHeight, translationGizmoShaftRadius,
+		translationGizmoArrowHeight, translationGizmoArrowRadius, 10, identity, fmt.Sprintf("%s", target.Name()))
 
 	mat, _ := host.MaterialCache().Material("gizmo_overlay.material")
 	arrowSd := shader_data_registry.Create("unlit").(*shader_data_registry.ShaderDataUnlit)
-	arrowSd.Color = matrix.ColorYellow()
+	arrowSd.Color = matrix.ColorCadetBlue()
 
 	host.Drawings.AddDrawing(rendering.Drawing{
 		Material:   mat,
@@ -197,15 +211,17 @@ func (c *CameraEntityDataRenderer) Hide(host *engine.Host, target *editor_stage_
 
 func (c *CameraEntityDataRenderer) Update(host *engine.Host, target *editor_stage_manager.StageEntity, data *entity_data_binding.EntityDataEntry) {
 	if t, ok := c.Frustums[target]; ok {
-		w := float32(data.FieldValueByName("Width").(float32))
-		h := float32(data.FieldValueByName("Height").(float32))
-		if w <= 0 {
-			w = 0.1
+		// Assumption: width and height field will be present on the cameraEntityData
+		w := data.FieldValueByName("Width").(float32)
+		h := data.FieldValueByName("Height").(float32)
+
+		if w < minimumCameraWidth {
+			w = minimumCameraWidth
 		}
-		if h <= 0 {
-			h = 0.1
+		if h < minimumCameraHeight {
+			h = minimumCameraHeight
 		}
-		if w == 0 || h == 0 {
+		if w <= 0 || h <= 0 {
 			slog.Warn("camera width or height is zero , might cause problem", "width", w, "height", h)
 		}
 		var cam cameras.Camera
