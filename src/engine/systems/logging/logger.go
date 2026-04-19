@@ -132,6 +132,18 @@ func LogFolderPath() (string, error) {
 	return filepath.Join(appData, "logs"), nil
 }
 
+// LogFilePath returns the absolute path of the active log file that the
+// running editor/engine is appending to. The path is stable for the
+// lifetime of the process; across restarts the previous file is rotated
+// by renameOldLogFile before a new one is opened at the same path.
+func LogFilePath() (string, error) {
+	dir, err := LogFolderPath()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, logFileName), nil
+}
+
 func selectLogsFolder() (string, error) {
 	dir, err := LogFolderPath()
 	if err != nil {
