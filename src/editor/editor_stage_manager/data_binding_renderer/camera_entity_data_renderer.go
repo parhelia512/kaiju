@@ -76,7 +76,20 @@ func (c *CameraEntityDataRenderer) Attached(host *engine.Host, manager *editor_s
 		slog.Error("there is an internal error in state for the editor's CameraEntityDataRenderer, show was called before any hide happened. Double selected the same target?")
 		c.Detatched(host, manager, target, data)
 	}
-	w, h := float32(host.Window.Width()), float32(host.Window.Height())
+	// w, h := float32(host.Window.Width()), float32(host.Window.Height())
+	var w, h float32 = 0.1, 0.1
+	if val := data.FieldValueByName("Width"); val != nil {
+		if f, ok := val.(float32); ok && f > 0 {
+			w = f
+		}
+	}
+
+	if val := data.FieldValueByName("Height"); val != nil {
+		if f, ok := val.(float32); ok && f > 0 {
+			h = f
+		}
+	}
+
 	camType := data.FieldValueByName("Type").(int)
 
 	identity := matrix.Mat4Identity()
@@ -98,6 +111,7 @@ func (c *CameraEntityDataRenderer) Attached(host *engine.Host, manager *editor_s
 		Transform:  &target.Transform,
 		ViewCuller: &host.Cameras.Primary,
 	})
+	arrowSd.Deactivate()
 
 	var cam cameras.Camera
 	switch engine_entity_data_camera.CameraType(camType) {
@@ -159,6 +173,7 @@ func (c *CameraEntityDataRenderer) Detatched(host *engine.Host, manager *editor_
 	if d, ok := c.Frustums[target]; ok {
 		d.sd.Destroy()
 		d.icon.Destroy()
+		d.arrowSd.Destroy()
 		host.MeshCache().RemoveMesh(d.key)
 		delete(c.Frustums, target)
 	}
@@ -168,6 +183,7 @@ func (c *CameraEntityDataRenderer) Show(host *engine.Host, target *editor_stage_
 	defer tracing.NewRegion("CameraEntityDataRenderer.Show").End()
 	if d, ok := c.Frustums[target]; ok {
 		d.sd.Activate()
+		d.arrowSd.Activate()
 	}
 }
 
@@ -175,6 +191,7 @@ func (c *CameraEntityDataRenderer) Hide(host *engine.Host, target *editor_stage_
 	defer tracing.NewRegion("CameraEntityDataRenderer.Hide").End()
 	if d, ok := c.Frustums[target]; ok {
 		d.sd.Deactivate()
+		d.arrowSd.Deactivate()
 	}
 }
 
@@ -183,10 +200,13 @@ func (c *CameraEntityDataRenderer) Update(host *engine.Host, target *editor_stag
 		w := float32(data.FieldValueByName("Width").(float32))
 		h := float32(data.FieldValueByName("Height").(float32))
 		if w <= 0 {
-			w = float32(host.Window.Width())
+			w = 0.1
 		}
 		if h <= 0 {
-			h = float32(host.Window.Height())
+			h = 0.1
+		}
+		if w == 0 || h == 0 {
+			slog.Warn("camera width or height is zero , might cause problem", "width", w, "height", h)
 		}
 		var cam cameras.Camera
 		camType := engine_entity_data_camera.CameraType(data.FieldValueByName("Type").(int))
