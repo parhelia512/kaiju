@@ -245,7 +245,7 @@ func (g *GPUSwapChain) createFrameBufferImpl(device *GPUDevice) error {
 }
 
 func (g *GPUSwapChain) setupSyncObjectsImpl(device *GPUDevice) error {
-	defer tracing.NewRegion("GPUSwapChain.setupSyncObjectsImpl")
+	defer tracing.NewRegion("GPUSwapChain.setupSyncObjectsImpl").End()
 	var err error
 	dbg := &device.LogicalDevice.dbg
 	sInfo := vk.SemaphoreCreateInfo{

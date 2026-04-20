@@ -173,7 +173,7 @@ func (g *GPUSwapChain) SetupRenderPass(device *GPUDevice, assets assets.Database
 }
 
 func (g *GPUSwapChain) SetupSyncObjects(device *GPUDevice) error {
-	defer tracing.NewRegion("GPUSwapChain.SetupSyncObjects")
+	defer tracing.NewRegion("GPUSwapChain.SetupSyncObjects").End()
 	g.resetSyncObjects(device)
 	err := g.setupSyncObjectsImpl(device)
 	if err != nil {
