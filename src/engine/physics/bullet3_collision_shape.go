@@ -45,6 +45,8 @@ package physics
 #include "bullet3_wrapper.h"
 #cgo noescape btCollisionShape_calculateLocalInertia
 #cgo nocallback btCollisionShape_calculateLocalInertia
+#cgo noescape destroy_btTriangleIndexVertexArray
+#cgo nocallback destroy_btTriangleIndexVertexArray
 #cgo noescape destroy_btCollisionShape
 #cgo nocallback destroy_btCollisionShape
 #cgo noescape new_btBoxShape
@@ -69,6 +71,8 @@ package physics
 #cgo nocallback new_btMultiSphereShape
 #cgo noescape new_btUniformScalingShape
 #cgo nocallback new_btUniformScalingShape
+#cgo noescape new_btHeightfieldTerrainShape
+#cgo nocallback new_btHeightfieldTerrainShape
 */
 import "C"
 import (
@@ -91,6 +95,17 @@ type ConvexShape struct{ CollisionShape }
 type ConvexHullShape struct{ ConvexShape }
 type MultiSphereShape struct{ CollisionShape }
 type UniformScalingShape struct{ CollisionShape }
+type HeightfieldTerrainShape struct{ CollisionShape }
+type BvhTriangleMeshShape struct {
+	CollisionShape
+	triangleIVA *TriangleIndexVertexArray
+}
+
+type TriangleIndexVertexArray struct {
+	ptr     *C.btTriangleIndexVertexArray
+	indices []uint32
+	verts   []float32
+}
 
 func NewEmptyShape(size matrix.Vec3) *EmptyShape {
 	s := &EmptyShape{
@@ -231,6 +246,55 @@ func NewUniformScalingShape(convexChildShape *ConvexShape, scaleFactor float32) 
 	}
 	runtime.AddCleanup(s, func(ptr *C.btCollisionShape) {
 		C.destroy_btCollisionShape(ptr)
+	}, s.ptr)
+	return s
+}
+
+func NewHeightfieldTerrainShape(heightStickWidth, heightStickLength int, heightfieldData *float32, minHeight, maxHeight float32, upAxis int, flipQuadEdges bool) *HeightfieldTerrainShape {
+	s := &HeightfieldTerrainShape{
+		CollisionShape: CollisionShape{
+			ptr: (*C.btCollisionShape)(C.new_btHeightfieldTerrainShape(
+				C.int(heightStickWidth), C.int(heightStickLength),
+				(*C.float)(heightfieldData),
+				C.float(minHeight), C.float(maxHeight),
+				C.int(upAxis), C.bool(flipQuadEdges))),
+		},
+	}
+	runtime.AddCleanup(s, func(ptr *C.btCollisionShape) {
+		C.destroy_btCollisionShape(ptr)
+	}, s.ptr)
+	return s
+}
+
+func NewBvhTriangleMeshShape(triangleIVA *TriangleIndexVertexArray, useQuantizedAabbCompression bool) *BvhTriangleMeshShape {
+	s := &BvhTriangleMeshShape{
+		triangleIVA: triangleIVA,
+		CollisionShape: CollisionShape{
+			ptr: (*C.btCollisionShape)(C.new_btBvhTriangleMeshShape(
+				(*C.btTriangleIndexVertexArray)(triangleIVA.ptr), C.bool(useQuantizedAabbCompression))),
+		},
+	}
+	runtime.AddCleanup(s, func(ptr *C.btCollisionShape) {
+		C.destroy_btCollisionShape(ptr)
+	}, s.ptr)
+	return s
+}
+
+func NewTriangleIndexVertexArray(indices []uint32, verts []float32) *TriangleIndexVertexArray {
+	numTriangles := C.int(len(indices) / 3)
+	triangleIndexBase := (*C.int)(unsafe.Pointer(&indices[0]))
+	triangleIndexStride := C.int(unsafe.Sizeof(indices[0]) * 3)
+	numVertices := C.int(len(verts))
+	vertexBase := (*C.float)(unsafe.Pointer(&verts[0]))
+	vertexStride := C.int(unsafe.Sizeof(verts[0]) * 3)
+	s := &TriangleIndexVertexArray{
+		indices: indices,
+		verts:   verts,
+		ptr: C.new_btTriangleIndexVertexArray(numTriangles, triangleIndexBase,
+			triangleIndexStride, numVertices, vertexBase, vertexStride),
+	}
+	runtime.AddCleanup(s, func(ptr *C.btTriangleIndexVertexArray) {
+		C.destroy_btTriangleIndexVertexArray(ptr)
 	}, s.ptr)
 	return s
 }

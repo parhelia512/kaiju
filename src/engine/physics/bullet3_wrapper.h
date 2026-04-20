@@ -32,6 +32,7 @@ typedef struct btUniformScalingShape btUniformScalingShape;
 typedef struct btMotionState btMotionState;
 typedef struct btDefaultMotionState btDefaultMotionState;
 typedef struct btCollisionObject btCollisionObject;
+typedef struct btTriangleIndexVertexArray btTriangleIndexVertexArray;
 
 typedef struct {
 	float point[4];
@@ -111,6 +112,7 @@ void btRigidBody_applyImpulseAtPoint(btRigidBody* body,
 ////////////////////////////////////////////////////////////////////////////////
 void btCollisionShape_calculateLocalInertia(btCollisionShape* shape,
 	float mass, float* x, float* y, float* z);
+void destroy_btTriangleIndexVertexArray(btTriangleIndexVertexArray* arr);
 void destroy_btCollisionShape(btCollisionShape* shape);
 btBoxShape* new_btBoxShape(float width, float height, float depth);
 btSphereShape* new_btSphereShape(float radius);
@@ -123,6 +125,13 @@ btConvexHullShape* new_btConvexHullShape(float* points, int numPoints, int strid
 btEmptyShape* new_btEmptyShape();
 btMultiSphereShape* new_btMultiSphereShape(float* positions, float* radii, int numSpheres);
 btUniformScalingShape* new_btUniformScalingShape(btConvexShape* convexChildShape, float scaleFactor);
+btHeightfieldTerrainShape* new_btHeightfieldTerrainShape(
+	int heightStickWidth, int heightStickLength, const float* heightfieldData,
+	float minHeight, float maxHeight, int upAxis, bool flipQuadEdges);
+btBvhTriangleMeshShape* new_btBvhTriangleMeshShape(btTriangleIndexVertexArray* meshInterface, bool useQuantizedAabbCompression);
+btTriangleIndexVertexArray* new_btTriangleIndexVertexArray(
+	int numTriangles, int* triangleIndexBase, int triangleIndexStride,
+	int numVertices, float* vertexBase, int vertexStride);
 
 ////////////////////////////////////////////////////////////////////////////////
 // btDefaultMotionState                                                       //

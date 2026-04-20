@@ -1,5 +1,6 @@
 #include "bullet3_wrapper.h"
 #include "btBulletDynamicsCommon.h"
+#include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 
 extern "C" {
 
@@ -204,6 +205,7 @@ void btCollisionShape_calculateLocalInertia(btCollisionShape* shape,
 	*z = inertia.getZ();
 }
 
+void destroy_btTriangleIndexVertexArray(btTriangleIndexVertexArray* arr) { delete arr; }
 void destroy_btCollisionShape(btCollisionShape* shape) { delete shape; }
 
 btBoxShape* new_btBoxShape(float width, float height, float depth) {
@@ -260,6 +262,26 @@ btMultiSphereShape* new_btMultiSphereShape(float* positions, float* radii, int n
 
 btUniformScalingShape* new_btUniformScalingShape(btConvexShape* convexChildShape, float scaleFactor) {
 	return new btUniformScalingShape(convexChildShape, scaleFactor);
+}
+
+btHeightfieldTerrainShape* new_btHeightfieldTerrainShape(
+	int heightStickWidth, int heightStickLength, const float* heightfieldData,
+	float minHeight, float maxHeight, int upAxis, bool flipQuadEdges)
+{
+	return new btHeightfieldTerrainShape(heightStickWidth, heightStickLength,
+		heightfieldData, minHeight, maxHeight, upAxis, flipQuadEdges);
+}
+
+btBvhTriangleMeshShape* new_btBvhTriangleMeshShape(btTriangleIndexVertexArray* meshInterface, bool useQuantizedAabbCompression) {
+	return new btBvhTriangleMeshShape(meshInterface, useQuantizedAabbCompression);
+}
+
+btTriangleIndexVertexArray* new_btTriangleIndexVertexArray(
+	int numTriangles, int* triangleIndexBase, int triangleIndexStride,
+	int numVertices, float* vertexBase, int vertexStride)
+{
+	return new btTriangleIndexVertexArray(numTriangles, triangleIndexBase,
+		triangleIndexStride, numVertices, vertexBase, vertexStride);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
