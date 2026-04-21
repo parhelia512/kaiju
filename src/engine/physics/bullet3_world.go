@@ -67,11 +67,21 @@ import (
 	"kaijuengine.com/matrix"
 )
 
-type World struct{ ptr *C.btDiscreteDynamicsWorld }
+type World struct {
+	ptr             *C.btDiscreteDynamicsWorld
+	dispatcher      *CollisionDispatcher
+	broadphase      *BroadphaseInterface
+	solver          *SequentialImpulseConstraintSolver
+	collisionConfig *DefaultCollisionConfiguration
+}
 
 func NewDiscreteDynamicsWorld(dispatcher *CollisionDispatcher, broadphase *BroadphaseInterface, solver *SequentialImpulseConstraintSolver, collisionConfig *DefaultCollisionConfiguration) *World {
 	w := &World{
-		ptr: C.new_btDiscreteDynamicsWorld(dispatcher.ptr, broadphase.ptr, solver.ptr, collisionConfig.ptr),
+		ptr:             C.new_btDiscreteDynamicsWorld(dispatcher.ptr, broadphase.ptr, solver.ptr, collisionConfig.ptr),
+		dispatcher:      dispatcher,
+		broadphase:      broadphase,
+		solver:          solver,
+		collisionConfig: collisionConfig,
 	}
 	runtime.AddCleanup(w, func(ptr *C.btDiscreteDynamicsWorld) {
 		C.destroy_btDiscreteDynamicsWorld(ptr)
