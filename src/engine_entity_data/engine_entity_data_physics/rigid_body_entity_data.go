@@ -37,10 +37,14 @@
 package engine_entity_data_physics
 
 import (
+	"log/slog"
+
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/encoding/pod"
 	"kaijuengine.com/engine/physics"
+	"kaijuengine.com/engine_entity_data/content_id"
 	"kaijuengine.com/matrix"
+	"kaijuengine.com/rendering/loaders/kaiju_mesh"
 )
 
 var bindingKey = ""
@@ -53,6 +57,7 @@ const (
 	ShapeCapsule
 	ShapeCylinder
 	ShapeCone
+	ShapeMesh
 )
 
 func init() {
@@ -67,6 +72,7 @@ func BindingKey() string {
 }
 
 type RigidBodyEntityData struct {
+	AssetKey content_id.Mesh
 	Extent   matrix.Vec3 `default:"1,1,1"`
 	Mass     float32     `default:"1"`
 	Radius   float32     `default:"1"`
@@ -85,19 +91,45 @@ func (r RigidBodyEntityData) Init(e *engine.Entity, host *engine.Host) {
 		size := r.Extent.Multiply(scale)
 		shape = &physics.NewBoxShape(size).CollisionShape
 	case ShapeSphere:
-		rad := r.Radius * float32(scale.LongestAxis())
+		rad := r.Radius * float32(scale.LongestAxisValue())
 		shape = &physics.NewSphereShape(rad).CollisionShape
 	case ShapeCapsule:
-		rad := r.Radius * float32(scale.LongestAxis())
+		rad := r.Radius * float32(scale.LongestAxisValue())
 		height := r.Height * scale.Y()
 		shape = &physics.NewCapsuleShape(rad, height).CollisionShape
 	case ShapeCylinder:
 		size := r.Extent.Multiply(scale)
 		shape = &physics.NewCylinderShape(size).CollisionShape
 	case ShapeCone:
-		rad := r.Radius * float32(scale.LongestAxis())
+		rad := r.Radius * float32(scale.LongestAxisValue())
 		height := r.Height * scale.Y()
 		shape = &physics.NewConeShape(rad, height).CollisionShape
+	case ShapeMesh:
+		data, err := host.AssetDatabase().Read(string(r.AssetKey))
+		onErr := func() {
+			slog.Error("Failed to read the asset for the physics mesh shape, falling back to a box", "error", err)
+			size := r.Extent.Multiply(e.Transform.Scale())
+			shape = &physics.NewBoxShape(size).CollisionShape
+		}
+		if err == nil {
+			km, err := kaiju_mesh.Deserialize(data)
+			if err == nil {
+				verts := make([]float32, len(km.Verts)*3)
+				idx := 0
+				for i := range km.Verts {
+					verts[idx] = km.Verts[i].Position[matrix.Vx]
+					verts[idx+1] = km.Verts[i].Position[matrix.Vy]
+					verts[idx+2] = km.Verts[i].Position[matrix.Vz]
+					idx += 3
+				}
+				triangleIVA := physics.NewTriangleIndexVertexArray(km.Indexes, verts)
+				shape = &physics.NewBvhTriangleMeshShape(triangleIVA, false).CollisionShape
+			} else {
+				onErr()
+			}
+		} else {
+			onErr()
+		}
 	}
 	if r.IsStatic {
 		r.Mass = 0
