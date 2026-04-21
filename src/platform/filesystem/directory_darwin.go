@@ -84,6 +84,10 @@ func gameDirectory() (string, error) {
 	return base, nil
 }
 
+func openFileInTextEditor(path string) *exec.Cmd {
+	return openFileBrowserCommand(path)
+}
+
 func openFileBrowserCommand(path string) *exec.Cmd {
 	if path == "" {
 		return exec.Command("open", ".")

@@ -73,6 +73,10 @@ func gameDirectory() (string, error) {
 	//return filepath.Join(appdata, "../Local", build.CompanyDirName, build.Title.String()), nil
 }
 
+func openFileInTextEditor(path string) *exec.Cmd {
+	return openFileBrowserCommand(path)
+}
+
 func openFileBrowserCommand(path string) *exec.Cmd {
 	klib.NotYetImplemented(-1)
 	return nil

@@ -157,6 +157,14 @@ func CopyDirectory(src, dst string) error {
 	return nil
 }
 
+func OpenFileInTextEditor(path string) error {
+	err := openFileInTextEditor(filepath.ToSlash(path)).Run()
+	if err != nil {
+		slog.Error("failed to open the file browser", "error", err)
+	}
+	return err
+}
+
 func OpenFileBrowserToFolder(path string) error {
 	err := openFileBrowserCommand(filepath.ToSlash(path)).Run()
 	if err != nil {

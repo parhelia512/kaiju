@@ -105,6 +105,10 @@ func gameDirectory() (string, error) {
 	return filepath.Join(appdata, "../Local", build.CompanyDirName, build.Title.AsFilePathString()), nil
 }
 
+func openFileInTextEditor(path string) *exec.Cmd {
+	return exec.Command("cmd.exe", "/C", "notepad", path)
+}
+
 func openFileBrowserCommand(path string) *exec.Cmd {
 	return exec.Command("cmd.exe", "/C", "start", path)
 }

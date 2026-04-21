@@ -180,7 +180,7 @@ func (b *StatusBar) rightClickLogEntry(e *document.Element) {
 					slog.Error("failed to locate the log file path", "error", err)
 					return
 				}
-				if err := filesystem.OpenFileBrowserToFolder(path); err != nil {
+				if err := filesystem.OpenFileInTextEditor(path); err != nil {
 					slog.Error("failed to open the log file",
 						"path", path, "error", err)
 				}

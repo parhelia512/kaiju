@@ -82,6 +82,10 @@ func gameDirectory() (string, error) {
 	return filepath.Join(appdata, build.CompanyDirName, build.Title.String()), nil
 }
 
+func openFileInTextEditor(path string) *exec.Cmd {
+	return openFileBrowserCommand(path)
+}
+
 func openFileBrowserCommand(path string) *exec.Cmd {
 	return exec.Command("xdg-open", path)
 }
