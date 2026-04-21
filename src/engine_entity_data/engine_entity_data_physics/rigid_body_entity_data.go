@@ -112,14 +112,16 @@ func (r RigidBodyEntityData) Init(e *engine.Entity, host *engine.Host) {
 			shape = &physics.NewBoxShape(size).CollisionShape
 		}
 		if err == nil {
+			scale := e.Transform.WorldScale()
 			km, err := kaiju_mesh.Deserialize(data)
 			if err == nil {
 				verts := make([]float32, len(km.Verts)*3)
 				idx := 0
 				for i := range km.Verts {
-					verts[idx] = km.Verts[i].Position[matrix.Vx]
-					verts[idx+1] = km.Verts[i].Position[matrix.Vy]
-					verts[idx+2] = km.Verts[i].Position[matrix.Vz]
+					pos := km.Verts[i].Position.Multiply(scale)
+					verts[idx] = pos[matrix.Vx]
+					verts[idx+1] = pos[matrix.Vy]
+					verts[idx+2] = pos[matrix.Vz]
 					idx += 3
 				}
 				triangleIVA := physics.NewTriangleIndexVertexArray(km.Indexes, verts)
