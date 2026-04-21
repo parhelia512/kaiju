@@ -37,6 +37,7 @@
 package status_bar
 
 import (
+	"log/slog"
 	"weak"
 
 	"kaijuengine.com/editor/common_interfaces"
@@ -47,6 +48,7 @@ import (
 	"kaijuengine.com/engine/ui"
 	"kaijuengine.com/engine/ui/markup"
 	"kaijuengine.com/engine/ui/markup/document"
+	"kaijuengine.com/platform/filesystem"
 	"kaijuengine.com/platform/profiler/tracing"
 )
 
@@ -169,6 +171,20 @@ func (b *StatusBar) rightClickLogEntry(e *document.Element) {
 		{
 			Label: "Copy to clipboard",
 			Call:  func() { b.uiMan.Host.Window.CopyToClipboard(text) },
+		},
+		{
+			Label: "Open log file",
+			Call: func() {
+				path, err := logging.LogFilePath()
+				if err != nil {
+					slog.Error("failed to locate the log file path", "error", err)
+					return
+				}
+				if err := filesystem.OpenFileBrowserToFolder(path); err != nil {
+					slog.Error("failed to open the log file",
+						"path", path, "error", err)
+				}
+			},
 		},
 	}
 	pos := b.uiMan.Host.Window.Mouse.ScreenPosition()
