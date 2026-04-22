@@ -118,6 +118,8 @@ func (r RigidBodyEntityData) Init(e *engine.Entity, host *engine.Host) {
 				verts := make([]float32, len(km.Verts)*3)
 				idx := 0
 				for i := range km.Verts {
+					// TODO:  This should probably use the transformation matrix
+					// to also account for rotation, translation likely isn't needed
 					pos := km.Verts[i].Position.Multiply(scale)
 					verts[idx] = pos[matrix.Vx]
 					verts[idx+1] = pos[matrix.Vy]
