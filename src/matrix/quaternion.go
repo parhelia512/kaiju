@@ -361,3 +361,10 @@ func QuaternionLookAt(from, to Vec3) Quaternion {
 func (q Quaternion) IsZero() bool {
 	return QuaternionApprox(q, Quaternion{})
 }
+
+// Rotate transforms a vector by this quaternion.
+func (q Quaternion) Rotate(v Vec3) Vec3 {
+	uv := Vec3{q.Y()*v.Z() - q.Z()*v.Y(), q.Z()*v.X() - q.X()*v.Z(), q.X()*v.Y() - q.Y()*v.X()}
+	uuv := Vec3{q.Y()*uv.Z() - q.Z()*uv.Y(), q.Z()*uv.X() - q.X()*uv.Z(), q.X()*uv.Y() - q.Y()*uv.X()}
+	return v.Scale(2.0).Add(uv.Scale(q.W()).Add(uuv))
+}

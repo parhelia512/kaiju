@@ -220,6 +220,14 @@ func (v Vec3) Orthogonal() Vec3 {
 	return Vec3Cross(v, other)
 }
 
+func (v Vec3) Dot(other Vec3) Float {
+	return Vec3Dot(v, other)
+}
+
+func (v Vec3) Cross(other Vec3) Vec3 {
+	return Vec3Cross(v, other)
+}
+
 func Vec3Approx(a, b Vec3) bool {
 	return Abs(a.X()-b.X()) < Tiny &&
 		Abs(a.Y()-b.Y()) < Tiny &&
