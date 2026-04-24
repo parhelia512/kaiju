@@ -73,6 +73,8 @@
 #define WINDOW_TITLE_BAR_MODE_LIGHT 1
 #define WINDOW_TITLE_BAR_MODE_DARK 2
 
+static void apply_title_bar_mode(HWND hwnd, int mode);
+
 /*
 * Messages defined here are NOT to be sent to other windows
 * https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-registerwindowmessagea#remarks
@@ -220,6 +222,14 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					break;
 			}
 			shared_mem_flush_events(sm);
+			break;
+		}
+		case WM_SETTINGCHANGE:
+		case WM_THEMECHANGED:
+		{
+			if (sm != NULL && sm->titleBarMode == WINDOW_TITLE_BAR_MODE_SYSTEM) {
+				apply_title_bar_mode(hwnd, sm->titleBarMode);
+			}
 			break;
 		}
 		case WM_MOVE:
@@ -593,6 +603,7 @@ void window_main(const wchar_t* windowTitle,
 	);
 	SharedMem* sm = calloc(1, sizeof(SharedMem));
 	sm->goWindow = (void*)goWindow;
+	sm->titleBarMode = WINDOW_TITLE_BAR_MODE_LIGHT;
     if (hwnd == NULL) {
 		shared_mem_add_event(sm, (WindowEvent) {
 			.type = WINDOW_EVENT_TYPE_FATAL,
@@ -1033,10 +1044,7 @@ static bool is_system_light_theme_enabled() {
 	return value != 0;
 }
 
-void window_set_title_bar_mode(void* hwnd, int mode) {
-	if (hwnd == NULL) {
-		return;
-	}
+static void apply_title_bar_mode(HWND hwnd, int mode) {
 	BOOL darkMode = FALSE;
 	switch (mode) {
 		case WINDOW_TITLE_BAR_MODE_DARK:
@@ -1050,14 +1058,25 @@ void window_set_title_bar_mode(void* hwnd, int mode) {
 			darkMode = FALSE;
 			break;
 	}
-	HRESULT hr = DwmSetWindowAttribute((HWND)hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &darkMode, sizeof(darkMode));
+	HRESULT hr = DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &darkMode, sizeof(darkMode));
 	if (FAILED(hr)) {
-		DwmSetWindowAttribute((HWND)hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20, &darkMode, sizeof(darkMode));
+		DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20, &darkMode, sizeof(darkMode));
 	}
-	// use this titlebar refresh trick because RedrawWindow() does not work. not even with DwmFlush()
-	BOOL isActive = (GetForegroundWindow() == (HWND)hwnd || GetActiveWindow() == (HWND)hwnd) ? TRUE : FALSE;
-	SendMessage((HWND)hwnd, WM_NCACTIVATE, (WPARAM)(!isActive), 0);
-	SendMessage((HWND)hwnd, WM_NCACTIVATE, (WPARAM)isActive, 0);
+	// use this titlebar refresh trick because RedrawWindow() and DwmFlush() does not work
+	BOOL isActive = (GetForegroundWindow() == hwnd || GetActiveWindow() == hwnd) ? TRUE : FALSE;
+	SendMessage(hwnd, WM_NCACTIVATE, (WPARAM)(!isActive), 0);
+	SendMessage(hwnd, WM_NCACTIVATE, (WPARAM)isActive, 0);
+}
+
+void window_set_title_bar_mode(void* hwnd, int mode) {
+	if (hwnd == NULL) {
+		return;
+	}
+	SharedMem* sm = (SharedMem*)GetWindowLongPtrA((HWND)hwnd, GWLP_USERDATA);
+	if (sm != NULL) {
+		sm->titleBarMode = mode;
+	}
+	apply_title_bar_mode((HWND)hwnd, mode);
 }
 
 void window_set_cursor_position(void* hwnd, int x, int y) {

@@ -60,6 +60,7 @@ typedef struct {
 	RECT clientRect;
 	int mouseX;
 	int mouseY;
+	int titleBarMode;
 	bool rawInputFailed;
 	bool rawInputRequested;
 	struct {
