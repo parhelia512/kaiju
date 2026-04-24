@@ -102,6 +102,14 @@ type FileSearch struct {
 	Extension string
 }
 
+type TitleBarMode uint8
+
+const (
+	TitleBarModeSystem TitleBarMode = iota
+	TitleBarModeLight
+	TitleBarModeDark
+)
+
 func New(windowName string, width, height, x, y int, adb assets.Database, platformState any) (*Window, error) {
 	defer tracing.NewRegion("windowing.New").End()
 	w := &Window{
@@ -133,6 +141,7 @@ func New(windowName string, width, height, x, y int, adb assets.Database, platfo
 	if w.fatalFromNativeAPI {
 		return nil, errors.New("failed to create the window " + windowName)
 	}
+	w.setTitleBarMode(TitleBarModeSystem)
 	createWindowContext(w.handle)
 	if w.fatalFromNativeAPI {
 		return nil, errors.New("failed to create the window context for " + windowName)
@@ -413,6 +422,8 @@ func (w *Window) EnableRawMouseInput()  { w.enableRawMouse() }
 func (w *Window) DisableRawMouseInput() { w.disableRawMouse() }
 
 func (w *Window) SetTitle(name string) { w.setTitle(name) }
+
+func (w *Window) SetTitleBarMode(mode TitleBarMode) { w.setTitleBarMode(mode) }
 
 func (w *Window) SetIcon(img image.Image) {
 	if img == nil {

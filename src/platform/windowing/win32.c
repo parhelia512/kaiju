@@ -60,6 +60,18 @@
 #include <string.h>
 #include <windows.h>
 #include <windowsx.h>
+#include <dwmapi.h>
+
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20
+#define DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20 19
+#endif
+
+#define WINDOW_TITLE_BAR_MODE_SYSTEM 0
+#define WINDOW_TITLE_BAR_MODE_LIGHT 1
+#define WINDOW_TITLE_BAR_MODE_DARK 2
 
 /*
 * Messages defined here are NOT to be sent to other windows
@@ -932,11 +944,11 @@ void window_set_fullscreen(void* hwnd) {
 	HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
 	GetMonitorInfo(hMonitor, &monitorInfo);
 	SetWindowLong(hwnd, GWL_STYLE, sm->savedState.style & ~(WS_CAPTION | WS_THICKFRAME));
-	SetWindowLong(hwnd, GWL_EXSTYLE, sm->savedState.exStyle & ~(WS_EX_DLGMODALFRAME | 
+	SetWindowLong(hwnd, GWL_EXSTYLE, sm->savedState.exStyle & ~(WS_EX_DLGMODALFRAME |
 		WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
 	SetWindowPos(hwnd, NULL,
-		monitorInfo.rcMonitor.left, 
-		monitorInfo.rcMonitor.top, 
+		monitorInfo.rcMonitor.left,
+		monitorInfo.rcMonitor.top,
 		monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
 		monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
 		SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
@@ -967,7 +979,7 @@ void window_set_windowed(void* hwnd, int width, int height) {
 		sm->windowWidth = width;
 		sm->windowHeight = height;
 		SetWindowPos(hwnd, NULL,
-			sm->savedState.rect.left, 
+			sm->savedState.rect.left,
 			sm->savedState.rect.top,
 			width, height,
 			SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
@@ -1001,6 +1013,51 @@ void window_disable_raw_mouse(void* hwnd) {
 
 void window_set_title(void* hwnd, const wchar_t* windowTitle) {
 	SetWindowTextW(hwnd, windowTitle);
+}
+
+static bool is_system_light_theme_enabled() {
+	DWORD value = 1;
+	DWORD valueSize = sizeof(value);
+	LSTATUS status = RegGetValueW(
+		HKEY_CURRENT_USER,
+		L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+		L"AppsUseLightTheme",
+		RRF_RT_REG_DWORD,
+		NULL,
+		&value,
+		&valueSize
+	);
+	if (status != ERROR_SUCCESS) {
+		return true;
+	}
+	return value != 0;
+}
+
+void window_set_title_bar_mode(void* hwnd, int mode) {
+	if (hwnd == NULL) {
+		return;
+	}
+	BOOL darkMode = FALSE;
+	switch (mode) {
+		case WINDOW_TITLE_BAR_MODE_DARK:
+			darkMode = TRUE;
+			break;
+		case WINDOW_TITLE_BAR_MODE_SYSTEM:
+			darkMode = is_system_light_theme_enabled() ? FALSE : TRUE;
+			break;
+		case WINDOW_TITLE_BAR_MODE_LIGHT:
+		default:
+			darkMode = FALSE;
+			break;
+	}
+	HRESULT hr = DwmSetWindowAttribute((HWND)hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &darkMode, sizeof(darkMode));
+	if (FAILED(hr)) {
+		DwmSetWindowAttribute((HWND)hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20, &darkMode, sizeof(darkMode));
+	}
+	// use this titlebar refresh trick because RedrawWindow() does not work. not even with DwmFlush()
+	BOOL isActive = (GetForegroundWindow() == (HWND)hwnd || GetActiveWindow() == (HWND)hwnd) ? TRUE : FALSE;
+	SendMessage((HWND)hwnd, WM_NCACTIVATE, (WPARAM)(!isActive), 0);
+	SendMessage((HWND)hwnd, WM_NCACTIVATE, (WPARAM)isActive, 0);
 }
 
 void window_set_cursor_position(void* hwnd, int x, int y) {
