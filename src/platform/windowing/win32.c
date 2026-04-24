@@ -74,7 +74,7 @@
 #define WINDOW_TITLE_BAR_MODE_DARK 2
 
 static void apply_title_bar_mode(HWND hwnd, int mode);
-static bool is_system_light_theme_enabled(void);
+static bool user_prefers_dark_mode(void);
 
 /*
 * Messages defined here are NOT to be sent to other windows
@@ -580,7 +580,7 @@ void window_main(const wchar_t* windowTitle,
 	wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);
 	wc.hIcon		 = LoadIcon(NULL, IDI_APPLICATION);
 	// NOTE: could expose the colors to user later, but leave it as is for now
-	wc.hbrBackground = CreateSolidBrush(is_system_light_theme_enabled() ? RGB(255,255,255) : RGB(0,0,0));
+	wc.hbrBackground = CreateSolidBrush(user_prefers_dark_mode() ? RGB(0,0,0) : RGB(255,255,255));
 	RegisterClass(&wc);
 	RECT clientArea = {0, 0, width, height};
 	AdjustWindowRectEx(&clientArea, WS_OVERLAPPEDWINDOW, FALSE, 0);
@@ -1029,7 +1029,7 @@ void window_set_title(void* hwnd, const wchar_t* windowTitle) {
 	SetWindowTextW(hwnd, windowTitle);
 }
 
-static bool is_system_light_theme_enabled() {
+static bool user_prefers_dark_mode() {
 	DWORD value = 1;
 	DWORD valueSize = sizeof(value);
 	LSTATUS status = RegGetValueW(
@@ -1042,9 +1042,9 @@ static bool is_system_light_theme_enabled() {
 		&valueSize
 	);
 	if (status != ERROR_SUCCESS) {
-		return true;
+		return false;
 	}
-	return value != 0;
+	return value == 0;
 }
 
 static void apply_title_bar_mode(HWND hwnd, int mode) {
@@ -1054,7 +1054,7 @@ static void apply_title_bar_mode(HWND hwnd, int mode) {
 			darkMode = TRUE;
 			break;
 		case WINDOW_TITLE_BAR_MODE_SYSTEM:
-			darkMode = is_system_light_theme_enabled() ? FALSE : TRUE;
+			darkMode = user_prefers_dark_mode() ? TRUE : FALSE;
 			break;
 		case WINDOW_TITLE_BAR_MODE_LIGHT:
 		default:
