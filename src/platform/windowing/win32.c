@@ -74,6 +74,7 @@
 #define WINDOW_TITLE_BAR_MODE_DARK 2
 
 static void apply_title_bar_mode(HWND hwnd, int mode);
+static bool is_system_light_theme_enabled(void);
 
 /*
 * Messages defined here are NOT to be sent to other windows
@@ -578,7 +579,9 @@ void window_main(const wchar_t* windowTitle,
     wc.lpszClassName = className;
 	wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);
 	wc.hIcon		 = LoadIcon(NULL, IDI_APPLICATION);
-    RegisterClass(&wc);
+	// NOTE: could expose the colors to user later, but leave it as is for now
+	wc.hbrBackground = CreateSolidBrush(is_system_light_theme_enabled() ? RGB(255,255,255) : RGB(0,0,0));
+	RegisterClass(&wc);
 	RECT clientArea = {0, 0, width, height};
 	AdjustWindowRectEx(&clientArea, WS_OVERLAPPEDWINDOW, FALSE, 0);
 	width = clientArea.right-clientArea.left;
