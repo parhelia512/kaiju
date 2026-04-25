@@ -266,6 +266,9 @@ func (w *Window) setTitle(title string) {
 	}
 }
 
+// TODO: placeholder
+func (w *Window) setTitleBarMode(mode TitleBarMode) {}
+
 func (w *Window) setCursorPosition(x, y int) {
 	// C.cocoa_set_cursor_position(w.handle, C.int(x), C.int(y))
 }
