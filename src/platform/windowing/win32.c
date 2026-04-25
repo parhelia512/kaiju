@@ -586,11 +586,11 @@ void window_main(const wchar_t* windowTitle,
 	AdjustWindowRectEx(&clientArea, WS_OVERLAPPEDWINDOW, FALSE, 0);
 	width = clientArea.right-clientArea.left;
 	height = clientArea.bottom-clientArea.top;
-	if (x < 0) {
-		x = CW_USEDEFAULT;
-	}
-	if (y < 0) {
-		x = CW_USEDEFAULT;
+	if (x < 0 || y < 0) {
+		int screenWidth = GetSystemMetrics(SM_CXSCREEN);  // primary screen
+		int screenHeight = GetSystemMetrics(SM_CYSCREEN); // primary screen
+		x = (screenWidth - width) / 2;
+		y = (screenHeight - height) / 2;
 	}
     // Create the window.
     HWND hwnd = CreateWindowEx(
