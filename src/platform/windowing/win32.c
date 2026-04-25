@@ -1065,7 +1065,9 @@ static void apply_title_bar_mode(HWND hwnd, int mode) {
 	if (FAILED(hr)) {
 		DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20, &darkMode, sizeof(darkMode));
 	}
-	// use this titlebar refresh trick because RedrawWindow() and DwmFlush() does not work
+
+	// Force title-bar style redraw (needed for titlebar color change after window creation)
+	// NOTE: RedrawWindow() and DwmFlush() did not work here
 	BOOL isActive = (GetForegroundWindow() == hwnd || GetActiveWindow() == hwnd) ? TRUE : FALSE;
 	SendMessage(hwnd, WM_NCACTIVATE, (WPARAM)(!isActive), 0);
 	SendMessage(hwnd, WM_NCACTIVATE, (WPARAM)isActive, 0);

@@ -210,6 +210,7 @@ func (w Window) setTitle(name string) {
 
 // TODO: placeholder
 func (w *Window) setTitleBarMode(mode TitleBarMode) {}
+func (w *Window) getTitleBarMode() TitleBarMode     { return w.titleBarMode }
 
 func (w Window) setFullscreen() {
 	C.window_set_full_screen(w.handle)

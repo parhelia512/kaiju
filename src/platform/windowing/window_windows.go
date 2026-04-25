@@ -259,6 +259,10 @@ func (w *Window) setTitleBarMode(mode TitleBarMode) {
 	C.window_set_title_bar_mode(w.handle, C.int(mode))
 }
 
+func (w *Window) getTitleBarMode() TitleBarMode {
+	return w.titleBarMode
+}
+
 func (w *Window) setCursorPosition(x, y int) {
 	C.window_set_cursor_position(w.handle, C.int(x), C.int(y))
 }

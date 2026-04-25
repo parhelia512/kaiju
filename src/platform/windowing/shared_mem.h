@@ -60,7 +60,7 @@ typedef struct {
 	RECT clientRect;
 	int mouseX;
 	int mouseY;
-	int titleBarMode;
+	int titleBarMode; /* last requested mode - used to reapply title bar styling when OS theme changes */
 	bool rawInputFailed;
 	bool rawInputRequested;
 	struct {
@@ -85,7 +85,7 @@ typedef struct {
 	ASensorManager* sensorManager;
 	ASensorEventQueue* sensorQueue;
 #else
-	size_t _0[3]; // Keep structure size consistant between platforms
+	size_t _0[3]; // Keep struct size consistent across platforms
 #endif
 } SharedMem;
 
