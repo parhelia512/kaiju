@@ -88,6 +88,7 @@ type Window struct {
 	cachedScreenSizeWidthMM  int
 	cacheScreenSizeHeightMM  int
 	windowSync               chan struct{}
+	titleBarMode             TitleBarMode
 	syncRequest              bool
 	isClosed                 bool
 	isDestroyed              bool
@@ -141,7 +142,7 @@ func New(windowName string, width, height, x, y int, adb assets.Database, platfo
 	if w.fatalFromNativeAPI {
 		return nil, errors.New("failed to create the window " + windowName)
 	}
-	w.setTitleBarMode(TitleBarModeSystem)
+	w.SetTitleBarMode(TitleBarModeSystem)
 	createWindowContext(w.handle)
 	if w.fatalFromNativeAPI {
 		return nil, errors.New("failed to create the window context for " + windowName)
@@ -423,7 +424,11 @@ func (w *Window) DisableRawMouseInput() { w.disableRawMouse() }
 
 func (w *Window) SetTitle(name string) { w.setTitle(name) }
 
-func (w *Window) SetTitleBarMode(mode TitleBarMode) { w.setTitleBarMode(mode) }
+func (w *Window) SetTitleBarMode(mode TitleBarMode) {
+	w.titleBarMode = mode
+	w.setTitleBarMode(mode)
+}
+func (w *Window) TitleBarMode() TitleBarMode { return w.getTitleBarMode() }
 
 func (w *Window) SetIcon(img image.Image) {
 	if img == nil {

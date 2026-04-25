@@ -182,5 +182,6 @@ func (w *Window) enableRawMouse()                   {}
 func (w *Window) disableRawMouse()                  {}
 func (w Window) setTitle(newTitle string)           {}
 func (w *Window) setTitleBarMode(mode TitleBarMode) {}
+func (w *Window) getTitleBarMode() TitleBarMode     { return w.titleBarMode }
 func (w *Window) setCursorPosition(x, y int)        {}
 func (w *Window) setIcon(img image.Image)           {}
