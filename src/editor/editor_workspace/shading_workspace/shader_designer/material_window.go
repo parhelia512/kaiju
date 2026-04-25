@@ -230,6 +230,8 @@ func (win *ShaderDesigner) materialSave(e *document.Element) {
 		slog.Error("failed to write the material data to file", "error", err)
 		return
 	}
+	// Replace the cached material so it updates instances in the viewport
+	win.host.MaterialCache().ReplaceMaterial(win.material.id)
 	slog.Info("material successfully saved")
 	// TODO:  Show an in-window popup for prompting that things saved
 	if len(e.Children) > 0 {

@@ -38,7 +38,9 @@ package rendering
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
+	"slices"
 	"sync"
 	"weak"
 
@@ -74,6 +76,33 @@ func (m *MaterialCache) AddMaterial(material *Material) *Material {
 	}
 }
 
+func (m *MaterialCache) RemoveMaterial(key string) {
+	defer tracing.NewRegion("MaterialCache.RemoveMaterial").End()
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	delete(m.materials, key)
+}
+
+func (m *MaterialCache) ReplaceMaterial(key string) error {
+	defer tracing.NewRegion("MaterialCache.ReplaceMaterial").End()
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	if material, ok := m.materials[key]; ok {
+		mat, err := m.loadMaterial(key)
+		if err != nil {
+			return err
+		}
+		instances := material.Instances
+		for i := range instances {
+			material.Instances[i].Textures = slices.Clone(mat.Textures)
+		}
+		*material = *mat
+		material.Instances = instances
+		return nil
+	}
+	return fmt.Errorf("material with id '%s' not found", key)
+}
+
 func (m *MaterialCache) FindMaterial(key string) (*Material, bool) {
 	defer tracing.NewRegion("MaterialCache.FindMaterial").End()
 	m.mutex.Lock()
@@ -93,28 +122,9 @@ func (m *MaterialCache) Material(key string) (*Material, error) {
 		return material, nil
 	} else {
 		m.mutex.Unlock()
-		matStr, err := m.assetDatabase.ReadText(key)
+		material, err := m.loadMaterial(key)
 		if err != nil {
-			slog.Error("failed to load the material", "material", key, "error", err)
 			return nil, err
-		}
-		var materialData MaterialData
-		if err := json.Unmarshal([]byte(matStr), &materialData); err != nil {
-			slog.Error("failed to read the material", "material", key, "error", err)
-			return nil, err
-		}
-		material, err := materialData.Compile(m.assetDatabase, m.device)
-		if err != nil {
-			slog.Error("failed to compile the material", "material", key, "error", err)
-			return nil, err
-		}
-		if materialData.PrepassMaterial != "" {
-			prep, err := m.Material(materialData.PrepassMaterial)
-			if err != nil {
-				slog.Error("failed to create the material prepass", "prepass", materialData.PrepassMaterial, "error", err)
-				return nil, err
-			}
-			material.PrepassMaterial = weak.Make(prep)
 		}
 		material.Id = key
 		m.mutex.Lock()
@@ -130,4 +140,31 @@ func (m *MaterialCache) Destroy() {
 		mat.Destroy(m.device)
 	}
 	m.materials = make(map[string]*Material)
+}
+
+func (m *MaterialCache) loadMaterial(key string) (*Material, error) {
+	matStr, err := m.assetDatabase.ReadText(key)
+	if err != nil {
+		slog.Error("failed to load the material", "material", key, "error", err)
+		return nil, err
+	}
+	var materialData MaterialData
+	if err := json.Unmarshal([]byte(matStr), &materialData); err != nil {
+		slog.Error("failed to read the material", "material", key, "error", err)
+		return nil, err
+	}
+	material, err := materialData.Compile(m.assetDatabase, m.device)
+	if err != nil {
+		slog.Error("failed to compile the material", "material", key, "error", err)
+		return nil, err
+	}
+	if materialData.PrepassMaterial != "" {
+		prep, err := m.Material(materialData.PrepassMaterial)
+		if err != nil {
+			slog.Error("failed to create the material prepass", "prepass", materialData.PrepassMaterial, "error", err)
+			return nil, err
+		}
+		material.PrepassMaterial = weak.Make(prep)
+	}
+	return material, nil
 }
