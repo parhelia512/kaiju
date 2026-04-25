@@ -50,7 +50,7 @@ import (
 )
 
 /*
-#cgo LDFLAGS: -lgdi32 -lXInput
+#cgo LDFLAGS: -lgdi32 -lXInput -ldwmapi
 #cgo noescape get_toggle_key_state
 #cgo noescape window_main
 #cgo noescape window_show
@@ -77,6 +77,7 @@ import (
 #cgo noescape window_enable_raw_mouse
 #cgo noescape window_disable_raw_mouse
 #cgo noescape window_set_title
+#cgo noescape window_set_title_bar_mode
 #cgo noescape window_set_cursor_position
 #cgo noescape window_set_icon
 
@@ -252,6 +253,14 @@ func (w *Window) setTitle(newTitle string) {
 	windowTitle := utf16.Encode(append([]rune(newTitle), []rune("\x00\x00")...))
 	title := (*C.wchar_t)(unsafe.Pointer(&windowTitle[0]))
 	C.window_set_title(w.handle, title)
+}
+
+func (w *Window) setTitleBarMode(mode TitleBarMode) {
+	C.window_set_title_bar_mode(w.handle, C.int(mode))
+}
+
+func (w *Window) getTitleBarMode() TitleBarMode {
+	return w.titleBarMode
 }
 
 func (w *Window) setCursorPosition(x, y int) {

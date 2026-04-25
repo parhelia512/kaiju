@@ -60,6 +60,21 @@
 #include <string.h>
 #include <windows.h>
 #include <windowsx.h>
+#include <dwmapi.h>
+
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20
+#define DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20 19
+#endif
+
+#define WINDOW_TITLE_BAR_MODE_SYSTEM 0
+#define WINDOW_TITLE_BAR_MODE_LIGHT 1
+#define WINDOW_TITLE_BAR_MODE_DARK 2
+
+static void apply_title_bar_mode(HWND hwnd, int mode);
+static bool user_prefers_dark_mode(void);
 
 /*
 * Messages defined here are NOT to be sent to other windows
@@ -208,6 +223,14 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					break;
 			}
 			shared_mem_flush_events(sm);
+			break;
+		}
+		case WM_SETTINGCHANGE:
+		case WM_THEMECHANGED:
+		{
+			if (sm != NULL && sm->titleBarMode == WINDOW_TITLE_BAR_MODE_SYSTEM) {
+				apply_title_bar_mode(hwnd, sm->titleBarMode);
+			}
 			break;
 		}
 		case WM_MOVE:
@@ -556,7 +579,9 @@ void window_main(const wchar_t* windowTitle,
     wc.lpszClassName = className;
 	wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);
 	wc.hIcon		 = LoadIcon(NULL, IDI_APPLICATION);
-    RegisterClass(&wc);
+	// NOTE: could expose the colors to user later, but leave it as is for now
+	wc.hbrBackground = CreateSolidBrush(user_prefers_dark_mode() ? RGB(0,0,0) : RGB(255,255,255));
+	RegisterClass(&wc);
 	RECT clientArea = {0, 0, width, height};
 	AdjustWindowRectEx(&clientArea, WS_OVERLAPPEDWINDOW, FALSE, 0);
 	width = clientArea.right-clientArea.left;
@@ -581,6 +606,7 @@ void window_main(const wchar_t* windowTitle,
 	);
 	SharedMem* sm = calloc(1, sizeof(SharedMem));
 	sm->goWindow = (void*)goWindow;
+	sm->titleBarMode = WINDOW_TITLE_BAR_MODE_LIGHT;
     if (hwnd == NULL) {
 		shared_mem_add_event(sm, (WindowEvent) {
 			.type = WINDOW_EVENT_TYPE_FATAL,
@@ -932,11 +958,11 @@ void window_set_fullscreen(void* hwnd) {
 	HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
 	GetMonitorInfo(hMonitor, &monitorInfo);
 	SetWindowLong(hwnd, GWL_STYLE, sm->savedState.style & ~(WS_CAPTION | WS_THICKFRAME));
-	SetWindowLong(hwnd, GWL_EXSTYLE, sm->savedState.exStyle & ~(WS_EX_DLGMODALFRAME | 
+	SetWindowLong(hwnd, GWL_EXSTYLE, sm->savedState.exStyle & ~(WS_EX_DLGMODALFRAME |
 		WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
 	SetWindowPos(hwnd, NULL,
-		monitorInfo.rcMonitor.left, 
-		monitorInfo.rcMonitor.top, 
+		monitorInfo.rcMonitor.left,
+		monitorInfo.rcMonitor.top,
 		monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
 		monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
 		SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
@@ -967,7 +993,7 @@ void window_set_windowed(void* hwnd, int width, int height) {
 		sm->windowWidth = width;
 		sm->windowHeight = height;
 		SetWindowPos(hwnd, NULL,
-			sm->savedState.rect.left, 
+			sm->savedState.rect.left,
 			sm->savedState.rect.top,
 			width, height,
 			SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
@@ -1001,6 +1027,61 @@ void window_disable_raw_mouse(void* hwnd) {
 
 void window_set_title(void* hwnd, const wchar_t* windowTitle) {
 	SetWindowTextW(hwnd, windowTitle);
+}
+
+static bool user_prefers_dark_mode() {
+	DWORD value = 1;
+	DWORD valueSize = sizeof(value);
+	LSTATUS status = RegGetValueW(
+		HKEY_CURRENT_USER,
+		L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+		L"AppsUseLightTheme",
+		RRF_RT_REG_DWORD,
+		NULL,
+		&value,
+		&valueSize
+	);
+	if (status != ERROR_SUCCESS) {
+		return false;
+	}
+	return value == 0;
+}
+
+static void apply_title_bar_mode(HWND hwnd, int mode) {
+	BOOL darkMode = FALSE;
+	switch (mode) {
+		case WINDOW_TITLE_BAR_MODE_DARK:
+			darkMode = TRUE;
+			break;
+		case WINDOW_TITLE_BAR_MODE_SYSTEM:
+			darkMode = user_prefers_dark_mode() ? TRUE : FALSE;
+			break;
+		case WINDOW_TITLE_BAR_MODE_LIGHT:
+		default:
+			darkMode = FALSE;
+			break;
+	}
+	HRESULT hr = DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &darkMode, sizeof(darkMode));
+	if (FAILED(hr)) {
+		DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20, &darkMode, sizeof(darkMode));
+	}
+
+	// Force title-bar style redraw (needed for titlebar color change after window creation)
+	// NOTE: RedrawWindow() and DwmFlush() did not work here
+	BOOL isActive = (GetForegroundWindow() == hwnd || GetActiveWindow() == hwnd) ? TRUE : FALSE;
+	SendMessage(hwnd, WM_NCACTIVATE, (WPARAM)(!isActive), 0);
+	SendMessage(hwnd, WM_NCACTIVATE, (WPARAM)isActive, 0);
+}
+
+void window_set_title_bar_mode(void* hwnd, int mode) {
+	if (hwnd == NULL) {
+		return;
+	}
+	SharedMem* sm = (SharedMem*)GetWindowLongPtrA((HWND)hwnd, GWLP_USERDATA);
+	if (sm != NULL) {
+		sm->titleBarMode = mode;
+	}
+	apply_title_bar_mode((HWND)hwnd, mode);
 }
 
 void window_set_cursor_position(void* hwnd, int x, int y) {
