@@ -111,6 +111,19 @@ const (
 	TitleBarModeDark
 )
 
+func (m TitleBarMode) String() string {
+	switch m {
+	case TitleBarModeSystem:
+		return "system"
+	case TitleBarModeLight:
+		return "light"
+	case TitleBarModeDark:
+		return "dark"
+	default:
+		return "unknown"
+	}
+}
+
 func New(windowName string, width, height, x, y int, adb assets.Database, platformState any) (*Window, error) {
 	defer tracing.NewRegion("windowing.New").End()
 	w := &Window{
