@@ -261,6 +261,15 @@ func (w *Window) DotsPerMillimeter() float64 {
 	return w.dotsPerMillimeter()
 }
 
+// NOTE: currently only implemented on windows
+func (w *Window) MonitorCount() int {
+	count := w.monitorCount()
+	if count < 1 {
+		return 1
+	}
+	return count
+}
+
 func (w *Window) SizeMM() (int, int, error) {
 	return w.sizeMM()
 }

@@ -842,6 +842,11 @@ float window_dpi(void* hwnd) {
 	return ((float)GetDpiForWindow(hwnd));
 }
 
+int screen_count(void* hwnd) {
+	(void)hwnd;
+	return GetSystemMetrics(SM_CMONITORS);
+}
+
 int screen_width_mm(void* hwnd) {
     HDC hdc = GetDC(hwnd);
     if (hdc == NULL) {
