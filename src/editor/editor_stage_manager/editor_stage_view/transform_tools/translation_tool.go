@@ -37,6 +37,7 @@
 package transform_tools
 
 import (
+	"kaijuengine.com/editor/editor_controls"
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/cameras"
 	"kaijuengine.com/engine/collision"
@@ -68,20 +69,15 @@ const (
 )
 
 type TranslationTool struct {
-	root          matrix.Transform
+	TransformGizmo
 	arrows        [3]TranslationToolArrow
 	planes        [3]TranslationToolPlane
-	lastCamPos    matrix.Vec3
-	lastHit       matrix.Vec3
 	rootHitOffset matrix.Vec3
 	dragStart     matrix.Vec3
 	OnDragStart   events.EventWithArg[matrix.Vec3]
 	OnDragMove    events.EventWithArg[matrix.Vec3]
 	OnDragEnd     events.EventWithArg[matrix.Vec3]
-	currentAxis   int
 	currentType   TranslationHitEnum
-	dragging      bool
-	visible       bool
 }
 
 type TranslationToolArrow struct {
@@ -173,9 +169,16 @@ func (p *TranslationToolPlane) Initialize(host *engine.Host, vec int) {
 func (t *TranslationTool) Show(pos matrix.Vec3) {
 	t.visible = true
 	t.root.SetPosition(pos)
-	for i := range t.arrows {
+	axis := len(t.arrows)
+	is2D := t.cameraMode == editor_controls.EditorCameraMode2d
+	if is2D {
+		axis = 2
+	}
+	for i := range axis {
 		t.arrows[i].shaderData.Activate()
-		t.planes[i].shaderData.Activate()
+		if is2D && i == 0 {
+			t.planes[i].shaderData.Activate()
+		}
 	}
 	t.updateHitBoxes()
 }
@@ -201,21 +204,16 @@ func (t *TranslationTool) Update(host *engine.Host, snap bool, snapScale float32
 	return t.dragging
 }
 
+func (t *TranslationTool) SetDimensions(mode editor_controls.EditorCameraMode) {
+	t.cameraMode = mode
+	if t.visible {
+		t.Hide()
+		t.Show(t.root.Position())
+	}
+}
+
 func (t *TranslationTool) resize(cam cameras.Camera) {
-	camPos := cam.Position()
-	if camPos.Equals(t.lastCamPos) {
-		return
-	}
-	t.lastCamPos = camPos
-	viewMat := cam.View()
-	gizmoPos := t.root.Position().AsVec4()
-	viewPos := matrix.Mat4MultiplyVec4(viewMat, gizmoPos)
-	dist := matrix.Abs(viewPos.Z())
-	if dist <= matrix.FloatSmallestNonzero {
-		return
-	}
-	gizmoScale := dist * translationGizmoScale
-	t.root.SetScale(matrix.NewVec3(gizmoScale, gizmoScale, gizmoScale))
+	t.TransformGizmo.resize(cam)
 	t.updateHitBoxes()
 }
 
@@ -403,10 +401,7 @@ func (t *TranslationTool) processDrag(host *engine.Host, cam cameras.Camera, sna
 		if c.Released() {
 			t.dragging = false
 			t.OnDragEnd.Execute(t.root.Position())
-			for i := range t.arrows {
-				t.arrows[i].shaderData.Activate()
-				t.planes[i].shaderData.Activate()
-			}
+			t.Show(t.root.Position())
 		}
 	}
 }
