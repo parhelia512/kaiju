@@ -237,6 +237,9 @@ func (t *RotationTool) processDrag(host *engine.Host, cam cameras.Camera, snap b
 		if hit, ok := cam.TryPlaneHit(c.Position(), rp, nml); ok {
 			dir := hit.Subtract(t.root.Position()).Normal()
 			angle := t.lastDirection.SignedAngle(dir, nml)
+			if t.cameraMode == editor_controls.EditorCameraMode2d && t.currentAxis == matrix.Vz {
+				angle = -angle
+			}
 			t.lastDirection = dir
 			t.rotationDelta += angle
 			rot := t.rotationVector()
