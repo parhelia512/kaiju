@@ -120,11 +120,12 @@ void window_main(const char* windowTitle,
 		free(x11State);
 		return;
 	}
-	if (x < 0) {
-		x = 10;
-	}
-	if (y < 0) {
-		y = 10;
+	if (x < 0 || y < 0) {
+		int screen = DefaultScreen(d);               // primary screen
+		int screenWidth = DisplayWidth(d, screen);   // primary screen
+		int screenHeight = DisplayHeight(d, screen); // primary screen
+		x = (screenWidth - width) / 2;
+		y = (screenHeight - height) / 2;
 	}
 	Window w = XCreateSimpleWindow(d, RootWindow(d, DefaultScreen(d)), x, y,
 		width, height, 1, BlackPixel(d, DefaultScreen(d)), WhitePixel(d, DefaultScreen(d)));
