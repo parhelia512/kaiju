@@ -200,11 +200,19 @@ func (t *ScalingTool) updateHitBoxes() {
 	}
 }
 
+func (t *ScalingTool) mousePosition(host *engine.Host) matrix.Vec2 {
+	if t.cameraMode == editor_controls.EditorCameraMode2d {
+		return host.Window.Cursor.ScreenPosition()
+	} else {
+		return host.Window.Cursor.Position()
+	}
+}
+
 func (t *ScalingTool) hitCheck(host *engine.Host, cam cameras.Camera) {
 	if t.dragging {
 		return
 	}
-	ray := cam.RayCast(host.Window.Cursor.Position())
+	ray := cam.RayCast(t.mousePosition(host))
 	dist := matrix.FloatMax
 	target := -1
 	for i := range t.boxes {
@@ -263,6 +271,9 @@ func (t *ScalingTool) processDrag(host *engine.Host, cam cameras.Camera, snap bo
 	} else if t.dragging {
 		scale := t.procRayOnAxis(c, cam, snap, snapScale)
 		scale = scale.Subtract(t.startScale)
+		if t.cameraMode == editor_controls.EditorCameraMode2d {
+			scale.SetY(-scale.Y())
+		}
 		if c.Released() {
 			t.dragging = false
 			rs := t.root.Scale()
@@ -300,6 +311,9 @@ func (t *ScalingTool) procRayOnAxis(c *hid.Cursor, cam cameras.Camera, snap bool
 		cp.SetZ(dragPos.Z())
 	}
 	nml := cp.Subtract(dragPos)
+	if t.cameraMode == editor_controls.EditorCameraMode2d {
+		nml.SetY(-nml.Y())
+	}
 	if hit, ok := cam.TryPlaneHit(c.Position(), dragPos, nml); ok {
 		scale := matrix.Vec3Zero()
 		if snap {
@@ -327,6 +341,9 @@ func (t *ScalingTool) procRayOnAxis(c *hid.Cursor, cam cameras.Camera, snap bool
 
 func (t *ScalingTool) setVisuals(pos matrix.Vec3) {
 	b := &t.boxes[t.currentAxis]
+	if t.cameraMode == editor_controls.EditorCameraMode2d {
+		pos.SetY(-pos.Y())
+	}
 	b.boxTransform.SetWorldPosition(pos)
 	l := pos.Subtract(t.root.Position()).Length()
 	l /= scalingGizmoBoxOffset
