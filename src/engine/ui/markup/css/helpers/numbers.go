@@ -96,26 +96,44 @@ func ArithmeticString(args []string) (int, error) {
 
 func NumFromLengthWithFont(str string, window WindowDimensions, fontSize float32) float32 {
 	dpmm := window.DotsPerMillimeter()
-	var suffix string
+	parse := func(raw string, cut int) float32 {
+		var v float32
+		fmt.Sscanf(raw[:len(raw)-cut], "%f", &v)
+		return v
+	}
 	switch {
 	case strings.HasSuffix(str, "vmin"):
-		suffix = "vmin"
-		str = str[:len(str)-4]
+		size := parse(str, 4)
+		w := float32(window.Width())
+		h := float32(window.Height())
+		if h < w {
+			w = h
+		}
+		return w * (size / 100)
 	case strings.HasSuffix(str, "vmax"):
-		suffix = "vmax"
-		str = str[:len(str)-4]
+		size := parse(str, 4)
+		w := float32(window.Width())
+		h := float32(window.Height())
+		if h > w {
+			w = h
+		}
+		return w * (size / 100)
 	case strings.HasSuffix(str, "rem"):
-		suffix = "rem"
-		str = str[:len(str)-3]
+		size := parse(str, 3)
+		// Root font size support is not yet wired through style inheritance.
+		// For now rem is based on the engine default root em size.
+		return size * rendering.DefaultFontEMSize
 	case strings.HasSuffix(str, "vw"):
-		suffix = "vw"
-		str = str[:len(str)-2]
+		size := parse(str, 2)
+		return float32(window.Width()) * (size / 100)
 	case strings.HasSuffix(str, "vh"):
-		suffix = "vh"
-		str = str[:len(str)-2]
+		size := parse(str, 2)
+		return float32(window.Height()) * (size / 100)
 	case strings.HasSuffix(str, "ch"):
-		suffix = "ch"
-		str = str[:len(str)-2]
+		size := parse(str, 2)
+		// Approximation until font metric support is available:
+		// 1ch ~= 0.5em
+		return size * fontSize * 0.5
 	case strings.HasSuffix(str, "px"),
 		strings.HasSuffix(str, "em"),
 		strings.HasSuffix(str, "ex"),
@@ -124,66 +142,28 @@ func NumFromLengthWithFont(str string, window WindowDimensions, fontSize float32
 		strings.HasSuffix(str, "in"),
 		strings.HasSuffix(str, "pt"),
 		strings.HasSuffix(str, "pc"):
-		suffix = str[len(str)-2:]
-		str = str[:len(str)-2]
+		size := parse(str, 2)
+		switch str[len(str)-2:] {
+		case "px":
+			return size
+		case "em", "ex":
+			return size * fontSize
+		case "cm":
+			return float32(dpmm) * float32(size*10)
+		case "mm":
+			return float32(dpmm) * size
+		case "in":
+			return float32(dpmm) * float32(size*25.4)
+		case "pt":
+			return float32(dpmm) * float32(size*25.4/72)
+		case "pc":
+			return float32(dpmm) * float32(size*25.4/6)
+		}
 	case strings.HasSuffix(str, "%"):
-		suffix = "%"
-		str = str[:len(str)-1]
+		size := parse(str, 1)
+		return size / 100
 	}
-	var size float32
-	fmt.Sscanf(str, "%f", &size)
-	switch suffix {
-	case "%":
-		size = size / 100
-	case "px":
-		// Read value is the size
-	case "ex":
-		// Relative to the font size of a lowercase letter like a, c, m, or o
-		fallthrough
-	case "em":
-		size = size * fontSize
-	case "rem":
-		// TODO:
-		// Root font size support is not yet wired through style inheritance.
-		// For now rem is based on the engine default root em size.
-		size = size * rendering.DefaultFontEMSize
-	case "ch":
-		// TODO:
-		// Approximation until font metric support is available:
-		// 1ch ~= 0.5em
-		size = size * fontSize * 0.5
-	case "vw":
-		size = float32(window.Width()) * (size / 100)
-	case "vh":
-		size = float32(window.Height()) * (size / 100)
-	case "vmin":
-		w := float32(window.Width())
-		h := float32(window.Height())
-		if h < w {
-			w = h
-		}
-		size = w * (size / 100)
-	case "vmax":
-		w := float32(window.Width())
-		h := float32(window.Height())
-		if h > w {
-			w = h
-		}
-		size = w * (size / 100)
-	case "cm":
-		size = float32(dpmm) * float32(size*10)
-	case "mm":
-		size = float32(dpmm) * float32(size)
-	case "in":
-		size = float32(dpmm) * float32(size*25.4)
-	case "pt":
-		size = float32(dpmm) * float32(size*25.4/72)
-	case "pc":
-		size = float32(dpmm) * float32(size*25.4/6)
-	default:
-		size = 0
-	}
-	return size
+	return 0
 }
 
 // NumFromLength resolves CSS lengths with the default font size context.
