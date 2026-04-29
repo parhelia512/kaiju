@@ -180,7 +180,7 @@ func (t *ScalingTool) resize(cam cameras.Camera) {
 func (t *ScalingTool) updateHitBoxes() {
 	scale := t.root.Scale().LargestAxis()
 	arrowLen := translationGizmoTotalHeight * scale * 0.5
-	r := matrix.Float(translationGizmoTotalRadius)
+	r := matrix.Float(translationGizmoTotalRadius) * scale
 	for i := range t.boxes {
 		t.boxes[i].hitBox = collision.AABB{
 			Center: t.root.Position(),

@@ -99,7 +99,6 @@ func (t *TranslationTool) Initialize(host *engine.Host) {
 	for i := range t.arrows {
 		t.arrows[i].Initialize(host, i)
 		t.arrows[i].transform.SetParent(&t.root)
-
 		t.planes[i].Initialize(host, i)
 		t.planes[i].transform.SetParent(&t.root)
 	}
@@ -220,7 +219,7 @@ func (t *TranslationTool) resize(cam cameras.Camera) {
 func (t *TranslationTool) updateHitBoxes() {
 	scale := t.root.Scale().LargestAxis()
 	arrowLen := translationGizmoTotalHeight * scale * 0.5
-	r := matrix.Float(translationGizmoTotalRadius)
+	r := matrix.Float(translationGizmoTotalRadius) * scale
 	for i := range t.arrows {
 		t.arrows[i].hitBox = collision.AABB{
 			Center: t.root.Position(),
