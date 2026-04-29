@@ -72,8 +72,10 @@ func (Mesh) TypeName() string   { return "Mesh" }
 func (Mesh) ExtNames() []string { return []string{".gltf", ".glb", ".obj"} }
 
 type meshImportPostProcData struct {
-	mesh       load_result.Mesh
-	isAnimated bool
+	mesh         load_result.Mesh
+	meshes       []load_result.Mesh
+	isAnimated   bool
+	textureBytes map[string][]byte
 }
 
 func (Mesh) Import(src string, _ *project_file_system.FileSystem) (ProcessedImport, error) {
@@ -118,13 +120,22 @@ func (Mesh) Import(src string, _ *project_file_system.FileSystem) (ProcessedImpo
 			Data: kd,
 		}
 		p.Variants = append(p.Variants, v)
-		postProcData[v.Name] = meshImportPostProcData{res.Meshes[i], res.IsTreeAnimated(int(res.Meshes[i].Node.Id))}
+		isAnimated := res.IsTreeAnimated(int(res.Meshes[i].Node.Id))
+		postProcData[v.Name] = meshImportPostProcData{
+			mesh:         res.Meshes[i],
+			meshes:       res.Meshes,
+			isAnimated:   isAnimated,
+			textureBytes: res.TextureBytes,
+		}
 	}
 	p.postProcessData = postProcData
 	for i := range res.Meshes {
 		t := res.Meshes[i].Textures
 		p.Dependencies = slices.Grow(p.Dependencies, len(p.Dependencies)+len(t))
 		for k, v := range t {
+			if strings.HasPrefix(v, "embedded_") {
+				continue
+			}
 			tp := v
 			if _, err := os.Stat(tp); err != nil {
 				tp = filepath.Join(filepath.Dir(src), v)
@@ -155,6 +166,59 @@ func (Mesh) PostImportProcessing(proc ProcessedImport, res *ImportResult, fs *pr
 	if !ok {
 		slog.Error("failed to locate the mesh in the post processing data", "name", cc.Config.Name)
 		return nil
+	}
+	texKeyToDepId := make(map[string]string)
+	texKeyToData := make(map[string][]byte)
+	for i := range variant.meshes {
+		for texType, texKey := range variant.meshes[i].Textures {
+			if strings.HasPrefix(texKey, "embedded_") {
+				if _, ok := texKeyToData[texKey]; !ok {
+					texKeyToData[texKey] = variant.textureBytes[texKey]
+				}
+				variant.meshes[i].Textures[texType] = texKey
+			}
+		}
+	}
+	for texKey, data := range texKeyToData {
+		ext := ".png"
+		if len(data) > 0 {
+			if data[0] == 0x89 && data[1] == 0x50 && data[2] == 0x4e && data[3] == 0x47 {
+				ext = ".png"
+			} else if data[0] == 0xff && data[1] == 0xd8 {
+				ext = ".jpg"
+			} else if data[0] == 0x42 && data[1] == 0x4d {
+				ext = ".bmp"
+			} else if data[0] == 0x52 && data[1] == 0x49 && data[2] == 0x46 && data[3] == 0x46 {
+				ext = ".webp"
+			}
+		}
+		tf, err := os.CreateTemp("", "*-kaiju-texture"+ext)
+		if err != nil {
+			continue
+		}
+		if _, err := tf.Write(data); err != nil {
+			tf.Close()
+			os.Remove(tf.Name())
+			continue
+		}
+		tf.Close()
+		texRes, err := Import(tf.Name(), fs, cache, linkedId)
+		if err != nil {
+			os.Remove(tf.Name())
+			continue
+		}
+		res.Dependencies = append(res.Dependencies, texRes[0])
+		texKeyToDepId[texKey] = texRes[0].Id
+		os.Remove(tf.Name())
+	}
+	for i := range variant.meshes {
+		for texType, texKey := range variant.meshes[i].Textures {
+			if depId, ok := texKeyToDepId[texKey]; ok {
+				variant.meshes[i].Textures[texType] = depId
+			} else if strings.HasPrefix(texKey, "embedded_") {
+				variant.meshes[i].Textures[texType] = ""
+			}
+		}
 	}
 	matchTexture := func(srcPath string) rendering.MaterialTextureData {
 		for i := range res.Dependencies {
