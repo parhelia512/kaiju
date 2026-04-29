@@ -90,6 +90,7 @@ type Editor struct {
 	events           editor_events.EditorEvents
 	stageView        editor_stage_view.StageView
 	plugins          []editor_plugin.EditorPlugin
+	fileDropRouter   FileDropRouter
 	window           struct {
 		activateId     events.Id
 		deactivateId   events.Id
@@ -190,6 +191,8 @@ func (ed *Editor) postProjectLoad() {
 	ed.workspaces.vfx.Initialize(ed.host, ed)
 	ed.workspaces.ui.Initialize(ed.host, ed)
 	ed.workspaces.settings.Initialize(ed.host, ed)
+	ed.connectFileDropRouter()
+	ed.host.Window.SetFileDropEnabled(true)
 	ed.setWorkspaceState(WorkspaceStateStage)
 	// goroutine
 	go ed.project.CompileDebug()

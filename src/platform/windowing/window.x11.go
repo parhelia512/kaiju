@@ -261,6 +261,9 @@ func (w *Window) setIcon(img image.Image) {
 	C.window_set_icon(w.handle, C.int(width), C.int(height), (*C.uchar)(&rgba.Pix[0]))
 }
 
+// TODO: placeholder
+func (w *Window) setFileDropEnabled(enabled bool) {}
+
 func (w *Window) readApplicationAsset(path string) ([]byte, error) {
 	return []byte{}, errors.New("linux doesn't support application assets")
 }

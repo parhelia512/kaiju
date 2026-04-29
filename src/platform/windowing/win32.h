@@ -76,5 +76,6 @@ void window_set_title(void* hwnd, const wchar_t* windowTitle);
 void window_set_title_bar_mode(void* hwnd, int mode);
 void window_set_cursor_position(void* hwnd, int x, int y);
 void window_set_icon(void* hwnd, int width, int height, const uint8_t* pixelData);
+void window_set_file_drop_enabled(void* hwnd, bool enabled);
 
 #endif

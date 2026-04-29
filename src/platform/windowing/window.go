@@ -64,6 +64,16 @@ var (
 	nextLookupId  atomic.Uint64
 )
 
+// FileDropEvent keeps a native drop as one batch so higher layers can route it
+// by location before deciding how the files should be processed.
+//
+// NOTE: position (x, y) is relative to client area
+type FileDropEvent struct {
+	X     int
+	Y     int
+	Paths []string
+}
+
 type Window struct {
 	lookupId                 uint64
 	handle                   unsafe.Pointer
@@ -80,6 +90,7 @@ type Window struct {
 	OnMove                   events.Event
 	OnActivate               events.Event
 	OnDeactivate             events.Event
+	OnFileDrop               events.EventWithArg[FileDropEvent]
 	title                    string
 	x, y                     int
 	width, height            int
@@ -476,6 +487,9 @@ func (w *Window) SetIcon(img image.Image) {
 }
 
 func (w *Window) SetCursorPosition(x, y int) { w.setCursorPosition(x, y) }
+func (w *Window) SetFileDropEnabled(enabled bool) {
+	w.setFileDropEnabled(enabled)
+}
 
 // ReadApplicationAsset will read an asset bound to the application. This is
 // typically only useful on mobile platforms like Android. Platforms like Linux,
@@ -730,4 +744,22 @@ func goProcessEventsCommon(goWindow uint64, events unsafe.Pointer, eventCount ui
 		}
 		events = unsafe.Pointer(uintptr(body) + evtUnionSize)
 	}
+}
+
+// NOTE: position (x, y) is relative to client area
+func goProcessFileDropCommon(goWindow uint64, x, y int, paths []string) {
+	defer tracing.NewRegion("windowing.goProcessFileDropCommon").End()
+	if len(paths) == 0 {
+		return
+	}
+	gw, ok := windowLookup.Load(goWindow)
+	if !ok || gw == nil {
+		return
+	}
+	win := gw.(*Window)
+	win.OnFileDrop.Execute(FileDropEvent{
+		X:     x,
+		Y:     y,
+		Paths: paths,
+	})
 }

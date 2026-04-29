@@ -36,6 +36,7 @@
 #endif
 
 extern void goProcessEvents(uint64_t goWindow, void* events, uint32_t eventCount);
+extern void goProcessFileDrop(uint64_t goWindow, int32_t x, int32_t y, void* paths, uint32_t pathCount);
 
 #if __linux__ || defined(__APPLE__)
 typedef long LONG;

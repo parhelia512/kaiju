@@ -189,3 +189,4 @@ func (w *Window) setTitleBarMode(mode TitleBarMode) {}
 func (w *Window) getTitleBarMode() TitleBarMode     { return w.titleBarMode }
 func (w *Window) setCursorPosition(x, y int)        {}
 func (w *Window) setIcon(img image.Image)           {}
+func (w *Window) setFileDropEnabled(enabled bool)   {}
