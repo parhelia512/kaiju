@@ -325,11 +325,16 @@ func (Mesh) PostImportProcessing(proc ProcessedImport, res *ImportResult, fs *pr
 	if err != nil {
 		return err
 	}
+	tempPath := f.Name()
+	defer os.Remove(tempPath)
 	if err = json.NewEncoder(f).Encode(mat); err != nil {
+		f.Close()
 		return err
 	}
-	f.Close()
-	matRes, err := Import(f.Name(), fs, cache, linkedId)
+	if err = f.Close(); err != nil {
+		return err
+	}
+	matRes, err := Import(tempPath, fs, cache, linkedId)
 	if err != nil {
 		return err
 	}
