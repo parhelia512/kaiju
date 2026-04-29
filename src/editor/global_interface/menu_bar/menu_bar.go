@@ -117,6 +117,13 @@ func (b *MenuBar) Initialize(host *engine.Host, handler MenuBarHandler) error {
 			"popupMiss":                b.popupMiss,
 		})
 	b.doc.Clean()
+	for _, m := range b.doc.GetElementsByClass("menuEntry") {
+		target := m.Attribute("data-target")
+		pop, _ := b.doc.GetElementById(target)
+		b.setPopupUiPos(m, pop)
+	}
+	b.doc.Clean()
+	b.hidePopups()
 	return err
 }
 
@@ -162,6 +169,14 @@ func (b *MenuBar) SetWorkspaceSettings() {
 	b.selectTab(t)
 }
 
+func (b *MenuBar) setPopupUiPos(e *document.Element, pop *document.Element) {
+	defer tracing.NewRegion("MenuBar.setPopupUiPos").End()
+	t := &e.UI.Entity().Transform
+	x := t.WorldPosition().X() + float32(b.uiMan.Host.Window.Width())*0.5 -
+		e.UI.Layout().PixelSize().X()*0.5
+	pop.UI.Layout().SetInnerOffsetLeft(x)
+}
+
 func (b *MenuBar) openMenuTarget(e *document.Element) {
 	defer tracing.NewRegion("MenuBar.openMenuTarget").End()
 	target := e.Attribute("data-target")
@@ -177,10 +192,7 @@ func (b *MenuBar) openMenuTarget(e *document.Element) {
 			}
 		}
 		pop.UI.Show()
-		t := &e.UI.Entity().Transform
-		x := t.WorldPosition().X() + float32(b.uiMan.Host.Window.Width())*0.5 -
-			e.UI.Layout().PixelSize().X()*0.5
-		pop.UI.Layout().SetInnerOffsetLeft(x)
+		b.setPopupUiPos(e, pop)
 		b.handler.BlurInterface()
 		b.uiMan.Host.RunOnMainThread(b.Focus)
 	}
