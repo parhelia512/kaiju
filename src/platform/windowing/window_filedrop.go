@@ -7,6 +7,10 @@
 package windowing
 
 import (
+	"log/slog"
+	"slices"
+	"sync"
+
 	"kaijuengine.com/engine/systems/events"
 	"kaijuengine.com/platform/profiler/tracing"
 )
@@ -22,7 +26,9 @@ type FileDropEvent struct {
 }
 
 type fileDropModule struct {
-	onDrop events.EventWithArg[FileDropEvent]
+	onDrop  events.EventWithArg[FileDropEvent]
+	pending []FileDropEvent
+	mutex   sync.Mutex
 }
 
 func (w *Window) OnFileDrop() *events.EventWithArg[FileDropEvent] {
@@ -33,9 +39,33 @@ func (w *Window) SetFileDropEnabled(enabled bool) {
 	w.setFileDropEnabled(enabled)
 }
 
+func (m *fileDropModule) addFileDropToQueue(evt FileDropEvent) {
+	defer tracing.NewRegion("fileDropModule.addFileDropToQueue").End()
+	evt.Paths = slices.Clone(evt.Paths)
+	m.mutex.Lock()
+	m.pending = append(m.pending, evt)
+	m.mutex.Unlock()
+}
+
+func (m *fileDropModule) processQueuedFileDrops() {
+	defer tracing.NewRegion("fileDropModule.processQueuedFileDrops").End()
+	m.mutex.Lock()
+	pending := slices.Clone(m.pending)
+	m.pending = m.pending[:0]
+	m.mutex.Unlock()
+	for i := range pending {
+		m.onDrop.Execute(pending[i])
+	}
+}
+
 // NOTE: position (x, y) is relative to client area
-func goProcessFileDropCommon(goWindow uint64, x, y int, paths []string) {
-	defer tracing.NewRegion("windowing.goProcessFileDropCommon").End()
+func queueNativeFileDropEvent(goWindow uint64, x, y int, paths []string) {
+	defer tracing.NewRegion("windowing.queueNativeFileDropEvent").End()
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Error("panic while enqueueing file drop", "panic", r)
+		}
+	}()
 	if len(paths) == 0 {
 		return
 	}
@@ -44,7 +74,7 @@ func goProcessFileDropCommon(goWindow uint64, x, y int, paths []string) {
 		return
 	}
 	win := gw.(*Window)
-	win.fileDrop.onDrop.Execute(FileDropEvent{
+	win.fileDrop.addFileDropToQueue(FileDropEvent{
 		X:     x,
 		Y:     y,
 		Paths: paths,

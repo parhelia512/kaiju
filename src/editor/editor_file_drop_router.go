@@ -40,6 +40,7 @@ package editor
 
 import (
 	"slices"
+	"sync"
 
 	"kaijuengine.com/editor/editor_workspace/content_workspace"
 	"kaijuengine.com/engine"
@@ -67,13 +68,15 @@ type FileDropRouter struct {
 	nextHandlerId       FileDropHandlerId
 	windowDropEventId   events.Id
 	host                *engine.Host
+	mutex               sync.Mutex
 }
 
 func (ed *Editor) FileDropRouter() *FileDropRouter { return &ed.fileDropRouter }
 
 func (ed *Editor) connectFileDropRouter() {
 	defer tracing.NewRegion("Editor.connectFileDropRouter").End()
-	ed.fileDropRouter.ListenToWindowFileDrops(ed.host, ed.importUnclaimedFileDropAsContent)
+	ed.fileDropRouter.StartListeningForWindowFileDrops(ed.host, ed.importUnclaimedFileDropAsContent)
+	ed.host.OnClose.Add(ed.fileDropRouter.StopListeningForWindowFileDrops)
 	ed.host.Window.SetFileDropEnabled(true)
 }
 
@@ -85,18 +88,22 @@ func (ed *Editor) importUnclaimedFileDropAsContent(evt windowing.FileDropEvent) 
 	}
 }
 
-func (r *FileDropRouter) ListenToWindowFileDrops(host *engine.Host, handleUnclaimedDrop func(evt windowing.FileDropEvent)) {
-	defer tracing.NewRegion("FileDropRouter.ListenToWindowFileDrops").End()
+func (r *FileDropRouter) StartListeningForWindowFileDrops(host *engine.Host, handleUnclaimedDrop func(evt windowing.FileDropEvent)) {
+	defer tracing.NewRegion("FileDropRouter.StartListeningForWindowFileDrops").End()
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	if r.host != nil && r.windowDropEventId != 0 {
 		r.host.Window.OnFileDrop().Remove(r.windowDropEventId)
 	}
 	r.host = host
 	r.handleUnclaimedDrop = handleUnclaimedDrop
-	r.windowDropEventId = host.Window.OnFileDrop().Add(r.routeFileDrop)
+	r.windowDropEventId = host.Window.OnFileDrop().Add(r.handleWindowFileDrop)
 }
 
 func (r *FileDropRouter) AddDropHandler(handler FileDropHandler) FileDropHandlerId {
 	defer tracing.NewRegion("FileDropRouter.AddDropHandler").End()
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	r.nextHandlerId++
 	handler.id = r.nextHandlerId
 	r.dropHandlers = append(r.dropHandlers, handler)
@@ -108,6 +115,8 @@ func (r *FileDropRouter) AddDropHandler(handler FileDropHandler) FileDropHandler
 
 func (r *FileDropRouter) RemoveDropHandler(id FileDropHandlerId) {
 	defer tracing.NewRegion("FileDropRouter.RemoveDropHandler").End()
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	for i := range r.dropHandlers {
 		if r.dropHandlers[i].id == id {
 			r.dropHandlers = slices.Delete(r.dropHandlers, i, i+1)
@@ -116,10 +125,27 @@ func (r *FileDropRouter) RemoveDropHandler(id FileDropHandlerId) {
 	}
 }
 
-func (r *FileDropRouter) routeFileDrop(evt windowing.FileDropEvent) {
-	defer tracing.NewRegion("FileDropRouter.routeFileDrop").End()
-	for i := range r.dropHandlers {
-		handler := &r.dropHandlers[i]
+func (r *FileDropRouter) StopListeningForWindowFileDrops() {
+	defer tracing.NewRegion("FileDropRouter.StopListeningForWindowFileDrops").End()
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	if r.host != nil && r.windowDropEventId != 0 {
+		r.host.Window.OnFileDrop().Remove(r.windowDropEventId)
+	}
+	r.dropHandlers = nil
+	r.handleUnclaimedDrop = nil
+	r.windowDropEventId = 0
+	r.host = nil
+}
+
+func (r *FileDropRouter) handleWindowFileDrop(evt windowing.FileDropEvent) {
+	defer tracing.NewRegion("FileDropRouter.handleWindowFileDrop").End()
+	r.mutex.Lock()
+	handlers := slices.Clone(r.dropHandlers)
+	handleUnclaimedDrop := r.handleUnclaimedDrop
+	r.mutex.Unlock()
+	for i := range handlers {
+		handler := &handlers[i]
 		if handler.HandleDrop == nil {
 			continue
 		}
@@ -130,7 +156,7 @@ func (r *FileDropRouter) routeFileDrop(evt windowing.FileDropEvent) {
 			return
 		}
 	}
-	if r.handleUnclaimedDrop != nil {
-		r.handleUnclaimedDrop(evt)
+	if handleUnclaimedDrop != nil {
+		handleUnclaimedDrop(evt)
 	}
 }

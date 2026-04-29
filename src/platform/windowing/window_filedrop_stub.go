@@ -7,3 +7,5 @@
 package windowing
 
 type fileDropModule struct{}
+
+func (m *fileDropModule) processQueuedFileDrops() {}

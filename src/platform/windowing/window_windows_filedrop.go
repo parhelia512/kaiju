@@ -26,7 +26,7 @@ func goProcessFileDrop(goWindow C.uint64_t, x C.int32_t, y C.int32_t, paths unsa
 			goPaths = append(goPaths, C.GoString(ptrs[i]))
 		}
 	}
-	goProcessFileDropCommon(uint64(goWindow), int(x), int(y), goPaths)
+	queueNativeFileDropEvent(uint64(goWindow), int(x), int(y), goPaths)
 }
 
 func (w *Window) setFileDropEnabled(enabled bool) {
