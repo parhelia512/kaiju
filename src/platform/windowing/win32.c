@@ -62,7 +62,14 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <dwmapi.h>
-#include <shellapi.h> // drag-&-drop files in window
+
+#ifndef KAIJU_ENABLE_FILEDROP
+#define KAIJU_ENABLE_FILEDROP 0
+#endif
+
+#if KAIJU_ENABLE_FILEDROP
+#include <shellapi.h>
+#endif
 
 #ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
 #define DWMWA_USE_IMMERSIVE_DARK_MODE 20
@@ -84,7 +91,9 @@ static bool user_prefers_dark_mode(void);
 */
 #define UWM_SET_CURSOR         (WM_USER + 0x0001)
 #define UWM_SET_TITLE_BAR_MODE (WM_USER + 0x0002)
+#if KAIJU_ENABLE_FILEDROP
 #define UWM_SET_FILE_DROP      (WM_USER + 0x0003)
+#endif
 #define CURSOR_ARROW           1
 #define CURSOR_IBEAM           2
 #define CURSOR_WAIT            3
@@ -486,6 +495,7 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			shared_mem_add_event(sm, evt);
 			break;
 		}
+#if KAIJU_ENABLE_FILEDROP
 		case WM_DROPFILES:
 		{
 			HDROP hDrop = (HDROP)wParam;
@@ -536,6 +546,7 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			DragFinish(hDrop);
 			break;
 		}
+#endif
 		case WM_SETCURSOR:
 		{
 			if (sm != NULL && sm->cursorHidden) {
@@ -609,11 +620,13 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			apply_title_bar_mode(hwnd, sm->titleBarMode);
 			return 0;
 		}
+#if KAIJU_ENABLE_FILEDROP
 		case UWM_SET_FILE_DROP:
 		{
 			DragAcceptFiles(hwnd, wParam ? TRUE : FALSE);
 			return 0;
 		}
+#endif
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
@@ -695,7 +708,6 @@ void window_main(const wchar_t* windowTitle,
 	});
 	shared_mem_flush_events(sm);
 	SetWindowLongPtrA(hwnd, GWLP_USERDATA, (LONG_PTR)sm);
-	DragAcceptFiles(hwnd, TRUE);
 }
 
 void window_show(void* hwnd) {
@@ -1170,9 +1182,11 @@ void window_set_cursor_position(void* hwnd, int x, int y) {
 	set_cursor_position_relative_to_window(sm, x, y);
 }
 
+#if KAIJU_ENABLE_FILEDROP
 void window_set_file_drop_enabled(void* hwnd, bool enabled) {
 	PostMessageA((HWND)hwnd, UWM_SET_FILE_DROP, enabled ? TRUE : FALSE, 0);
 }
+#endif
 
 void window_set_icon(void* hwnd, int width, int height, const uint8_t* pixelData) {
 	// Create BITMAPINFO structure for the icon

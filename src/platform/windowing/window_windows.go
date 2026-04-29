@@ -50,7 +50,7 @@ import (
 )
 
 /*
-#cgo LDFLAGS: -lgdi32 -lXInput -ldwmapi -lshell32
+#cgo LDFLAGS: -lgdi32 -lXInput -ldwmapi
 #cgo noescape get_toggle_key_state
 #cgo noescape window_main
 #cgo noescape window_show
@@ -81,7 +81,6 @@ import (
 #cgo noescape window_set_title_bar_mode
 #cgo noescape window_set_cursor_position
 #cgo noescape window_set_icon
-#cgo noescape window_set_file_drop_enabled
 
 #include "windowing.h"
 */
@@ -90,18 +89,6 @@ import "C"
 //export goProcessEvents
 func goProcessEvents(goWindow C.uint64_t, events unsafe.Pointer, eventCount C.uint32_t) {
 	goProcessEventsCommon(uint64(goWindow), events, uint32(eventCount))
-}
-
-//export goProcessFileDrop
-func goProcessFileDrop(goWindow C.uint64_t, x C.int32_t, y C.int32_t, paths unsafe.Pointer, pathCount C.uint32_t) {
-	ptrs := unsafe.Slice((**C.char)(paths), int(pathCount))
-	goPaths := make([]string, 0, int(pathCount))
-	for i := range ptrs {
-		if ptrs[i] != nil {
-			goPaths = append(goPaths, C.GoString(ptrs[i]))
-		}
-	}
-	goProcessFileDropCommon(uint64(goWindow), int(x), int(y), goPaths)
 }
 
 func (w *Window) checkToggleKeyState() map[hid.KeyboardKey]bool {
@@ -299,14 +286,6 @@ func (w *Window) setIcon(img image.Image) {
 		bgra[i+3] = rgba.Pix[i+3]
 	}
 	C.window_set_icon(w.handle, C.int(width), C.int(height), (*C.uint8_t)(&bgra[0]))
-}
-
-func (w *Window) setFileDropEnabled(enabled bool) {
-	var cEnabled C.bool
-	if enabled {
-		cEnabled = C.bool(true)
-	}
-	C.window_set_file_drop_enabled(w.handle, cEnabled)
 }
 
 func (w *Window) readApplicationAsset(path string) ([]byte, error) {

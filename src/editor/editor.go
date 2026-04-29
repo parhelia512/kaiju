@@ -192,7 +192,6 @@ func (ed *Editor) postProjectLoad() {
 	ed.workspaces.ui.Initialize(ed.host, ed)
 	ed.workspaces.settings.Initialize(ed.host, ed)
 	ed.connectFileDropRouter()
-	ed.host.Window.SetFileDropEnabled(true)
 	ed.setWorkspaceState(WorkspaceStateStage)
 	// goroutine
 	go ed.project.CompileDebug()

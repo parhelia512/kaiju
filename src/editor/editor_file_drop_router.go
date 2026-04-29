@@ -1,3 +1,5 @@
+//go:build editor || filedrop
+
 /******************************************************************************/
 /* editor_file_drop_router.go                                                 */
 /******************************************************************************/
@@ -72,6 +74,7 @@ func (ed *Editor) FileDropRouter() *FileDropRouter { return &ed.fileDropRouter }
 func (ed *Editor) connectFileDropRouter() {
 	defer tracing.NewRegion("Editor.connectFileDropRouter").End()
 	ed.fileDropRouter.ListenToWindowFileDrops(ed.host, ed.importUnclaimedFileDropAsContent)
+	ed.host.Window.SetFileDropEnabled(true)
 }
 
 func (ed *Editor) importUnclaimedFileDropAsContent(evt windowing.FileDropEvent) {
@@ -85,11 +88,11 @@ func (ed *Editor) importUnclaimedFileDropAsContent(evt windowing.FileDropEvent) 
 func (r *FileDropRouter) ListenToWindowFileDrops(host *engine.Host, handleUnclaimedDrop func(evt windowing.FileDropEvent)) {
 	defer tracing.NewRegion("FileDropRouter.ListenToWindowFileDrops").End()
 	if r.host != nil && r.windowDropEventId != 0 {
-		r.host.Window.OnFileDrop.Remove(r.windowDropEventId)
+		r.host.Window.OnFileDrop().Remove(r.windowDropEventId)
 	}
 	r.host = host
 	r.handleUnclaimedDrop = handleUnclaimedDrop
-	r.windowDropEventId = host.Window.OnFileDrop.Add(r.routeFileDrop)
+	r.windowDropEventId = host.Window.OnFileDrop().Add(r.routeFileDrop)
 }
 
 func (r *FileDropRouter) AddDropHandler(handler FileDropHandler) FileDropHandlerId {

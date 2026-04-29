@@ -201,10 +201,6 @@ func (host *Host) Initialize(width, height, x, y int, platformState any) error {
 	}
 	host.Window = win
 
-	// TODO: expose this later with a setting developers can set
-	// currently we dont want to allow filedrops in project manager workspace
-	host.Window.SetFileDropEnabled(!build.Editor)
-
 	host.threads.Start()
 	host.updateThreads.Start()
 	host.uiThreads.Start()
