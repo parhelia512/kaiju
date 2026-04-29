@@ -291,6 +291,7 @@ func (d *Document) createUIElement(uiMan *ui.Manager, e *Element, parent *ui.Pan
 			} else {
 				tex, err = host.TextureCache().Texture(src, rendering.TextureFilterLinear)
 			}
+			missing := err != nil
 			if err != nil {
 				slog.Error(err.Error())
 				tex, _ = host.TextureCache().Texture(assets.TextureSquare, rendering.TextureFilterLinear)
@@ -303,6 +304,9 @@ func (d *Document) createUIElement(uiMan *ui.Manager, e *Element, parent *ui.Pan
 				img.Init(tex)
 			}
 			panel = (*ui.Panel)(img)
+			if missing {
+				panel.SetColor(matrix.ColorMagenta())
+			}
 		} else if e.IsInput() {
 			inputType := e.Attribute("type")
 			switch inputType {
