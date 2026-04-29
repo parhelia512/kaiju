@@ -256,19 +256,11 @@ func (t *TranslationTool) updateHitBoxes() {
 	}
 }
 
-func (t *TranslationTool) mousePosition(host *engine.Host) matrix.Vec2 {
-	if t.cameraMode == editor_controls.EditorCameraMode2d {
-		return host.Window.Cursor.ScreenPosition()
-	} else {
-		return host.Window.Cursor.Position()
-	}
-}
-
 func (t *TranslationTool) hitCheck(host *engine.Host, cam cameras.Camera) {
 	if t.dragging {
 		return
 	}
-	ray := cam.RayCast(t.mousePosition(host))
+	ray := cam.RayCast(t.cursorPosition(&host.Window.Cursor))
 	dist := matrix.FloatMax
 	target := -1
 	targetType := TRANSLATION_TYPE_NONE
@@ -374,7 +366,7 @@ func (t *TranslationTool) processDrag(host *engine.Host, cam cameras.Camera, sna
 			}
 			nml = cp.Subtract(rp)
 		}
-		if hit, ok := cam.TryPlaneHit(t.mousePosition(host), rp, nml); ok {
+		if hit, ok := cam.TryPlaneHit(t.cursorPosition(&host.Window.Cursor), rp, nml); ok {
 			p := hit.Add(t.rootHitOffset)
 			if snap {
 				p.SetX(matrix.Floor(p.X()/snapScale) * snapScale)
