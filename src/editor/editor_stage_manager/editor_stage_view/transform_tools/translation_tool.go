@@ -338,9 +338,6 @@ func (t *TranslationTool) processDrag(host *engine.Host, cam cameras.Camera, sna
 	if c.Pressed() {
 		t.dragStart = t.lastHit
 		t.rootHitOffset = t.root.Position().Subtract(t.lastHit)
-		if t.cameraMode == editor_controls.EditorCameraMode2d {
-			t.rootHitOffset.SetY(-t.rootHitOffset.Y())
-		}
 		t.dragging = true
 		// TODO:  Make this in the settings to allow for warping mouse to center
 		// p, ok := matrix.Mat4ToScreenSpace(t.root.Position(), cam.View(), cam.Projection(), cam.Viewport())
@@ -364,21 +361,21 @@ func (t *TranslationTool) processDrag(host *engine.Host, cam cameras.Camera, sna
 		t.OnDragStart.Execute(t.root.Position())
 	} else if t.dragging {
 		rp := t.root.Position()
-		cp := cam.Position()
-		switch t.currentAxis {
-		case matrix.Vx:
-			cp.SetX(rp.X())
-		case matrix.Vy:
-			cp.SetY(rp.Y())
-		case matrix.Vz:
-			cp.SetZ(rp.Z())
-		}
-		nml := cp.Subtract(rp)
-		if hit, ok := cam.TryPlaneHit(c.Position(), rp, nml); ok {
-			p := hit.Add(t.rootHitOffset)
-			if t.cameraMode == editor_controls.EditorCameraMode2d {
-				p.SetY(-p.Y())
+		nml := matrix.Vec3Backward()
+		if t.cameraMode != editor_controls.EditorCameraMode2d {
+			cp := cam.Position()
+			switch t.currentAxis {
+			case matrix.Vx:
+				cp.SetX(rp.X())
+			case matrix.Vy:
+				cp.SetY(rp.Y())
+			case matrix.Vz:
+				cp.SetZ(rp.Z())
 			}
+			nml = cp.Subtract(rp)
+		}
+		if hit, ok := cam.TryPlaneHit(t.mousePosition(host), rp, nml); ok {
+			p := hit.Add(t.rootHitOffset)
 			if snap {
 				p.SetX(matrix.Floor(p.X()/snapScale) * snapScale)
 				p.SetY(matrix.Floor(p.Y()/snapScale) * snapScale)
