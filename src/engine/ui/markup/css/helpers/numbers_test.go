@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"math"
 	"testing"
 
 	"kaijuengine.com/rendering"
@@ -59,5 +60,90 @@ func TestNumFromLength_DefaultFontContext(t *testing.T) {
 	want := float32(2) * rendering.DefaultFontEMSize
 	if got != want {
 		t.Fatalf("NumFromLength(%q) = %v, want %v", "2em", got, want)
+	}
+}
+
+func TestNumFromLengthWithFont_LeadingDecimalUnits(t *testing.T) {
+	w := testWindow{dpmm: 2, width: 1000, height: 500}
+	fontSize := float32(20)
+
+	tests := []struct {
+		name string
+		in   string
+		want float32
+	}{
+		{name: "vw", in: ".2vw", want: 2},
+		{name: "rem", in: ".2rem", want: 0.2 * rendering.DefaultFontEMSize},
+		{name: "ch", in: ".2ch", want: 2}, // 0.2 * (0.5 * 20)
+		{name: "cm", in: ".2cm", want: 4}, // 0.2 * 10mm * dpmm(2)
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NumFromLengthWithFont(tt.in, w, fontSize)
+			if got != tt.want {
+				t.Fatalf("NumFromLengthWithFont(%q) = %v, want %v", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNumFromLengthWithFont_GarbageOrIllFormattedInput(t *testing.T) {
+	w := testWindow{dpmm: 2, width: 1000, height: 500}
+	fontSize := float32(20)
+
+	tests := []struct {
+		name string
+		in   string
+		want float32
+	}{
+		{name: "empty string", in: "", want: 0},
+		{name: "only unit", in: "px", want: 0},
+		{name: "garbage text", in: "hello", want: 0},
+		{name: "unknown unit", in: "12abc", want: 0},
+		{name: "double percent", in: "50%%", want: 0.5},
+		{name: "space separated number unit", in: "10 px", want: 10},
+		{name: "mixed alpha and numeric", in: "1o0px", want: 1},
+		{name: "sign only", in: "-", want: 0},
+		{name: "dot only", in: ".", want: 0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Fatalf("NumFromLengthWithFont(%q) panicked: %v", tt.in, r)
+				}
+			}()
+			got := NumFromLengthWithFont(tt.in, w, fontSize)
+			if got != tt.want {
+				t.Fatalf("NumFromLengthWithFont(%q) = %v, want %v", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNumFromLengthWithFont_NonFiniteInput(t *testing.T) {
+	w := testWindow{dpmm: 2, width: 1000, height: 500}
+	fontSize := float32(20)
+
+	tests := []string{
+		"NaNpx",
+		"+Infpx",
+		"-Infpx",
+	}
+
+	for _, in := range tests {
+		t.Run(in, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Fatalf("NumFromLengthWithFont(%q) panicked: %v", in, r)
+				}
+			}()
+			got := NumFromLengthWithFont(in, w, fontSize)
+			if math.IsNaN(float64(got)) || math.IsInf(float64(got), 0) {
+				t.Fatalf("NumFromLengthWithFont(%q) produced non-finite result: %v", in, got)
+			}
+		})
 	}
 }

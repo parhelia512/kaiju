@@ -38,6 +38,7 @@ package helpers
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -99,6 +100,9 @@ func NumFromLengthWithFont(str string, window WindowDimensions, fontSize float32
 	parse := func(raw string, cut int) float32 {
 		var v float32
 		fmt.Sscanf(raw[:len(raw)-cut], "%f", &v)
+		if math.IsNaN(float64(v)) || math.IsInf(float64(v), 0) {
+			return 0
+		}
 		return v
 	}
 	switch {
