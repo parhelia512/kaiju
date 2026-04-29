@@ -101,6 +101,7 @@ func (b *MenuBar) Initialize(host *engine.Host, handler MenuBarHandler) error {
 			"clickCreateTemplate":      b.clickCreateTemplate,
 			"clickCreateEntityData":    b.clickCreateEntityData,
 			"clickCreateHtmlUi":        b.clickCreateHtmlUi,
+			"clickCreateCssStylesheet": b.clickCreateCssStylesheet,
 			"clickNewCamera":           b.clickNewCamera,
 			"clickNewEntity":           b.clickNewEntity,
 			"clickNewLight":            b.clickNewLight,
@@ -296,6 +297,23 @@ func (b *MenuBar) clickCreateHtmlUi(*document.Element) {
 		OnConfirm: func(name string) {
 			b.handler.FocusInterface()
 			b.handler.CreateHtmlUiFile(name)
+		},
+	})
+}
+func (b *MenuBar) clickCreateCssStylesheet(*document.Element) {
+	defer tracing.NewRegion("MenuBar.clickCreateCssStylesheet").End()
+	b.hidePopups()
+	b.handler.BlurInterface()
+	input_prompt.Show(b.uiMan.Host, input_prompt.Config{
+		Title:       "Name your CSS file",
+		Description: "Give a friendly name to your css file",
+		Placeholder: "Name...",
+		ConfirmText: "Create",
+		CancelText:  "Cancel",
+		OnCancel:    b.handler.FocusInterface,
+		OnConfirm: func(name string) {
+			b.handler.FocusInterface()
+			b.handler.CreateCssStylesheetFile(name)
 		},
 	})
 }
