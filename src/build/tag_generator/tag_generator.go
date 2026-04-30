@@ -39,6 +39,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"unicode"
 )
 
@@ -66,8 +68,18 @@ const %s = false
 
 func main() { createTagFiles() }
 
-func setFile(name string) string { return fmt.Sprintf("../z%s.go", name) }
-func notFile(name string) string { return fmt.Sprintf("../z%s_not.go", name) }
+func generatorRoot() string {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("unable to resolve generator path")
+	}
+	return filepath.Clean(filepath.Join(filepath.Dir(file), ".."))
+}
+
+func setFile(name string) string { return filepath.Join(generatorRoot(), fmt.Sprintf("z%s.go", name)) }
+func notFile(name string) string {
+	return filepath.Join(generatorRoot(), fmt.Sprintf("z%s_not.go", name))
+}
 
 func createTagFiles() {
 	for i := range availableTags {
