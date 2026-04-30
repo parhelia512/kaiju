@@ -37,7 +37,7 @@
 package properties
 
 import (
-	"errors"
+	"fmt"
 
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
@@ -46,7 +46,23 @@ import (
 )
 
 func (p BoxSizing) Process(panel *ui.Panel, elm *document.Element, values []rules.PropertyValue, host *engine.Host) error {
-	problems := []error{errors.New("BoxSizing not implemented")}
+	if len(values) != 1 {
+		return fmt.Errorf("BoxSizing requires exactly 1 value")
+	}
+	switch values[0].Str {
+	case "border-box":
+		setBoxSizing(panel, true)
+	case "content-box", "initial":
+		setBoxSizing(panel, false)
+	case "inherit":
+		if elm.Parent.Value() != nil && elm.Parent.Value().UI != nil {
+			parentPanel := elm.Parent.Value().UI.ToPanel()
+			parent := currentSizingConstraints(parentPanel)
+			setBoxSizing(panel, parent.UseBorderBox)
+		}
+	default:
+		return fmt.Errorf("unsupported box-sizing value: %s", values[0].Str)
+	}
 
-	return problems[0]
+	return nil
 }
