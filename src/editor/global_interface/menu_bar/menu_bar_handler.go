@@ -72,4 +72,5 @@ type MenuBarHandler interface {
 	CreatePluginProject(path string)
 	CreateHtmlUiFile(name string)
 	CreateCssStylesheetFile(name string)
+	SetGridVisible(visible bool)
 }

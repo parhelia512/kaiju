@@ -312,6 +312,21 @@ func (ed *Editor) CreateHtmlUiFile(name string) {
 	}
 }
 
+// SetGridVisible records the developer's preference for the editor viewport
+// grid, persists it to the global editor settings, and applies the change to
+// the live stage view if one is initialized.
+func (ed *Editor) SetGridVisible(visible bool) {
+	defer tracing.NewRegion("Editor.SetGridVisible").End()
+	if ed.settings.ShowGrid == visible {
+		return
+	}
+	ed.settings.ShowGrid = visible
+	if err := ed.settings.Save(); err != nil {
+		slog.Error("failed to save editor settings after grid toggle", "error", err)
+	}
+	ed.stageView.SetGridVisible(visible)
+}
+
 func (ed *Editor) CreateCssStylesheetFile(name string) {
 	sb := strings.Builder{}
 	sb.WriteString("/* ")

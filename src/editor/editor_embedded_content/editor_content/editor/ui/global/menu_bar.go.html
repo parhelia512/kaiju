@@ -59,6 +59,7 @@
 			<span class="menuEntry" data-target="filePopup" onclick="clickFile">File</span>
 			<span class="menuEntry" data-target="editPopup" onclick="clickEdit">Edit</span>
 			<span class="menuEntry" data-target="createPopup" onclick="clickCreate">Create</span>
+			<span class="menuEntry" data-target="viewPopup" onclick="clickView">View</span>
 			<span class="menuEntry" data-target="helpPopup" onclick="clickHelp">Help</span>
 			<span id="tabStage" group="tabs" class="workspaceTab edPanelBgHoverable tabSelected" onclick="clickStage">Stage</span>
 			<span id="tabContent" group="tabs" class="workspaceTab edPanelBgHoverable" onclick="clickContent">Content</span>
@@ -107,6 +108,9 @@
 			<div class="popupEntry" onclick="clickNewCamera">Camera</div>
 			<div class="popupEntry" onclick="clickNewEntity">Entity</div>
 			<div class="popupEntry" onclick="clickNewLight">Light</div>
+		</div>
+		<div id="viewPopup" class="popup" onmiss="popupMiss">
+			<div id="gridToggleEntry" class="popupEntry" onclick="clickToggleGrid">{{if .ShowGrid}}Hide Grid{{else}}Show Grid{{end}}</div>
 		</div>
 		<div id="helpPopup" class="popup" onmiss="popupMiss">
 			<div class="popupEntry" onclick="clickSponsors">Sponsors</div>
