@@ -213,13 +213,10 @@ func gltfParse(doc *fullGLTF) (load_result.Result, error) {
 		bv := doc.glTF.BufferViews[skinAcc.BufferView]
 		bin := klib.ByteSliceToFloat32Slice(gltfViewBytes(doc, &bv))
 		for _, id := range doc.glTF.Skins[0].Joints {
-			if !strings.HasPrefix(doc.glTF.Nodes[id].Name, "DRV_") &&
-				!strings.HasPrefix(doc.glTF.Nodes[id].Name, "CTRL_") {
-				res.Joints = append(res.Joints, load_result.Joint{
-					Id:   id,
-					Skin: matrix.Mat4FromSlice(bin),
-				})
-			}
+			res.Joints = append(res.Joints, load_result.Joint{
+				Id:   id,
+				Skin: matrix.Mat4FromSlice(bin),
+			})
 			bin = bin[16:]
 		}
 	}
