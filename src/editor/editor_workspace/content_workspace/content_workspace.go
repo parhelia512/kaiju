@@ -209,29 +209,47 @@ func (w *ContentWorkspace) clickImport(*document.Element) {
 		MultiSelect:  true,
 		OnConfirm: func(paths []string) {
 			w.UiMan.EnableUpdate()
-			index := []string{}
-			for i := range paths {
-				res, err := content_database.Import(paths[i], w.pfs, w.cache, "")
-				for j := range res {
-					if err != nil {
-						slog.Error("failed to import content", "path", paths[i], "error", err)
-					} else {
-						var addDependencies func(target *content_database.ImportResult)
-						addDependencies = func(target *content_database.ImportResult) {
-							index = klib.AppendUnique(index, target.Id)
-							for k := range target.Dependencies {
-								addDependencies(&target.Dependencies[k])
-							}
-						}
-						addDependencies(&res[j])
-					}
-				}
-			}
-			w.editor.Events().OnContentAdded.Execute(index)
+			w.importPaths(paths)
 		}, OnCancel: func() {
 			w.UiMan.EnableUpdate()
 		},
 	})
+}
+
+func (w *ContentWorkspace) importPaths(paths []string) {
+	defer tracing.NewRegion("ContentWorkspace.importPaths").End()
+	index := ImportPaths(paths, w.pfs, w.cache)
+	if len(index) == 0 {
+		return
+	}
+	w.editor.Events().OnContentAdded.Execute(index)
+}
+
+// ImportPaths is shared by the content workspace and global file-drop routing.
+func ImportPaths(paths []string, pfs *project_file_system.FileSystem, cache *content_database.Cache) []string {
+	defer tracing.NewRegion("ContentWorkspace.ImportPaths").End()
+	index := []string{}
+	for i := range paths {
+		res, err := content_database.Import(paths[i], pfs, cache, "")
+		if err != nil {
+			slog.Error("failed to import content", "path", paths[i], "error", err)
+			continue
+		}
+		for j := range res {
+			var addDependencies func(target *content_database.ImportResult)
+			addDependencies = func(target *content_database.ImportResult) {
+				index = klib.AppendUnique(index, target.Id)
+				for k := range target.Dependencies {
+					addDependencies(&target.Dependencies[k])
+				}
+			}
+			addDependencies(&res[j])
+		}
+	}
+	if len(index) == 0 {
+		slog.Warn("paths did not produce importable content", "paths", paths)
+	}
+	return index
 }
 
 func (w *ContentWorkspace) toggleListView(e *document.Element) {

@@ -36,6 +36,9 @@
 #endif
 
 extern void goProcessEvents(uint64_t goWindow, void* events, uint32_t eventCount);
+#if KAIJU_ENABLE_FILEDROP
+extern void goProcessFileDrop(uint64_t goWindow, int32_t x, int32_t y, void* paths, uint32_t pathCount);
+#endif
 
 #if __linux__ || defined(__APPLE__)
 typedef long LONG;

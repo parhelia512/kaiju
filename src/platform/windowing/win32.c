@@ -57,10 +57,19 @@
 #include "win32.h"
 #include <assert.h>
 #include <limits.h>
+#include <stdlib.h>
 #include <string.h>
 #include <windows.h>
 #include <windowsx.h>
 #include <dwmapi.h>
+
+#ifndef KAIJU_ENABLE_FILEDROP
+#define KAIJU_ENABLE_FILEDROP 0
+#endif
+
+#if KAIJU_ENABLE_FILEDROP
+#include <shellapi.h>
+#endif
 
 #ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
 #define DWMWA_USE_IMMERSIVE_DARK_MODE 20
@@ -82,6 +91,9 @@ static bool user_prefers_dark_mode(void);
 */
 #define UWM_SET_CURSOR         (WM_USER + 0x0001)
 #define UWM_SET_TITLE_BAR_MODE (WM_USER + 0x0002)
+#if KAIJU_ENABLE_FILEDROP
+#define UWM_SET_FILE_DROP      (WM_USER + 0x0003)
+#endif
 #define CURSOR_ARROW           1
 #define CURSOR_IBEAM           2
 #define CURSOR_WAIT            3
@@ -483,6 +495,58 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			shared_mem_add_event(sm, evt);
 			break;
 		}
+#if KAIJU_ENABLE_FILEDROP
+		case WM_DROPFILES:
+		{
+			HDROP hDrop = (HDROP)wParam;
+			UINT fileCount = DragQueryFileW(hDrop, 0xFFFFFFFF, NULL, 0);
+			POINT pt = { 0 };
+			DragQueryPoint(hDrop, &pt); // drop position (x, y) relative to client area
+			if (sm != NULL && fileCount > 0) {
+				char** paths = (char**)calloc(fileCount, sizeof(char*));
+				uint32_t pathCount = 0;
+				if (paths != NULL) {
+					for (UINT i = 0; i < fileCount; ++i) {
+						UINT wideLen = DragQueryFileW(hDrop, i, NULL, 0);
+						if (wideLen == 0) {
+							continue;
+						}
+						wchar_t* widePath = (wchar_t*)calloc((size_t)wideLen + 1, sizeof(wchar_t));
+						if (widePath == NULL) {
+							continue;
+						}
+						if (DragQueryFileW(hDrop, i, widePath, wideLen + 1) > 0) {
+							// Query the exact UTF-8 size first so long paths are not truncated.
+							int utf8Len = WideCharToMultiByte(CP_UTF8, 0, widePath, -1, NULL, 0, NULL, NULL);
+							if (utf8Len > 0) {
+								char* utf8Path = (char*)calloc((size_t)utf8Len, sizeof(char));
+								if (utf8Path != NULL) {
+									int bytes = WideCharToMultiByte(CP_UTF8, 0, widePath, -1, utf8Path, utf8Len, NULL, NULL);
+									if (bytes > 0) {
+										paths[pathCount++] = utf8Path;
+									} else {
+										free(utf8Path);
+									}
+								}
+							}
+						}
+						free(widePath);
+					}
+					if (pathCount > 0) {
+						goProcessFileDrop((uint64_t)sm->goWindow, (int32_t)pt.x, (int32_t)pt.y, paths, pathCount);
+					}
+
+					// free dropped paths
+					for (uint32_t i = 0; i < pathCount; ++i) {
+						free(paths[i]);
+					}
+					free(paths);
+				}
+			}
+			DragFinish(hDrop);
+			break;
+		}
+#endif
 		case WM_SETCURSOR:
 		{
 			if (sm != NULL && sm->cursorHidden) {
@@ -556,6 +620,13 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			apply_title_bar_mode(hwnd, sm->titleBarMode);
 			return 0;
 		}
+#if KAIJU_ENABLE_FILEDROP
+		case UWM_SET_FILE_DROP:
+		{
+			DragAcceptFiles(hwnd, wParam ? TRUE : FALSE);
+			return 0;
+		}
+#endif
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
@@ -1110,6 +1181,12 @@ void window_set_cursor_position(void* hwnd, int x, int y) {
 	SharedMem* sm = (SharedMem*)GetWindowLongPtrA(hwnd, GWLP_USERDATA);
 	set_cursor_position_relative_to_window(sm, x, y);
 }
+
+#if KAIJU_ENABLE_FILEDROP
+void window_set_file_drop_enabled(void* hwnd, bool enabled) {
+	PostMessageA((HWND)hwnd, UWM_SET_FILE_DROP, enabled ? TRUE : FALSE, 0);
+}
+#endif
 
 void window_set_icon(void* hwnd, int width, int height, const uint8_t* pixelData) {
 	// Create BITMAPINFO structure for the icon
