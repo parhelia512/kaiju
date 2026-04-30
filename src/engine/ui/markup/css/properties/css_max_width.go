@@ -51,11 +51,11 @@ func (p MaxWidth) Process(panel *ui.Panel, elm *document.Element, values []rules
 		return fmt.Errorf("MaxWidth requires exactly 1 value")
 	}
 	if values[0].Str == "initial" {
-		setMaxWidth(panel, 0, false)
+		disableMaxWidth(panel)
 		return nil
 	}
 	maxW := helpers.NumFromLength(values[0].Str, host.Window)
-	setMaxWidth(panel, maxW, true)
+	enableMaxWidth(panel, maxW)
 
 	layout := panel.Base().Layout()
 	layout.ScaleWidth(applyWidthConstraints(panel, layout.PixelSize().Width()))

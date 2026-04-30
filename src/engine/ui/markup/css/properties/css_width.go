@@ -66,7 +66,7 @@ func (p Width) Process(panel *ui.Panel, elm *document.Element, values []rules.Pr
 		panel.DontFitContentWidth()
 		l := panel.Base().Layout()
 		c := currentSizingConstraints(panel)
-		if c.HasBoxSizing && !c.UseBorderBox {
+		if c.HasBoxSizing() && !c.UsesBorderBox() {
 			width += l.Padding().Horizontal() + l.Border().Horizontal()
 		}
 		width = applyWidthConstraints(panel, width)
@@ -74,7 +74,7 @@ func (p Width) Process(panel *ui.Panel, elm *document.Element, values []rules.Pr
 			if l.Ui().Entity().IsRoot() {
 				finalW := applyWidthConstraints(panel, float32(host.Window.Width())*width)
 				l.ScaleWidth(finalW)
-				if c.HasAspect && c.AspectRatio > 0 {
+				if c.HasAspectRatio() && c.AspectRatio > 0 {
 					l.ScaleHeight(applyHeightConstraints(panel, finalW/c.AspectRatio))
 				}
 				return nil
@@ -87,7 +87,7 @@ func (p Width) Process(panel *ui.Panel, elm *document.Element, values []rules.Pr
 					cellW := parentPanel.GridCellWidth()
 					finalW := applyWidthConstraints(panel, cellW*width)
 					l.ScaleWidth(finalW)
-					if c.HasAspect && c.AspectRatio > 0 {
+					if c.HasAspectRatio() && c.AspectRatio > 0 {
 						l.ScaleHeight(applyHeightConstraints(panel, finalW/c.AspectRatio))
 					}
 					return nil
@@ -102,7 +102,7 @@ func (p Width) Process(panel *ui.Panel, elm *document.Element, values []rules.Pr
 				}
 				finalW := applyWidthConstraints(panel, s*width)
 				l.ScaleWidth(finalW)
-				if c.HasAspect && c.AspectRatio > 0 {
+				if c.HasAspectRatio() && c.AspectRatio > 0 {
 					l.ScaleHeight(applyHeightConstraints(panel, finalW/c.AspectRatio))
 				}
 			}
@@ -112,18 +112,18 @@ func (p Width) Process(panel *ui.Panel, elm *document.Element, values []rules.Pr
 				val.Args = append(val.Args, "width")
 				res, _ := functions.Calc{}.Process(panel, elm, val)
 				width = helpers.NumFromLength(res, host.Window)
-				if c.HasBoxSizing && !c.UseBorderBox {
+				if c.HasBoxSizing() && !c.UsesBorderBox() {
 					width += l.Padding().Horizontal() + l.Border().Horizontal()
 				}
 				width = applyWidthConstraints(panel, width)
 				l.ScaleWidth(width)
-				if c.HasAspect && c.AspectRatio > 0 {
+				if c.HasAspectRatio() && c.AspectRatio > 0 {
 					l.ScaleHeight(applyHeightConstraints(panel, width/c.AspectRatio))
 				}
 			}
 		} else {
 			panel.Base().Layout().ScaleWidth(width)
-			if c.HasAspect && c.AspectRatio > 0 {
+			if c.HasAspectRatio() && c.AspectRatio > 0 {
 				l.ScaleHeight(applyHeightConstraints(panel, width/c.AspectRatio))
 			}
 		}

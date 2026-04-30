@@ -45,19 +45,65 @@ import (
 
 const cssSizingConstraintsKey = "markup.css.sizing.constraints"
 
+type cssSizingConstraintFlags uint16
+
+const (
+	cssSizingHasMinWidth cssSizingConstraintFlags = 1 << iota
+	cssSizingHasMaxWidth
+	cssSizingHasMinHeight
+	cssSizingHasMaxHeight
+	cssSizingHasAspectRatio
+	cssSizingHasBoxSizing
+	cssSizingUseBorderBox
+)
+
+func (f cssSizingConstraintFlags) Has(flag cssSizingConstraintFlags) bool {
+	return f&flag != 0
+}
+
+func (f *cssSizingConstraintFlags) Enable(flag cssSizingConstraintFlags) {
+	*f |= flag
+}
+
+func (f *cssSizingConstraintFlags) Disable(flag cssSizingConstraintFlags) {
+	*f &^= flag
+}
+
 type cssSizingConstraints struct {
-	MinWidth      float32
-	MaxWidth      float32
-	MinHeight     float32
-	MaxHeight     float32
-	AspectRatio   float32
-	HasMinWidth   bool
-	HasMaxWidth   bool
-	HasMinHeight  bool
-	HasMaxHeight  bool
-	HasAspect     bool
-	UseBorderBox  bool
-	HasBoxSizing  bool
+	MinWidth    float32
+	MaxWidth    float32
+	MinHeight   float32
+	MaxHeight   float32
+	AspectRatio float32
+	Flags       cssSizingConstraintFlags
+}
+
+func (c cssSizingConstraints) HasMinWidth() bool {
+	return c.Flags.Has(cssSizingHasMinWidth)
+}
+
+func (c cssSizingConstraints) HasMaxWidth() bool {
+	return c.Flags.Has(cssSizingHasMaxWidth)
+}
+
+func (c cssSizingConstraints) HasMinHeight() bool {
+	return c.Flags.Has(cssSizingHasMinHeight)
+}
+
+func (c cssSizingConstraints) HasMaxHeight() bool {
+	return c.Flags.Has(cssSizingHasMaxHeight)
+}
+
+func (c cssSizingConstraints) HasAspectRatio() bool {
+	return c.Flags.Has(cssSizingHasAspectRatio)
+}
+
+func (c cssSizingConstraints) HasBoxSizing() bool {
+	return c.Flags.Has(cssSizingHasBoxSizing)
+}
+
+func (c cssSizingConstraints) UsesBorderBox() bool {
+	return c.Flags.Has(cssSizingUseBorderBox)
 }
 
 func currentSizingConstraints(panel *ui.Panel) cssSizingConstraints {
@@ -77,54 +123,96 @@ func storeSizingConstraints(panel *ui.Panel, c cssSizingConstraints) {
 	entity.AddNamedData(cssSizingConstraintsKey, c)
 }
 
-func setMinWidth(panel *ui.Panel, v float32, enabled bool) {
+func enableMinWidth(panel *ui.Panel, v float32) {
 	c := currentSizingConstraints(panel)
 	c.MinWidth = v
-	c.HasMinWidth = enabled
+	c.Flags.Enable(cssSizingHasMinWidth)
 	storeSizingConstraints(panel, c)
 }
 
-func setMaxWidth(panel *ui.Panel, v float32, enabled bool) {
+func disableMinWidth(panel *ui.Panel) {
+	c := currentSizingConstraints(panel)
+	c.MinWidth = 0
+	c.Flags.Disable(cssSizingHasMinWidth)
+	storeSizingConstraints(panel, c)
+}
+
+func enableMaxWidth(panel *ui.Panel, v float32) {
 	c := currentSizingConstraints(panel)
 	c.MaxWidth = v
-	c.HasMaxWidth = enabled
+	c.Flags.Enable(cssSizingHasMaxWidth)
 	storeSizingConstraints(panel, c)
 }
 
-func setMinHeight(panel *ui.Panel, v float32, enabled bool) {
+func disableMaxWidth(panel *ui.Panel) {
+	c := currentSizingConstraints(panel)
+	c.MaxWidth = 0
+	c.Flags.Disable(cssSizingHasMaxWidth)
+	storeSizingConstraints(panel, c)
+}
+
+func enableMinHeight(panel *ui.Panel, v float32) {
 	c := currentSizingConstraints(panel)
 	c.MinHeight = v
-	c.HasMinHeight = enabled
+	c.Flags.Enable(cssSizingHasMinHeight)
 	storeSizingConstraints(panel, c)
 }
 
-func setMaxHeight(panel *ui.Panel, v float32, enabled bool) {
+func disableMinHeight(panel *ui.Panel) {
+	c := currentSizingConstraints(panel)
+	c.MinHeight = 0
+	c.Flags.Disable(cssSizingHasMinHeight)
+	storeSizingConstraints(panel, c)
+}
+
+func enableMaxHeight(panel *ui.Panel, v float32) {
 	c := currentSizingConstraints(panel)
 	c.MaxHeight = v
-	c.HasMaxHeight = enabled
+	c.Flags.Enable(cssSizingHasMaxHeight)
 	storeSizingConstraints(panel, c)
 }
 
-func setAspectRatio(panel *ui.Panel, ratio float32, enabled bool) {
+func disableMaxHeight(panel *ui.Panel) {
+	c := currentSizingConstraints(panel)
+	c.MaxHeight = 0
+	c.Flags.Disable(cssSizingHasMaxHeight)
+	storeSizingConstraints(panel, c)
+}
+
+func enableAspectRatio(panel *ui.Panel, ratio float32) {
 	c := currentSizingConstraints(panel)
 	c.AspectRatio = ratio
-	c.HasAspect = enabled
+	c.Flags.Enable(cssSizingHasAspectRatio)
 	storeSizingConstraints(panel, c)
 }
 
-func setBoxSizing(panel *ui.Panel, useBorderBox bool) {
+func disableAspectRatio(panel *ui.Panel) {
 	c := currentSizingConstraints(panel)
-	c.UseBorderBox = useBorderBox
-	c.HasBoxSizing = true
+	c.AspectRatio = 0
+	c.Flags.Disable(cssSizingHasAspectRatio)
+	storeSizingConstraints(panel, c)
+}
+
+func enableBorderBoxSizing(panel *ui.Panel) {
+	c := currentSizingConstraints(panel)
+	c.Flags.Enable(cssSizingHasBoxSizing)
+	c.Flags.Enable(cssSizingUseBorderBox)
+	storeSizingConstraints(panel, c)
+}
+
+func enableContentBoxSizing(panel *ui.Panel) {
+	c := currentSizingConstraints(panel)
+	c.Flags.Enable(cssSizingHasBoxSizing)
+	c.Flags.Disable(cssSizingUseBorderBox)
 	storeSizingConstraints(panel, c)
 }
 
 func applyWidthConstraints(panel *ui.Panel, width float32) float32 {
 	c := currentSizingConstraints(panel)
-	if c.HasMinWidth && width < c.MinWidth {
+	if c.HasMinWidth() && width < c.MinWidth {
 		width = c.MinWidth
 	}
-	if c.HasMaxWidth && width > c.MaxWidth {
+	if c.HasMaxWidth() && width > c.MaxWidth {
 		width = c.MaxWidth
 	}
 	return width
@@ -132,10 +220,10 @@ func applyWidthConstraints(panel *ui.Panel, width float32) float32 {
 
 func applyHeightConstraints(panel *ui.Panel, height float32) float32 {
 	c := currentSizingConstraints(panel)
-	if c.HasMinHeight && height < c.MinHeight {
+	if c.HasMinHeight() && height < c.MinHeight {
 		height = c.MinHeight
 	}
-	if c.HasMaxHeight && height > c.MaxHeight {
+	if c.HasMaxHeight() && height > c.MaxHeight {
 		height = c.MaxHeight
 	}
 	return height

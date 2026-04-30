@@ -55,10 +55,10 @@ func (p AspectRatio) Process(panel *ui.Panel, elm *document.Element, values []ru
 	}
 	ratio, ok := parseRatio(valueStrs)
 	if !ok {
-		setAspectRatio(panel, 0, false)
+		disableAspectRatio(panel)
 		return nil
 	}
-	setAspectRatio(panel, ratio, true)
+	enableAspectRatio(panel, ratio)
 
 	layout := panel.Base().Layout()
 	width := applyWidthConstraints(panel, layout.PixelSize().Width())

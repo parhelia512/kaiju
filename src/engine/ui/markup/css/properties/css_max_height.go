@@ -51,11 +51,11 @@ func (p MaxHeight) Process(panel *ui.Panel, elm *document.Element, values []rule
 		return fmt.Errorf("MaxHeight requires exactly 1 value")
 	}
 	if values[0].Str == "initial" {
-		setMaxHeight(panel, 0, false)
+		disableMaxHeight(panel)
 		return nil
 	}
 	maxH := helpers.NumFromLength(values[0].Str, host.Window)
-	setMaxHeight(panel, maxH, true)
+	enableMaxHeight(panel, maxH)
 
 	layout := panel.Base().Layout()
 	layout.ScaleHeight(applyHeightConstraints(panel, layout.PixelSize().Height()))

@@ -51,14 +51,18 @@ func (p BoxSizing) Process(panel *ui.Panel, elm *document.Element, values []rule
 	}
 	switch values[0].Str {
 	case "border-box":
-		setBoxSizing(panel, true)
+		enableBorderBoxSizing(panel)
 	case "content-box", "initial":
-		setBoxSizing(panel, false)
+		enableContentBoxSizing(panel)
 	case "inherit":
 		if elm.Parent.Value() != nil && elm.Parent.Value().UI != nil {
 			parentPanel := elm.Parent.Value().UI.ToPanel()
 			parent := currentSizingConstraints(parentPanel)
-			setBoxSizing(panel, parent.UseBorderBox)
+			if parent.UsesBorderBox() {
+				enableBorderBoxSizing(panel)
+			} else {
+				enableContentBoxSizing(panel)
+			}
 		}
 	default:
 		return fmt.Errorf("unsupported box-sizing value: %s", values[0].Str)

@@ -51,11 +51,11 @@ func (p MinHeight) Process(panel *ui.Panel, elm *document.Element, values []rule
 		return fmt.Errorf("MinHeight requires exactly 1 value")
 	}
 	if values[0].Str == "initial" {
-		setMinHeight(panel, 0, false)
+		disableMinHeight(panel)
 		return nil
 	}
 	minH := helpers.NumFromLength(values[0].Str, host.Window)
-	setMinHeight(panel, minH, true)
+	enableMinHeight(panel, minH)
 
 	layout := panel.Base().Layout()
 	layout.ScaleHeight(applyHeightConstraints(panel, layout.PixelSize().Height()))
