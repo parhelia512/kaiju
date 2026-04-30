@@ -60,6 +60,7 @@ import (
 	"kaijuengine.com/engine/ui/markup/document"
 	"kaijuengine.com/klib"
 	"kaijuengine.com/matrix"
+	"kaijuengine.com/platform/filesystem"
 	"kaijuengine.com/platform/profiler/tracing"
 	"kaijuengine.com/rendering"
 )
@@ -759,6 +760,12 @@ func (w *ContentWorkspace) rightClickContent(e *document.Element) {
 				},
 			})
 		}
+		options = append(options, context_menu.ContextMenuOption{
+			Label: "Open file in explorer",
+			Call: func() {
+				w.openInExplorer(cc)
+			},
+		})
 	}
 	w.editor.BlurInterface()
 	context_menu.Show(w.Host, options, w.Host.Window.Cursor.ScreenPosition(), w.editor.FocusInterface)
@@ -901,7 +908,7 @@ func openContentEditor(contentEditor, path string) {
 
 func (w *ContentWorkspace) openInEditor(cc content_database.CachedContent) {
 	ed := ""
-	path := w.pfs.FullPath(cc.ContentPath())
+	path, ok := w.contentSourcePath(cc)
 	switch cc.Config.Type {
 	case content_database.Html{}.TypeName():
 		fallthrough
@@ -909,13 +916,6 @@ func (w *ContentWorkspace) openInEditor(cc content_database.CachedContent) {
 		ed = w.editor.Settings().CodeEditor
 	case content_database.Mesh{}.TypeName():
 		ed = w.editor.Settings().MeshEditor
-		if _, err := w.pfs.Stat(cc.Config.SrcPath); err == nil {
-			path = w.pfs.FullPath(cc.Config.SrcPath)
-		} else if _, err := os.Stat(cc.Config.SrcPath); err == nil {
-			path = cc.Config.SrcPath
-		} else {
-			path = ""
-		}
 	case content_database.Music{}.TypeName():
 		fallthrough
 	case content_database.Sound{}.TypeName():
@@ -944,13 +944,43 @@ func (w *ContentWorkspace) openInEditor(cc content_database.CachedContent) {
 	case content_database.Spv{}.TypeName():
 	case content_database.Template{}.TypeName():
 	}
-	if path == "" {
+	if !ok {
 		slog.Warn("could not find the source file path for the selected content")
 	} else if ed == "" {
 		slog.Warn("currently there isn't an editor that can open the content", "type", cc.Config.Type)
 	} else {
 		openContentEditor(ed, path)
 	}
+}
+
+func (w *ContentWorkspace) openInExplorer(cc content_database.CachedContent) {
+	path, ok := w.contentSourcePath(cc)
+	if !ok {
+		slog.Warn("could not find the source file path for the selected content")
+		return
+	}
+	if err := filesystem.OpenFileBrowserToFolder(filepath.Dir(path)); err != nil {
+		slog.Error("failed to open explorer for the selected content", "path", path, "error", err)
+	}
+}
+
+func (w *ContentWorkspace) contentSourcePath(cc content_database.CachedContent) (string, bool) {
+	path := w.pfs.FullPath(cc.ContentPath())
+	if _, err := w.pfs.Stat(cc.ContentPath()); err == nil {
+		return path, true
+	}
+	if _, err := os.Stat(path); err == nil {
+		return path, true
+	}
+	if cc.Config.SrcPath != "" {
+		if _, err := w.pfs.Stat(cc.Config.SrcPath); err == nil {
+			return w.pfs.FullPath(cc.Config.SrcPath), true
+		}
+		if _, err := os.Stat(cc.Config.SrcPath); err == nil {
+			return cc.Config.SrcPath, true
+		}
+	}
+	return "", false
 }
 
 func (w *ContentWorkspace) updateFtde(deltaTime float64) {
