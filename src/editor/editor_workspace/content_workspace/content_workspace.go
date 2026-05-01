@@ -46,6 +46,7 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+	"sync"
 	"weak"
 
 	"kaijuengine.com/editor/editor_events"
@@ -254,23 +255,30 @@ func ImportPaths(paths []string, pfs *project_file_system.FileSystem, cache *con
 			slog.Warn("failed to walk dropped folder", "path", paths[i], "error", err)
 		}
 	}
+	wg := sync.WaitGroup{}
+	wg.Add(len(importPaths))
 	for i := range importPaths {
-		res, err := content_database.Import(importPaths[i], pfs, cache, "")
-		if err != nil {
-			slog.Error("failed to import content", "path", importPaths[i], "error", err)
-			continue
-		}
-		for j := range res {
-			var addDependencies func(target *content_database.ImportResult)
-			addDependencies = func(target *content_database.ImportResult) {
-				index = klib.AppendUnique(index, target.Id)
-				for k := range target.Dependencies {
-					addDependencies(&target.Dependencies[k])
-				}
+		// goroutine
+		go func() {
+			defer wg.Done()
+			res, err := content_database.Import(importPaths[i], pfs, cache, "")
+			if err != nil {
+				slog.Error("failed to import content", "path", importPaths[i], "error", err)
+				return
 			}
-			addDependencies(&res[j])
-		}
+			for j := range res {
+				var addDependencies func(target *content_database.ImportResult)
+				addDependencies = func(target *content_database.ImportResult) {
+					index = klib.AppendUnique(index, target.Id)
+					for k := range target.Dependencies {
+						addDependencies(&target.Dependencies[k])
+					}
+				}
+				addDependencies(&res[j])
+			}
+		}()
 	}
+	wg.Wait()
 	if len(index) == 0 {
 		slog.Warn("paths did not produce importable content", "paths", paths)
 	}
