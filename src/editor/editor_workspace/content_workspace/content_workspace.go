@@ -46,6 +46,7 @@ import (
 	"runtime"
 	"slices"
 	"strings"
+	"sync"
 	"weak"
 
 	"kaijuengine.com/editor/editor_events"
@@ -229,23 +230,55 @@ func (w *ContentWorkspace) importPaths(paths []string) {
 func ImportPaths(paths []string, pfs *project_file_system.FileSystem, cache *content_database.Cache) []string {
 	defer tracing.NewRegion("ContentWorkspace.ImportPaths").End()
 	index := []string{}
+	importPaths := make([]string, 0, len(paths))
 	for i := range paths {
-		res, err := content_database.Import(paths[i], pfs, cache, "")
+		info, err := os.Stat(paths[i])
 		if err != nil {
-			slog.Error("failed to import content", "path", paths[i], "error", err)
+			slog.Error("failed to stat import path", "path", paths[i], "error", err)
 			continue
 		}
-		for j := range res {
-			var addDependencies func(target *content_database.ImportResult)
-			addDependencies = func(target *content_database.ImportResult) {
-				index = klib.AppendUnique(index, target.Id)
-				for k := range target.Dependencies {
-					addDependencies(&target.Dependencies[k])
-				}
+		if !info.IsDir() {
+			importPaths = klib.AppendUnique(importPaths, paths[i])
+			continue
+		}
+		if err = filepath.WalkDir(paths[i], func(path string, d os.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				slog.Warn("failed while walking dropped folder", "path", path, "error", walkErr)
+				return nil
 			}
-			addDependencies(&res[j])
+			if d.IsDir() {
+				return nil
+			}
+			importPaths = klib.AppendUnique(importPaths, path)
+			return nil
+		}); err != nil {
+			slog.Warn("failed to walk dropped folder", "path", paths[i], "error", err)
 		}
 	}
+	wg := sync.WaitGroup{}
+	wg.Add(len(importPaths))
+	for i := range importPaths {
+		// goroutine
+		go func() {
+			defer wg.Done()
+			res, err := content_database.Import(importPaths[i], pfs, cache, "")
+			if err != nil {
+				slog.Error("failed to import content", "path", importPaths[i], "error", err)
+				return
+			}
+			for j := range res {
+				var addDependencies func(target *content_database.ImportResult)
+				addDependencies = func(target *content_database.ImportResult) {
+					index = klib.AppendUnique(index, target.Id)
+					for k := range target.Dependencies {
+						addDependencies(&target.Dependencies[k])
+					}
+				}
+				addDependencies(&res[j])
+			}
+		}()
+	}
+	wg.Wait()
 	if len(index) == 0 {
 		slog.Warn("paths did not produce importable content", "paths", paths)
 	}

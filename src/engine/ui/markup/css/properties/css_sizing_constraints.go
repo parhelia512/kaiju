@@ -1,0 +1,236 @@
+/******************************************************************************/
+/* css_sizing_constraints.go                                                  */
+/******************************************************************************/
+/*                            This file is part of                            */
+/*                                KAIJU ENGINE                                */
+/*                          https://kaijuengine.com/                          */
+/******************************************************************************/
+/* MIT License                                                                */
+/*                                                                            */
+/* Copyright (c) 2023-present Kaiju Engine authors (AUTHORS.md).              */
+/* Copyright (c) 2015-present Brent Farris.                                   */
+/*                                                                            */
+/* May all those that this source may reach be blessed by the LORD and find   */
+/* peace and joy in life.                                                     */
+/* Everyone who drinks of this water will be thirsty again; but whoever       */
+/* drinks of the water that I will give him shall never thirst; John 4:13-14  */
+/*                                                                            */
+/* Permission is hereby granted, free of charge, to any person obtaining a    */
+/* copy of this software and associated documentation files (the "Software"), */
+/* to deal in the Software without restriction, including without limitation  */
+/* the rights to use, copy, modify, merge, publish, distribute, sublicense,   */
+/* and/or sell copies of the Software, and to permit persons to whom the      */
+/* Software is furnished to do so, subject to the following conditions:       */
+/*                                                                            */
+/* The above copyright notice and this permission notice shall be included in */
+/* all copies or substantial portions of the Software.                        */
+/*                                                                            */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS    */
+/* OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                 */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.     */
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY       */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT  */
+/* OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE      */
+/* OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                              */
+/******************************************************************************/
+
+package properties
+
+import (
+	"strconv"
+	"strings"
+
+	"kaijuengine.com/engine/ui"
+)
+
+type cssSizingConstraints struct {
+	MinWidth    float32
+	MaxWidth    float32
+	MinHeight   float32
+	MaxHeight   float32
+	AspectRatio float32
+	UsesBoxSizing bool
+	BorderBox   bool
+}
+
+func (c cssSizingConstraints) HasMinWidth() bool {
+	return c.MinWidth > 0
+}
+
+func (c cssSizingConstraints) HasMaxWidth() bool {
+	return c.MaxWidth > 0
+}
+
+func (c cssSizingConstraints) HasMinHeight() bool {
+	return c.MinHeight > 0
+}
+
+func (c cssSizingConstraints) HasMaxHeight() bool {
+	return c.MaxHeight > 0
+}
+
+func (c cssSizingConstraints) HasAspectRatio() bool {
+	return c.AspectRatio > 0
+}
+
+func (c cssSizingConstraints) HasBoxSizing() bool {
+	return c.UsesBoxSizing
+}
+
+func (c cssSizingConstraints) UsesBorderBox() bool {
+	return c.BorderBox
+}
+
+func currentSizingConstraints(panel *ui.Panel) cssSizingConstraints {
+	return cssSizingConstraints{
+		MinWidth:    panel.GetMinSize().X(),
+		MaxWidth:    panel.GetMaxSize().X(),
+		MinHeight:   panel.GetMinSize().Y(),
+		MaxHeight:   panel.GetMaxSize().Y(),
+		AspectRatio: panel.GetAspectRatio(),
+		UsesBoxSizing: panel.GetUsesBorderBox(),
+		BorderBox: panel.GetUsesBorderBox(),
+	}
+}
+
+func storeSizingConstraints(panel *ui.Panel, c cssSizingConstraints) {
+	if c.HasMinWidth() {
+		panel.SetMinWidth(c.MinWidth)
+	} else {
+		panel.SetMinWidth(0)
+	}
+	if c.HasMaxWidth() {
+		panel.SetMaxWidth(c.MaxWidth)
+	} else {
+		panel.SetMaxWidth(0)
+	}
+	if c.HasMinHeight() {
+		panel.SetMinHeight(c.MinHeight)
+	} else {
+		panel.SetMinHeight(0)
+	}
+	if c.HasMaxHeight() {
+		panel.SetMaxHeight(c.MaxHeight)
+	} else {
+		panel.SetMaxHeight(0)
+	}
+	if c.HasAspectRatio() {
+		panel.SetAspectRatio(c.AspectRatio)
+	} else {
+		panel.SetAspectRatio(0)
+	}
+	panel.SetUsesBorderBox(c.BorderBox)
+}
+
+func enableMinWidth(panel *ui.Panel, v float32) {
+	panel.SetMinWidth(v)
+}
+
+func disableMinWidth(panel *ui.Panel) {
+	panel.SetMinWidth(0)
+}
+
+func enableMaxWidth(panel *ui.Panel, v float32) {
+	panel.SetMaxWidth(v)
+}
+
+func disableMaxWidth(panel *ui.Panel) {
+	panel.SetMaxWidth(0)
+}
+
+func enableMinHeight(panel *ui.Panel, v float32) {
+	panel.SetMinHeight(v)
+}
+
+func disableMinHeight(panel *ui.Panel) {
+	panel.SetMinHeight(0)
+}
+
+func enableMaxHeight(panel *ui.Panel, v float32) {
+	panel.SetMaxHeight(v)
+}
+
+func disableMaxHeight(panel *ui.Panel) {
+	panel.SetMaxHeight(0)
+}
+
+func enableAspectRatio(panel *ui.Panel, ratio float32) {
+	panel.SetAspectRatio(ratio)
+}
+
+func disableAspectRatio(panel *ui.Panel) {
+	panel.SetAspectRatio(0)
+}
+
+func enableBorderBoxSizing(panel *ui.Panel) {
+	panel.SetUsesBorderBox(true)
+}
+
+func enableContentBoxSizing(panel *ui.Panel) {
+	panel.SetUsesBorderBox(false)
+}
+
+func applyWidthConstraints(panel *ui.Panel, width float32) float32 {
+	c := currentSizingConstraints(panel)
+	if c.HasMinWidth() && width < c.MinWidth {
+		width = c.MinWidth
+	}
+	if c.HasMaxWidth() && width > c.MaxWidth {
+		width = c.MaxWidth
+	}
+	return width
+}
+
+func applyHeightConstraints(panel *ui.Panel, height float32) float32 {
+	c := currentSizingConstraints(panel)
+	if c.HasMinHeight() && height < c.MinHeight {
+		height = c.MinHeight
+	}
+	if c.HasMaxHeight() && height > c.MaxHeight {
+		height = c.MaxHeight
+	}
+	return height
+}
+
+func parseRatio(values []string) (float32, bool) {
+	if len(values) == 1 {
+		r := strings.TrimSpace(values[0])
+		if r == "auto" || r == "initial" {
+			return 0, false
+		}
+		if strings.Contains(r, "/") {
+			parts := strings.Split(r, "/")
+			if len(parts) == 2 {
+				left := strings.TrimSpace(parts[0])
+				right := strings.TrimSpace(parts[1])
+				if left != "" && right != "" {
+					lv := parseSimpleFloat(left)
+					rv := parseSimpleFloat(right)
+					if rv > 0 {
+						return lv / rv, true
+					}
+				}
+			}
+		}
+	}
+	if len(values) == 3 && values[1] == "/" {
+		lv := parseSimpleFloat(values[0])
+		rv := parseSimpleFloat(values[2])
+		if rv > 0 {
+			return lv / rv, true
+		}
+	}
+	return 0, false
+}
+
+func parseSimpleFloat(v string) float32 {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return 0
+	}
+	out, err := strconv.ParseFloat(v, 32)
+	if err != nil {
+		return 0
+	}
+	return float32(out)
+}

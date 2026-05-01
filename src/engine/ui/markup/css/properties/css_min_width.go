@@ -37,16 +37,27 @@
 package properties
 
 import (
-	"errors"
+	"fmt"
 
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
+	"kaijuengine.com/engine/ui/markup/css/helpers"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
 )
 
 func (p MinWidth) Process(panel *ui.Panel, elm *document.Element, values []rules.PropertyValue, host *engine.Host) error {
-	problems := []error{errors.New("MinWidth not implemented")}
+	if len(values) != 1 {
+		return fmt.Errorf("MinWidth requires exactly 1 value")
+	}
+	if values[0].Str == "initial" {
+		disableMinWidth(panel)
+		return nil
+	}
+	minW := helpers.NumFromLength(values[0].Str, host.Window)
+	enableMinWidth(panel, minW)
 
-	return problems[0]
+	layout := panel.Base().Layout()
+	layout.ScaleWidth(applyWidthConstraints(panel, layout.PixelSize().Width()))
+	return nil
 }

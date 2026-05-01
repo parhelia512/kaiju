@@ -37,16 +37,27 @@
 package properties
 
 import (
-	"errors"
+	"fmt"
 
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
+	"kaijuengine.com/engine/ui/markup/css/helpers"
 	"kaijuengine.com/engine/ui/markup/css/rules"
 	"kaijuengine.com/engine/ui/markup/document"
 )
 
 func (p MaxHeight) Process(panel *ui.Panel, elm *document.Element, values []rules.PropertyValue, host *engine.Host) error {
-	problems := []error{errors.New("MaxHeight not implemented")}
+	if len(values) != 1 {
+		return fmt.Errorf("MaxHeight requires exactly 1 value")
+	}
+	if values[0].Str == "initial" {
+		disableMaxHeight(panel)
+		return nil
+	}
+	maxH := helpers.NumFromLength(values[0].Str, host.Window)
+	enableMaxHeight(panel, maxH)
 
-	return problems[0]
+	layout := panel.Base().Layout()
+	layout.ScaleHeight(applyHeightConstraints(panel, layout.PixelSize().Height()))
+	return nil
 }
