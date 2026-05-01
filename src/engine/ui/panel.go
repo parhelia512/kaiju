@@ -124,6 +124,10 @@ type panelData struct {
 	overflow                  Overflow
 	enforcedColorStack        []matrix.Color
 	flags                     panelBits
+	minSize                   matrix.Vec2
+	maxSize                   matrix.Vec2
+	aspectRatio               float32
+	usesBorderBox             bool
 }
 
 func (b panelBits) isScrolling() bool        { return b&panelBitsIsScrolling != 0 }
@@ -194,6 +198,16 @@ func (p *Panel) ScrollX() float32       { return p.PanelData().scroll.X() }
 func (p *Panel) ScrollY() float32       { return -p.PanelData().scroll.Y() }
 func (p *Panel) EnableDragScroll()      { p.PanelData().flags.setAllowDragScroll() }
 func (p *Panel) DisableDragScroll()     { p.PanelData().flags.resetAllowDragScroll() }
+func (p *Panel) GetMinSize() matrix.Vec2  { return p.PanelData().minSize }
+func (p *Panel) GetMaxSize() matrix.Vec2  { return p.PanelData().maxSize }
+func (p *Panel) SetMinWidth(w float32)    { p.PanelData().minSize.SetX(w) }
+func (p *Panel) SetMaxWidth(w float32)    { p.PanelData().maxSize.SetX(w) }
+func (p *Panel) SetMinHeight(h float32)   { p.PanelData().minSize.SetY(h) }
+func (p *Panel) SetMaxHeight(h float32)   { p.PanelData().maxSize.SetY(h) }
+func (p *Panel) GetAspectRatio() float32  { return p.PanelData().aspectRatio }
+func (p *Panel) SetAspectRatio(r float32) { p.PanelData().aspectRatio = r }
+func (p *Panel) GetUsesBorderBox() bool   { return p.PanelData().usesBorderBox }
+func (p *Panel) SetUsesBorderBox(v bool)  { p.PanelData().usesBorderBox = v }
 
 func (p *Panel) DontFitContentWidth() {
 	pd := p.PanelData()
@@ -513,6 +527,18 @@ func (p *Panel) panelPostLayoutUpdate() {
 		p.boundsChildren(&bounds)
 		w := bounds.X() + p.layout.padding.Horizontal() + p.layout.border.Horizontal()
 		h := bounds.Y() + p.layout.padding.Bottom() + p.layout.border.Bottom()
+		if pd.minSize.X() > 0 && w < pd.minSize.X() {
+			w = pd.minSize.X()
+		}
+		if pd.maxSize.X() > 0 && w > pd.maxSize.X() {
+			w = pd.maxSize.X()
+		}
+		if pd.minSize.Y() > 0 && h < pd.minSize.Y() {
+			h = pd.minSize.Y()
+		}
+		if pd.maxSize.Y() > 0 && h > pd.maxSize.Y() {
+			h = pd.maxSize.Y()
+		}
 		switch pd.fitContent {
 		case ContentFitWidth:
 			p.layout.ScaleWidth(max(1, w))
