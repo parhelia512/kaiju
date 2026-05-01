@@ -63,6 +63,7 @@ func (p BackgroundColor) Process(panel *ui.Panel, elm *document.Element, values 
 	if len(values) != 1 {
 		return fmt.Errorf("Expected exactly 1 value but got %d", len(values))
 	}
+
 	// Images used for background are not colored
 	bg := elm.UI.ToPanel().Background()
 	applyPanelColor := bg == nil || bg.Key == assets.TextureSquare

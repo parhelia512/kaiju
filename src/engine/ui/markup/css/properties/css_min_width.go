@@ -50,10 +50,12 @@ func (p MinWidth) Process(panel *ui.Panel, elm *document.Element, values []rules
 	if len(values) != 1 {
 		return fmt.Errorf("MinWidth requires exactly 1 value")
 	}
+
 	if values[0].Str == "initial" {
 		disableMinWidth(panel)
 		return nil
 	}
+
 	minW := helpers.NumFromLength(values[0].Str, host.Window)
 	enableMinWidth(panel, minW)
 

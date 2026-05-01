@@ -49,6 +49,7 @@ func (p AspectRatio) Process(panel *ui.Panel, elm *document.Element, values []ru
 	if len(values) == 0 {
 		return fmt.Errorf("AspectRatio requires at least 1 value")
 	}
+
 	valueStrs := make([]string, 0, len(values))
 	for i := range values {
 		valueStrs = append(valueStrs, values[i].Str)

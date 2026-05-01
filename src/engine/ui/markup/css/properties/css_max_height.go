@@ -50,10 +50,12 @@ func (p MaxHeight) Process(panel *ui.Panel, elm *document.Element, values []rule
 	if len(values) != 1 {
 		return fmt.Errorf("MaxHeight requires exactly 1 value")
 	}
+
 	if values[0].Str == "initial" {
 		disableMaxHeight(panel)
 		return nil
 	}
+
 	maxH := helpers.NumFromLength(values[0].Str, host.Window)
 	enableMaxHeight(panel, maxH)
 
