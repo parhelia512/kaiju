@@ -73,7 +73,7 @@ func (p Color) Process(panel *ui.Panel, elm *document.Element, values []rules.Pr
 	}
 
 	color, err := matrix.ColorFromHexString(hex)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 
