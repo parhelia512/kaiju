@@ -50,10 +50,12 @@ func (p GridTemplateColumns) Process(panel *ui.Panel, elm *document.Element, val
 	if len(values) == 0 {
 		return nil
 	}
+
 	if values[0].Str == "initial" || values[0].Str == "none" {
 		panel.SetGrid(0)
 		return nil
 	}
+
 	cols := 3
 	str := values[0].Str
 	if n, err := strconv.Atoi(str); err == nil && n > 0 {
