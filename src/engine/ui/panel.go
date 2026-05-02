@@ -119,6 +119,8 @@ type panelData struct {
 	isGrid                    bool
 	gridColumns               int
 	gridGap                   matrix.Vec2
+	// Positive values are fixed pixel widths, negative values are fr units.
+	gridTemplateColumns       []float32
 	requestScrollX            requestScroll
 	requestScrollY            requestScroll
 	overflow                  Overflow
@@ -172,6 +174,7 @@ func (panel *Panel) Init(texture *rendering.Texture, elmType ElementType) {
 	pd.isGrid = false
 	pd.gridColumns = 0
 	pd.gridGap = matrix.Vec2Zero()
+	pd.gridTemplateColumns = nil
 	pd.enforcedColorStack = make([]matrix.Color, 0)
 	panel.postLayoutUpdate = panel.panelPostLayoutUpdate
 	panel.render = panel.panelRender
@@ -848,6 +851,16 @@ func (p *Panel) GridCellWidth() float32 {
 		gapX = 0
 	}
 	colW := (innerW - float32(pd.gridColumns-1)*gapX) / float32(pd.gridColumns)
+	if len(pd.gridTemplateColumns) == pd.gridColumns {
+		widths := p.computeGridColumnWidths(innerW, gapX)
+		if len(widths) > 0 {
+			sum := float32(0)
+			for i := range widths {
+				sum += widths[i]
+			}
+			colW = sum / float32(len(widths))
+		}
+	}
 	if colW < 1 {
 		colW = 1
 	}
@@ -869,8 +882,29 @@ func (p *Panel) SetGrid(columns int) {
 	}
 	pd.isGrid = true
 	pd.gridColumns = columns
+	if len(pd.gridTemplateColumns) != columns {
+		pd.gridTemplateColumns = nil
+	}
 	if pd.gridGap.X() == 0 && pd.gridGap.Y() == 0 {
 		pd.gridGap = matrix.NewVec2(8, 8) // sensible default gap like CSS
+	}
+	p.Base().SetDirty(DirtyTypeLayout)
+}
+
+// SetGridTemplateColumns configures explicit grid column widths.
+// Positive values are fixed pixels, negative values are fr units.
+func (p *Panel) SetGridTemplateColumns(columns []float32) {
+	pd := p.PanelData()
+	if len(columns) == 0 {
+		pd.gridTemplateColumns = nil
+		p.Base().SetDirty(DirtyTypeLayout)
+		return
+	}
+	pd.gridTemplateColumns = append(pd.gridTemplateColumns[:0], columns...)
+	pd.isGrid = true
+	pd.gridColumns = len(columns)
+	if pd.gridGap.X() == 0 && pd.gridGap.Y() == 0 {
+		pd.gridGap = matrix.NewVec2(8, 8)
 	}
 	p.Base().SetDirty(DirtyTypeLayout)
 }
@@ -883,6 +917,51 @@ func (p *Panel) SetGridGap(x, y float32) {
 	pd.gridGap.SetX(x)
 	pd.gridGap.SetY(y)
 	p.Base().SetDirty(DirtyTypeLayout)
+}
+
+func (p *Panel) computeGridColumnWidths(innerWidth, gapX float32) []float32 {
+	pd := p.PanelData()
+	cols := pd.gridColumns
+	if cols <= 0 {
+		return []float32{}
+	}
+	out := make([]float32, cols)
+	if len(pd.gridTemplateColumns) != cols {
+		colW := (innerWidth - float32(cols-1)*gapX) / float32(cols)
+		if colW < 1 {
+			colW = 1
+		}
+		for i := 0; i < cols; i++ {
+			out[i] = colW
+		}
+		return out
+	}
+	totalFixed := float32(0)
+	totalFr := float32(0)
+	for i := 0; i < cols; i++ {
+		v := pd.gridTemplateColumns[i]
+		if v >= 0 {
+			totalFixed += v
+		} else {
+			totalFr += -v
+		}
+	}
+	remaining := innerWidth - totalFixed - float32(cols-1)*gapX
+	if remaining < 0 {
+		remaining = 0
+	}
+	for i := 0; i < cols; i++ {
+		v := pd.gridTemplateColumns[i]
+		if v >= 0 {
+			out[i] = v
+		} else if totalFr > 0 {
+			out[i] = remaining * ((-v) / totalFr)
+		}
+		if out[i] < 1 {
+			out[i] = 1
+		}
+	}
+	return out
 }
 
 func (p *Panel) layoutGridChildren(pd *panelData, offsetStart matrix.Vec2, ps matrix.Vec2) matrix.Vec2 {
@@ -903,10 +982,7 @@ func (p *Panel) layoutGridChildren(pd *panelData, offsetStart matrix.Vec2, ps ma
 	if gapY < 0 {
 		gapY = 0
 	}
-	colWidth := (innerWidth - float32(pd.gridColumns-1)*gapX) / float32(pd.gridColumns)
-	if colWidth < 1 {
-		colWidth = 1
-	}
+	colWidths := p.computeGridColumnWidths(innerWidth, gapX)
 	col := 0
 	y := startY
 	rowMaxHeight := float32(0)
@@ -927,7 +1003,10 @@ func (p *Panel) layoutGridChildren(pd *panelData, offsetStart matrix.Vec2, ps ma
 		}
 		kSize := kLayout.PixelSize()
 		margin := kLayout.Margin()
-		cellX := startX + float32(col)*(colWidth+gapX)
+		cellX := startX
+		for i := 0; i < col && i < len(colWidths); i++ {
+			cellX += colWidths[i] + gapX
+		}
 		x := cellX + margin.X() // left aligned like CSS start
 		itemY := y + margin.Y()
 		kLayout.SetRowLayoutOffset(matrix.NewVec2(x, itemY))
