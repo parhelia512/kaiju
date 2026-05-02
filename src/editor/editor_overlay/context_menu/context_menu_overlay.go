@@ -50,6 +50,10 @@ import (
 
 var existing *ContextMenu
 
+func IsOpen() bool {
+	return existing != nil
+}
+
 type ContextMenu struct {
 	doc     *document.Document
 	uiMan   ui.Manager

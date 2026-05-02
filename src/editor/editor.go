@@ -45,6 +45,7 @@ import (
 	"kaijuengine.com/editor/editor_events"
 	"kaijuengine.com/editor/editor_logging"
 	"kaijuengine.com/editor/editor_overlay/ai_prompt"
+	"kaijuengine.com/editor/editor_overlay/context_menu"
 	"kaijuengine.com/editor/editor_plugin"
 	"kaijuengine.com/editor/editor_settings"
 	"kaijuengine.com/editor/editor_stage_manager/editor_stage_view"
@@ -211,6 +212,10 @@ func (ed *Editor) postProjectLoad() {
 
 func (ed *Editor) update(deltaTime float64) {
 	if ed.blurred {
+		return
+	}
+	if context_menu.IsOpen() {
+		ed.currentWorkspace.Update(deltaTime)
 		return
 	}
 	kb := &ed.host.Window.Keyboard

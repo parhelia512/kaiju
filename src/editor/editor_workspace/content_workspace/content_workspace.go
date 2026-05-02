@@ -724,6 +724,10 @@ func (w *ContentWorkspace) completeDeleteOfSelectedContent() {
 
 func (w *ContentWorkspace) entryMouseEnter(e *document.Element) {
 	defer tracing.NewRegion("ContentWorkspace.entryMouseEnter").End()
+	if context_menu.IsOpen() {
+		w.tooltip.UI.Hide()
+		return
+	}
 	ui := w.tooltip.UI
 	id := e.Attribute("id")
 	cc, err := w.cache.Read(id)
@@ -743,6 +747,10 @@ func (w *ContentWorkspace) entryMouseEnter(e *document.Element) {
 
 func (w *ContentWorkspace) entryMouseMove(e *document.Element) {
 	defer tracing.NewRegion("ContentWorkspace.entryMouseMove").End()
+	if context_menu.IsOpen() {
+		w.tooltip.UI.Hide()
+		return
+	}
 	ui := w.tooltip.UI
 	if !ui.Entity().IsActive() {
 		ui.Show()
@@ -818,8 +826,8 @@ func (w *ContentWorkspace) rightClickContent(e *document.Element) {
 			},
 		})
 	}
-	w.editor.BlurInterface()
-	context_menu.Show(w.Host, options, w.Host.Window.Cursor.ScreenPosition(), w.editor.FocusInterface)
+
+	context_menu.Show(w.Host, options, w.Host.Window.Cursor.ScreenPosition(), nil)
 }
 
 func (w *ContentWorkspace) clickClearSelection(e *document.Element) {
