@@ -27,6 +27,7 @@ docs/api
 external/bin
 interpreter/kaiju-*
 *.zip
+.gocache
 
 # Go pprof files
 heap.prof
