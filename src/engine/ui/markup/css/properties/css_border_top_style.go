@@ -50,12 +50,11 @@ func (p BorderTopStyle) Process(panel *ui.Panel, elm *document.Element, values [
 	if len(values) != 1 {
 		return errors.New("BorderTopStyle requires 1 value")
 	}
-
-	if border, ok := borderStyleFromStr(values[0].Str, 1, elm); !ok {
+	border, ok := borderStyleFromStr(values[0].Str, 1, elm)
+	if !ok {
 		return errors.New("BorderTopStyle: invalid border style")
-	} else {
-		borders := panel.BorderStyle()
-		panel.SetBorderStyle(borders[0], border, borders[2], borders[3])
-		return nil
 	}
+	borders := panel.BorderStyle()
+	panel.SetBorderStyle(borders[0], border, borders[2], borders[3])
+	return nil
 }
