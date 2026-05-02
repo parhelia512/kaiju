@@ -86,6 +86,35 @@ var funcMap = template.FuncMap{
 	},
 }
 
+type htmlInputType int
+
+const (
+	htmlInputTypeText htmlInputType = iota
+	htmlInputTypeCheckbox
+	htmlInputTypeSlider
+	htmlInputTypeNumber
+	htmlInputTypePhone
+	htmlInputTypeDatetime
+)
+
+func classifyHTMLInputType(rawType string) htmlInputType {
+	switch strings.ToLower(strings.TrimSpace(rawType)) {
+	case "checkbox":
+		return htmlInputTypeCheckbox
+	case "slider", "range":
+		return htmlInputTypeSlider
+	case "number":
+		return htmlInputTypeNumber
+	case "tel":
+		return htmlInputTypePhone
+	case "datetime", "datetime-local", "date", "time":
+		return htmlInputTypeDatetime
+	default:
+		// unknown input types default to text
+		return htmlInputTypeText
+	}
+}
+
 type Document struct {
 	host             weak.Pointer[engine.Host]
 	Elements         []*Element
@@ -308,26 +337,10 @@ func (d *Document) createUIElement(uiMan *ui.Manager, e *Element, parent *ui.Pan
 				panel.SetColor(matrix.ColorMagenta())
 			}
 		} else if e.IsInput() {
-			inputType := e.Attribute("type")
-			switch inputType {
-			case "checkbox":
-				cb := panel.Base().ToCheckbox()
-				cb.Init()
-				if e.Attribute("checked") != "" {
-					cb.SetCheckedWithoutEvent(true)
-				}
-			case "slider":
-				slider := panel.Base().ToSlider()
-				slider.Init()
-				panel.DontFitContent()
-				if a := e.Attribute("value"); a != "" {
-					if f, err := strconv.ParseFloat(a, 32); err == nil {
-						slider.SetValueWithoutEvent(float32(f))
-					}
-				}
-			case "text", "number":
+			initTextInput := func(inputType ui.InputType) {
 				input := panel.Base().ToInput()
 				input.Init(e.Attribute("placeholder"))
+				input.SetType(inputType)
 				input.SetTextWithoutEvent(e.Attribute("value"))
 				if d.firstInput == nil {
 					d.firstInput = input
@@ -337,6 +350,31 @@ func (d *Document) createUIElement(uiMan *ui.Manager, e *Element, parent *ui.Pan
 				}
 				d.lastInput = input
 				input.SetNextFocusedInput(d.firstInput)
+			}
+			switch classifyHTMLInputType(e.Attribute("type")) {
+			case htmlInputTypeCheckbox:
+				cb := panel.Base().ToCheckbox()
+				cb.Init()
+				if e.Attribute("checked") != "" {
+					cb.SetCheckedWithoutEvent(true)
+				}
+			case htmlInputTypeSlider:
+				slider := panel.Base().ToSlider()
+				slider.Init()
+				panel.DontFitContent()
+				if a := e.Attribute("value"); a != "" {
+					if f, err := strconv.ParseFloat(a, 32); err == nil {
+						slider.SetValueWithoutEvent(float32(f))
+					}
+				}
+			case htmlInputTypeNumber:
+				initTextInput(ui.InputTypeNumber)
+			case htmlInputTypePhone:
+				initTextInput(ui.InputTypePhone)
+			case htmlInputTypeDatetime:
+				initTextInput(ui.InputTypeDatetime)
+			default:
+				initTextInput(ui.InputTypeText)
 			}
 			panel.SetOverflow(ui.OverflowVisible)
 		} else if e.IsSelect() {
