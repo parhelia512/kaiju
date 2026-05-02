@@ -44,13 +44,13 @@ import (
 )
 
 type cssSizingConstraints struct {
-	MinWidth    float32
-	MaxWidth    float32
-	MinHeight   float32
-	MaxHeight   float32
-	AspectRatio float32
-	UsesBoxSizing bool
-	BorderBox   bool
+	MinWidth      float32
+	MaxWidth      float32
+	MinHeight     float32
+	MaxHeight     float32
+	AspectRatio   float32
+	UsesBoxSizing bool // NOTE: do we need both?
+	BorderBox     bool // NOTE: do we need both?
 }
 
 func (c cssSizingConstraints) HasMinWidth() bool {
@@ -83,16 +83,17 @@ func (c cssSizingConstraints) UsesBorderBox() bool {
 
 func currentSizingConstraints(panel *ui.Panel) cssSizingConstraints {
 	return cssSizingConstraints{
-		MinWidth:    panel.GetMinSize().X(),
-		MaxWidth:    panel.GetMaxSize().X(),
-		MinHeight:   panel.GetMinSize().Y(),
-		MaxHeight:   panel.GetMaxSize().Y(),
-		AspectRatio: panel.GetAspectRatio(),
+		MinWidth:      panel.GetMinSize().X(),
+		MaxWidth:      panel.GetMaxSize().X(),
+		MinHeight:     panel.GetMinSize().Y(),
+		MaxHeight:     panel.GetMaxSize().Y(),
+		AspectRatio:   panel.GetAspectRatio(),
 		UsesBoxSizing: panel.GetUsesBorderBox(),
-		BorderBox: panel.GetUsesBorderBox(),
+		BorderBox:     panel.GetUsesBorderBox(),
 	}
 }
 
+// NOTE: currently unused
 func storeSizingConstraints(panel *ui.Panel, c cssSizingConstraints) {
 	if c.HasMinWidth() {
 		panel.SetMinWidth(c.MinWidth)
@@ -173,10 +174,10 @@ func enableContentBoxSizing(panel *ui.Panel) {
 func applyWidthConstraints(panel *ui.Panel, width float32) float32 {
 	c := currentSizingConstraints(panel)
 	if c.HasMinWidth() && width < c.MinWidth {
-		width = c.MinWidth
+		return c.MinWidth
 	}
 	if c.HasMaxWidth() && width > c.MaxWidth {
-		width = c.MaxWidth
+		return c.MaxWidth
 	}
 	return width
 }
@@ -184,10 +185,10 @@ func applyWidthConstraints(panel *ui.Panel, width float32) float32 {
 func applyHeightConstraints(panel *ui.Panel, height float32) float32 {
 	c := currentSizingConstraints(panel)
 	if c.HasMinHeight() && height < c.MinHeight {
-		height = c.MinHeight
+		return c.MinHeight
 	}
 	if c.HasMaxHeight() && height > c.MaxHeight {
-		height = c.MaxHeight
+		return c.MaxHeight
 	}
 	return height
 }
@@ -198,17 +199,15 @@ func parseRatio(values []string) (float32, bool) {
 		if r == "auto" || r == "initial" {
 			return 0, false
 		}
-		if strings.Contains(r, "/") {
-			parts := strings.Split(r, "/")
-			if len(parts) == 2 {
-				left := strings.TrimSpace(parts[0])
-				right := strings.TrimSpace(parts[1])
-				if left != "" && right != "" {
-					lv := parseSimpleFloat(left)
-					rv := parseSimpleFloat(right)
-					if rv > 0 {
-						return lv / rv, true
-					}
+		left, right, ok := strings.Cut(r, "/")
+		if ok {
+			left = strings.TrimSpace(left)
+			right = strings.TrimSpace(right)
+			if left != "" && right != "" {
+				lv := parseSimpleFloat(left)
+				rv := parseSimpleFloat(right)
+				if rv > 0 {
+					return lv / rv, true
 				}
 			}
 		}
