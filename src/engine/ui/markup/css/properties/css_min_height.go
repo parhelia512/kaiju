@@ -50,10 +50,12 @@ func (p MinHeight) Process(panel *ui.Panel, elm *document.Element, values []rule
 	if len(values) != 1 {
 		return fmt.Errorf("MinHeight requires exactly 1 value")
 	}
+
 	if values[0].Str == "initial" {
 		disableMinHeight(panel)
 		return nil
 	}
+
 	minH := helpers.NumFromLength(values[0].Str, host.Window)
 	enableMinHeight(panel, minH)
 
