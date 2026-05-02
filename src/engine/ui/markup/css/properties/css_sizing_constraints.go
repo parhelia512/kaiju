@@ -49,8 +49,7 @@ type cssSizingConstraints struct {
 	MinHeight     float32
 	MaxHeight     float32
 	AspectRatio   float32
-	UsesBoxSizing bool // NOTE: do we need both?
-	BorderBox     bool // NOTE: do we need both?
+	UsesBoxSizing bool
 }
 
 func (c cssSizingConstraints) HasMinWidth() bool {
@@ -78,7 +77,7 @@ func (c cssSizingConstraints) HasBoxSizing() bool {
 }
 
 func (c cssSizingConstraints) UsesBorderBox() bool {
-	return c.BorderBox
+	return c.UsesBoxSizing
 }
 
 func currentSizingConstraints(panel *ui.Panel) cssSizingConstraints {
@@ -89,38 +88,7 @@ func currentSizingConstraints(panel *ui.Panel) cssSizingConstraints {
 		MaxHeight:     panel.GetMaxSize().Y(),
 		AspectRatio:   panel.GetAspectRatio(),
 		UsesBoxSizing: panel.GetUsesBorderBox(),
-		BorderBox:     panel.GetUsesBorderBox(),
 	}
-}
-
-// NOTE: currently unused
-func storeSizingConstraints(panel *ui.Panel, c cssSizingConstraints) {
-	if c.HasMinWidth() {
-		panel.SetMinWidth(c.MinWidth)
-	} else {
-		panel.SetMinWidth(0)
-	}
-	if c.HasMaxWidth() {
-		panel.SetMaxWidth(c.MaxWidth)
-	} else {
-		panel.SetMaxWidth(0)
-	}
-	if c.HasMinHeight() {
-		panel.SetMinHeight(c.MinHeight)
-	} else {
-		panel.SetMinHeight(0)
-	}
-	if c.HasMaxHeight() {
-		panel.SetMaxHeight(c.MaxHeight)
-	} else {
-		panel.SetMaxHeight(0)
-	}
-	if c.HasAspectRatio() {
-		panel.SetAspectRatio(c.AspectRatio)
-	} else {
-		panel.SetAspectRatio(0)
-	}
-	panel.SetUsesBorderBox(c.BorderBox)
 }
 
 func enableMinWidth(panel *ui.Panel, v float32) {
