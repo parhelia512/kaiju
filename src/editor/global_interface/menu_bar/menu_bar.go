@@ -64,18 +64,25 @@ type MenuBar struct {
 	handler       MenuBarHandler
 }
 
+type menuBarTemplateData struct {
+	ShowGrid bool
+}
+
 func (b *MenuBar) Initialize(host *engine.Host, handler MenuBarHandler) error {
 	defer tracing.NewRegion("MenuBar.Initialize").End()
 	b.handler = handler
 	b.uiMan.Init(host)
 	var err error
+	tplData := menuBarTemplateData{ShowGrid: handler.Settings().ShowGrid}
 	b.doc, err = markup.DocumentFromHTMLAsset(&b.uiMan, "editor/ui/global/menu_bar.go.html",
-		nil, map[string]func(*document.Element){
+		tplData, map[string]func(*document.Element){
 			"clickLogo":                b.openMenuTarget,
 			"clickFile":                b.openMenuTarget,
 			"clickEdit":                b.openMenuTarget,
 			"clickCreate":              b.openMenuTarget,
+			"clickView":                b.openMenuTarget,
 			"clickHelp":                b.openMenuTarget,
+			"clickToggleGrid":          b.clickToggleGrid,
 			"clickStage":               b.clickStage,
 			"clickContent":             b.clickContent,
 			"clickShading":             b.clickShading,
@@ -513,6 +520,20 @@ func (b *MenuBar) clickSponsors(*document.Element) {
 	b.hidePopups()
 	b.handler.BlurInterface()
 	sponsors.Show(b.uiMan.Host, b.handler.FocusInterface)
+}
+
+func (b *MenuBar) clickToggleGrid(e *document.Element) {
+	defer tracing.NewRegion("MenuBar.clickToggleGrid").End()
+	visible := !b.handler.Settings().ShowGrid
+	b.handler.SetGridVisible(visible)
+	if lbl := e.InnerLabel(); lbl != nil {
+		if visible {
+			lbl.SetText("Hide Grid")
+		} else {
+			lbl.SetText("Show Grid")
+		}
+	}
+	b.hidePopups()
 }
 
 func (b *MenuBar) popupMiss(e *document.Element) {
