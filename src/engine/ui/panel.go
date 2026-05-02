@@ -150,6 +150,10 @@ func (b *panelBits) resetAllowClickThrough() { *b &= ^panelBitsAllowClickThrough
 func (b *panelBits) resetWasDirtied()        { *b &= ^panelBitsWasDirtied }
 
 func (p *panelData) innerPanelData() *panelData { return p }
+func (p *panelData) HasMinWidth() bool          { return p.minSize.X() >= 0 }
+func (p *panelData) HasMaxWidth() bool          { return p.maxSize.X() >= 0 }
+func (p *panelData) HasMinHeight() bool         { return p.minSize.Y() >= 0 }
+func (p *panelData) HasMaxHeight() bool         { return p.maxSize.Y() >= 0 }
 
 type Panel UI
 
@@ -166,6 +170,8 @@ func (panel *Panel) Init(texture *rendering.Texture, elmType ElementType) {
 		panel.elmData = &panelData{}
 	}
 	pd = panel.elmData.innerPanelData()
+	pd.minSize = matrix.NewVec2(-1, -1)
+	pd.maxSize = matrix.NewVec2(-1, -1)
 	pd.scrollEvent = 0
 	pd.scrollDirection = PanelScrollDirectionNone
 	pd.fitContent = ContentFitBoth
@@ -193,11 +199,11 @@ func (panel *Panel) Init(texture *rendering.Texture, elmType ElementType) {
 	panel.entity.OnDeactivate.Add(func() { panel.shaderData.Deactivate() })
 }
 
-func (p *Panel) MaxScroll() matrix.Vec2 { return p.PanelData().maxScroll }
-func (p *Panel) ScrollX() float32       { return p.PanelData().scroll.X() }
-func (p *Panel) ScrollY() float32       { return -p.PanelData().scroll.Y() }
-func (p *Panel) EnableDragScroll()      { p.PanelData().flags.setAllowDragScroll() }
-func (p *Panel) DisableDragScroll()     { p.PanelData().flags.resetAllowDragScroll() }
+func (p *Panel) MaxScroll() matrix.Vec2   { return p.PanelData().maxScroll }
+func (p *Panel) ScrollX() float32         { return p.PanelData().scroll.X() }
+func (p *Panel) ScrollY() float32         { return -p.PanelData().scroll.Y() }
+func (p *Panel) EnableDragScroll()        { p.PanelData().flags.setAllowDragScroll() }
+func (p *Panel) DisableDragScroll()       { p.PanelData().flags.resetAllowDragScroll() }
 func (p *Panel) GetMinSize() matrix.Vec2  { return p.PanelData().minSize }
 func (p *Panel) GetMaxSize() matrix.Vec2  { return p.PanelData().maxSize }
 func (p *Panel) SetMinWidth(w float32)    { p.PanelData().minSize.SetX(w) }
@@ -527,16 +533,16 @@ func (p *Panel) panelPostLayoutUpdate() {
 		p.boundsChildren(&bounds)
 		w := bounds.X() + p.layout.padding.Horizontal() + p.layout.border.Horizontal()
 		h := bounds.Y() + p.layout.padding.Bottom() + p.layout.border.Bottom()
-		if pd.minSize.X() > 0 && w < pd.minSize.X() {
+		if pd.HasMinWidth() && w < pd.minSize.X() {
 			w = pd.minSize.X()
 		}
-		if pd.maxSize.X() > 0 && w > pd.maxSize.X() {
+		if pd.HasMaxWidth() && w > pd.maxSize.X() {
 			w = pd.maxSize.X()
 		}
-		if pd.minSize.Y() > 0 && h < pd.minSize.Y() {
+		if pd.HasMinHeight() && h < pd.minSize.Y() {
 			h = pd.minSize.Y()
 		}
-		if pd.maxSize.Y() > 0 && h > pd.maxSize.Y() {
+		if pd.HasMaxHeight() && h > pd.maxSize.Y() {
 			h = pd.maxSize.Y()
 		}
 		switch pd.fitContent {

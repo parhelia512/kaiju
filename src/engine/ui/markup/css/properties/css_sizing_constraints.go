@@ -53,19 +53,19 @@ type cssSizingConstraints struct {
 }
 
 func (c cssSizingConstraints) HasMinWidth() bool {
-	return c.MinWidth > 0
+	return c.MinWidth >= 0
 }
 
 func (c cssSizingConstraints) HasMaxWidth() bool {
-	return c.MaxWidth > 0
+	return c.MaxWidth >= 0
 }
 
 func (c cssSizingConstraints) HasMinHeight() bool {
-	return c.MinHeight > 0
+	return c.MinHeight >= 0
 }
 
 func (c cssSizingConstraints) HasMaxHeight() bool {
-	return c.MaxHeight > 0
+	return c.MaxHeight >= 0
 }
 
 func (c cssSizingConstraints) HasAspectRatio() bool {
