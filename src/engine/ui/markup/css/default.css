@@ -418,7 +418,6 @@ button:hover, .button:hover {
 	background-position: 0 64px; */
 }
 button:active, .button:active {
-	padding: 4px 5px 0px 5px;
 	background-color: rgb(59, 59, 59);
 	/* background-image: url("input_atlas.png");
 	background-position: 64px 0; */
