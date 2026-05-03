@@ -116,20 +116,19 @@ type panelData struct {
 	drawing                   rendering.Drawing
 	transparentDrawing        rendering.Drawing
 	fitContent                ContentFit
-	isGrid                    bool
 	gridColumns               int
 	gridGap                   matrix.Vec2
 	// Positive values are fixed pixel widths, negative values are fr units.
-	gridTemplateColumns       []float32
-	requestScrollX            requestScroll
-	requestScrollY            requestScroll
-	overflow                  Overflow
-	enforcedColorStack        []matrix.Color
-	flags                     panelBits
-	minSize                   matrix.Vec2
-	maxSize                   matrix.Vec2
-	aspectRatio               float32
-	usesBorderBox             bool
+	gridTemplateColumns []float32
+	requestScrollX      requestScroll
+	requestScrollY      requestScroll
+	overflow            Overflow
+	enforcedColorStack  []matrix.Color
+	flags               panelBits
+	minSize             matrix.Vec2
+	maxSize             matrix.Vec2
+	aspectRatio         float32
+	usesBorderBox       bool
 }
 
 func (b panelBits) isScrolling() bool        { return b&panelBitsIsScrolling != 0 }
@@ -177,7 +176,6 @@ func (panel *Panel) Init(texture *rendering.Texture, elmType ElementType) {
 	pd.scrollEvent = 0
 	pd.scrollDirection = PanelScrollDirectionNone
 	pd.fitContent = ContentFitBoth
-	pd.isGrid = false
 	pd.gridColumns = 0
 	pd.gridGap = matrix.Vec2Zero()
 	pd.gridTemplateColumns = nil
@@ -488,7 +486,7 @@ func (p *Panel) panelPostLayoutUpdate() {
 	ps := p.layout.PixelSize()
 	maxSize := matrix.Vec2{}
 	maxRowsX := matrix.Float(0)
-	if pd.isGrid && pd.gridColumns > 0 {
+	if p.IsGrid() && pd.gridColumns > 0 {
 		maxSize = p.layoutGridChildren(pd, offsetStart, ps)
 		maxRowsX = maxSize.X()
 	} else {
@@ -836,7 +834,7 @@ func (p *Panel) SetScrollDirection(direction PanelScrollDirection) {
 	}
 }
 
-func (p *Panel) IsGrid() bool { return p.PanelData().isGrid }
+func (p *Panel) IsGrid() bool { return p.GridColumns() > 0 }
 
 func (p *Panel) GridColumns() int { return p.PanelData().gridColumns }
 
@@ -847,7 +845,7 @@ func (p *Panel) GridGap() matrix.Vec2 { return p.PanelData().gridGap }
 // children (e.g. div{width:100%}) fit their grid cell instead of full parent.
 func (p *Panel) GridCellWidth() float32 {
 	pd := p.PanelData()
-	if !pd.isGrid || pd.gridColumns <= 0 {
+	if !p.IsGrid() || pd.gridColumns <= 0 {
 		return p.layout.PixelSize().X()
 	}
 	ps := p.layout.PixelSize()
@@ -883,10 +881,9 @@ func (p *Panel) SetGrid(columns int) {
 	if columns <= 0 {
 		columns = 3 // default for display: grid or auto
 	}
-	if pd.isGrid && pd.gridColumns == columns {
+	if p.IsGrid() && pd.gridColumns == columns {
 		return
 	}
-	pd.isGrid = true
 	pd.gridColumns = columns
 	if len(pd.gridTemplateColumns) != columns {
 		pd.gridTemplateColumns = nil
@@ -907,7 +904,6 @@ func (p *Panel) SetGridTemplateColumns(columns []float32) {
 		return
 	}
 	pd.gridTemplateColumns = append(pd.gridTemplateColumns[:0], columns...)
-	pd.isGrid = true
 	pd.gridColumns = len(columns)
 	if pd.gridGap.X() == 0 && pd.gridGap.Y() == 0 {
 		pd.gridGap = matrix.NewVec2(8, 8)
