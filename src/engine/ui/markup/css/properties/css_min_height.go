@@ -38,6 +38,7 @@ package properties
 
 import (
 	"fmt"
+	"strings"
 
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
@@ -57,6 +58,19 @@ func (p MinHeight) Process(panel *ui.Panel, elm *document.Element, values []rule
 	}
 
 	minH := helpers.NumFromLength(values[0].Str, host.Window)
+	if strings.HasSuffix(values[0].Str, "%") {
+		layout := panel.Base().Layout()
+		if layout.Ui().Entity().IsRoot() {
+			minH = float32(host.Window.Height()) * minH
+		} else if pUI := ui.FirstOnEntity(layout.Ui().Entity().Parent); pUI != nil {
+			pLayout := pUI.Layout()
+			s := pLayout.PixelSize().Y() - pLayout.Padding().Vertical() - pLayout.Border().Vertical()
+			if s < 0 {
+				s = 0
+			}
+			minH = s * minH
+		}
+	}
 	enableMinHeight(panel, minH)
 
 	layout := panel.Base().Layout()

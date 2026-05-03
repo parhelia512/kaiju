@@ -38,6 +38,7 @@ package properties
 
 import (
 	"fmt"
+	"strings"
 
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
@@ -57,6 +58,19 @@ func (p MaxWidth) Process(panel *ui.Panel, elm *document.Element, values []rules
 	}
 
 	maxW := helpers.NumFromLength(values[0].Str, host.Window)
+	if strings.HasSuffix(values[0].Str, "%") {
+		layout := panel.Base().Layout()
+		if layout.Ui().Entity().IsRoot() {
+			maxW = float32(host.Window.Width()) * maxW
+		} else if pUI := ui.FirstOnEntity(layout.Ui().Entity().Parent); pUI != nil {
+			pLayout := pUI.Layout()
+			s := pLayout.PixelSize().X() - pLayout.Padding().Horizontal() - pLayout.Border().Horizontal()
+			if s < 0 {
+				s = 0
+			}
+			maxW = s * maxW
+		}
+	}
 	enableMaxWidth(panel, maxW)
 
 	layout := panel.Base().Layout()

@@ -38,6 +38,7 @@ package properties
 
 import (
 	"fmt"
+	"strings"
 
 	"kaijuengine.com/engine"
 	"kaijuengine.com/engine/ui"
@@ -57,6 +58,19 @@ func (p MaxHeight) Process(panel *ui.Panel, elm *document.Element, values []rule
 	}
 
 	maxH := helpers.NumFromLength(values[0].Str, host.Window)
+	if strings.HasSuffix(values[0].Str, "%") {
+		layout := panel.Base().Layout()
+		if layout.Ui().Entity().IsRoot() {
+			maxH = float32(host.Window.Height()) * maxH
+		} else if pUI := ui.FirstOnEntity(layout.Ui().Entity().Parent); pUI != nil {
+			pLayout := pUI.Layout()
+			s := pLayout.PixelSize().Y() - pLayout.Padding().Vertical() - pLayout.Border().Vertical()
+			if s < 0 {
+				s = 0
+			}
+			maxH = s * maxH
+		}
+	}
 	enableMaxHeight(panel, maxH)
 
 	layout := panel.Base().Layout()
