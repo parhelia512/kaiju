@@ -1018,7 +1018,7 @@ func (w *ContentWorkspace) openInExplorer(cc content_database.CachedContent) {
 		slog.Warn("could not find the source file path for the selected content")
 		return
 	}
-	if err := filesystem.OpenFileBrowserToFolder(filepath.Dir(path)); err != nil {
+	if err := filesystem.OpenFileBrowserToItem(path); err != nil {
 		slog.Error("failed to open explorer for the selected content", "path", path, "error", err)
 	}
 }
