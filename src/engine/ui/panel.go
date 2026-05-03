@@ -937,7 +937,7 @@ func (p *Panel) layoutGridChildren(pd *panelData, offsetStart matrix.Vec2, ps ma
 		x := cellX + margin.X() // left aligned like CSS start
 		itemY := y + margin.Y()
 		kLayout.SetRowLayoutOffset(matrix.NewVec2(x, itemY))
-		right := x + kSize.X() + margin.Z()
+		right := (x - startX) + kSize.X() + margin.Z()
 		contentSize.SetX(matrix.Max(contentSize.X(), right))
 		itemHeight := kSize.Y() + margin.Vertical()
 		rowMaxHeight = matrix.Max(rowMaxHeight, itemHeight)
@@ -1011,7 +1011,7 @@ func (p *Panel) updateScrollBars() {
 		maxX := pd.maxScroll.X()
 		if !matrix.Approx(pd.scrollBarDrag.X(), 0) {
 			mx := p.Base().Host().Window.Cursor.Position().X()
-			mouseDelta := pd.scrollBarDrag.Y() - mx
+			mouseDelta := pd.scrollBarDrag.X() - mx
 			startOffset := pd.scrollBarStart
 			newOffset := startOffset + mouseDelta
 			maxX := pd.maxScroll.X()
