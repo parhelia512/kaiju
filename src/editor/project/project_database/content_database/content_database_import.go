@@ -104,7 +104,7 @@ func (r *ImportResult) ConfigPath() project_file_system.ConfigPath {
 func (r *ImportResult) generateUniqueFileId(fs *project_file_system.FileSystem) string {
 	defer tracing.NewRegion("ImportResult.generateUniqueFileId").End()
 	for {
-		r.Id = uuid.NewString()
+		r.Id = uuid.Must(uuid.NewV7()).String()
 		if _, err := fs.Stat(r.ContentPath().String()); err == nil {
 			continue
 		}
@@ -186,3 +186,4 @@ func reimportByNameMatching(cat ContentCategory, id string, cache *Cache, fs *pr
 		Name: cc.Config.SrcName,
 	}
 }
+
