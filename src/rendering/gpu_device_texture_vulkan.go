@@ -279,9 +279,8 @@ func (g *GPUDevice) generateMipMapsImpl(texId *TextureId, imageFormat GPUFormat,
 	return nil
 }
 
-func (g *GPUDevice) textureReadImpl(texture *Texture) ([]byte, error) {
+func (g *GPUDevice) textureReadImpl(id *TextureId) ([]byte, error) {
 	defer tracing.NewRegion("GPUDevice.textureReadImpl").End()
-	id := &texture.RenderId
 	origLayout := id.Layout
 	const transferSrcLayout = GPUImageLayoutTransferSrcOptimal
 	if origLayout != transferSrcLayout {
