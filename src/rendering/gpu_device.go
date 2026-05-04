@@ -37,6 +37,7 @@
 package rendering
 
 import (
+	"fmt"
 	"log/slog"
 	"unsafe"
 
@@ -120,6 +121,26 @@ func (g *GPUDevice) DestroyFrameBuffer(frameBuffer GPUFrameBuffer) {
 func (g *GPUDevice) CopyBuffer(srcBuffer GPUBuffer, dstBuffer GPUBuffer, size uintptr) {
 	defer tracing.NewRegion("GPULogicalDevice.CreateFrameBuffer").End()
 	g.copyBufferImpl(srcBuffer, dstBuffer, size)
+}
+
+func (g *GPUDevice) Screenshot() ([]byte, error) {
+	defer tracing.NewRegion("GPUDevice.Screenshot").End()
+	s := &g.LogicalDevice.SwapChain
+	if !s.IsValid() || len(s.Images) == 0 {
+		return nil, fmt.Errorf("cannot capture screenshot without a valid swap chain")
+	}
+	if g.PhysicalDevice.SurfaceCapabilities.SupportedUsageFlags&GPUImageUsageTransferSrcBit == 0 {
+		return nil, fmt.Errorf("swap chain images do not support transfer source usage")
+	}
+	frame := g.Painter.currentFrame - 1
+	if frame < 0 {
+		frame = len(s.Images) - 1
+	}
+	idxSF := g.Painter.imageIndex[frame]
+	if int(idxSF) >= len(s.Images) {
+		return nil, fmt.Errorf("last frame references swap chain image %d, but only %d images exist", idxSF, len(s.Images))
+	}
+	return g.textureReadImpl(&s.Images[idxSF])
 }
 
 func (g *GPUDevice) createGlobalUniforms() error {
