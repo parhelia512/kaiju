@@ -37,10 +37,14 @@
 package menu_bar
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	"image/png"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"time"
 
 	"kaijuengine.com/editor/editor_overlay/create_entity_data"
 	"kaijuengine.com/editor/editor_overlay/file_browser"
@@ -83,6 +87,7 @@ func (b *MenuBar) Initialize(host *engine.Host, handler MenuBarHandler) error {
 			"clickView":                b.openMenuTarget,
 			"clickHelp":                b.openMenuTarget,
 			"clickToggleGrid":          b.clickToggleGrid,
+			"clickScreenshot":          b.clickScreenshot,
 			"clickStage":               b.clickStage,
 			"clickContent":             b.clickContent,
 			"clickShading":             b.clickShading,
@@ -534,6 +539,40 @@ func (b *MenuBar) clickToggleGrid(e *document.Element) {
 		}
 	}
 	b.hidePopups()
+}
+
+func (b *MenuBar) clickScreenshot(e *document.Element) {
+	defer tracing.NewRegion("MenuBar.clickScreenshot").End()
+	b.hidePopups()
+	host := e.UI.Host()
+	host.RunNextFrame(func() {
+		device := host.Window.GpuHost.FirstInstance().PrimaryDevice()
+		pixels, err := device.Screenshot()
+		if err != nil {
+			slog.Error("Failed to capture the screenshot", "error", err)
+			return
+		}
+		if len(pixels) == 0 {
+			slog.Error("No pixels were returned for the frame")
+			return
+		}
+		size := device.LogicalDevice.SwapChain.Extent
+		img := image.NewRGBA(image.Rect(0, 0, int(size.X()), int(size.Y())))
+		copy(img.Pix, pixels)
+		var buf bytes.Buffer
+		if err = png.Encode(&buf, img); err != nil {
+			slog.Error("Failed to encode the png file", "error", err)
+			return
+		}
+		fs := b.handler.Project().FileSystem()
+		fs.Mkdir("screenshots", os.ModePerm)
+		path := fmt.Sprintf("screenshots/%s.png", time.Now().Format("2006-01-02-03-04-05"))
+		if err := fs.WriteFile(path, buf.Bytes(), os.ModePerm); err != nil {
+			slog.Error("Failed to write the screenshot file", "error", err)
+			return
+		}
+		slog.Info("Screenshot captured", "path", path)
+	})
 }
 
 func (b *MenuBar) popupMiss(e *document.Element) {
