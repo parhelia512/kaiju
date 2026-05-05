@@ -43,6 +43,8 @@ type GPUBlendOp int32
 type GPUColorComponentFlags uint32
 type GPUPipelineCreateFlags uint32
 type GPUShaderStageFlags uint32
+type GPUPipelineBindPoint int32
+type GPUDependencyFlags uint32
 
 type GPUStencilOpState struct {
 	FailOp      GPUStencilOp
@@ -236,4 +238,16 @@ const (
 	GPUShaderStageMissBitNvx                GPUShaderStageFlags = 2048
 	GPUShaderStageIntersectionBitNvx        GPUShaderStageFlags = 4096
 	GPUShaderStageCallableBitNvx            GPUShaderStageFlags = 8192
+)
+
+const (
+	GPUPipelineBindPointGraphics      GPUPipelineBindPoint = 0
+	GPUPipelineBindPointCompute       GPUPipelineBindPoint = 1
+	GPUPipelineBindPointRaytracingNvx GPUPipelineBindPoint = 1000165000
+)
+
+const (
+	GPUDependencyByRegionBit    GPUDependencyFlags = 1
+	GPUDependencyViewLocalBit   GPUDependencyFlags = 2
+	GPUDependencyDeviceGroupBit GPUDependencyFlags = 4
 )

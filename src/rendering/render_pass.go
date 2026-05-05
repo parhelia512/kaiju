@@ -42,9 +42,6 @@ import (
 	"log/slog"
 	"math"
 	"strconv"
-
-	vk "kaijuengine.com/rendering/vulkan"
-	"kaijuengine.com/rendering/vulkan_const"
 )
 
 type RenderPassData struct {
@@ -182,7 +179,7 @@ type RenderPassAttachmentImageCompiled struct {
 }
 
 type RenderPassSubpassDescriptionCompiled struct {
-	PipelineBindPoint         vulkan_const.PipelineBindPoint
+	PipelineBindPoint         GPUPipelineBindPoint
 	ColorAttachmentReferences []RenderPassAttachmentReferenceCompiled
 	InputAttachmentReferences []RenderPassAttachmentReferenceCompiled
 	ResolveAttachments        []RenderPassAttachmentReferenceCompiled
@@ -192,17 +189,17 @@ type RenderPassSubpassDescriptionCompiled struct {
 
 type RenderPassAttachmentReferenceCompiled struct {
 	Attachment uint32
-	Layout     vulkan_const.ImageLayout
+	Layout     GPUImageLayout
 }
 
 type RenderPassSubpassDependencyCompiled struct {
 	SrcSubpass      uint32
 	DstSubpass      uint32
-	SrcStageMask    vk.PipelineStageFlags
-	DstStageMask    vk.PipelineStageFlags
-	SrcAccessMask   vk.AccessFlags
-	DstAccessMask   vk.AccessFlags
-	DependencyFlags vk.DependencyFlags
+	SrcStageMask    GPUPipelineStageFlags
+	DstStageMask    GPUPipelineStageFlags
+	SrcAccessMask   GPUAccessFlags
+	DstAccessMask   GPUAccessFlags
+	DependencyFlags GPUDependencyFlags
 }
 
 func NewRenderPassData(src string) (RenderPassData, error) {
@@ -257,22 +254,22 @@ func (d *RenderPassData) Compile(device *GPUDevice) RenderPassDataCompiled {
 		a.ColorAttachmentReferences = make([]RenderPassAttachmentReferenceCompiled, len(b.ColorAttachmentReferences))
 		for j := range b.ColorAttachmentReferences {
 			a.ColorAttachmentReferences[j].Attachment = b.ColorAttachmentReferences[j].Attachment
-			a.ColorAttachmentReferences[j].Layout = b.ColorAttachmentReferences[j].LayoutToGpu().toVulkan()
+			a.ColorAttachmentReferences[j].Layout = b.ColorAttachmentReferences[j].LayoutToGpu()
 		}
 		a.InputAttachmentReferences = make([]RenderPassAttachmentReferenceCompiled, len(b.InputAttachmentReferences))
 		for j := range b.InputAttachmentReferences {
 			a.InputAttachmentReferences[j].Attachment = b.InputAttachmentReferences[j].Attachment
-			a.InputAttachmentReferences[j].Layout = b.InputAttachmentReferences[j].LayoutToGpu().toVulkan()
+			a.InputAttachmentReferences[j].Layout = b.InputAttachmentReferences[j].LayoutToGpu()
 		}
 		a.ResolveAttachments = make([]RenderPassAttachmentReferenceCompiled, len(b.ResolveAttachments))
 		for j := range b.ResolveAttachments {
 			a.ResolveAttachments[j].Attachment = b.ResolveAttachments[j].Attachment
-			a.ResolveAttachments[j].Layout = b.ResolveAttachments[j].LayoutToGpu().toVulkan()
+			a.ResolveAttachments[j].Layout = b.ResolveAttachments[j].LayoutToGpu()
 		}
 		a.DepthStencilAttachment = make([]RenderPassAttachmentReferenceCompiled, len(b.DepthStencilAttachment))
 		for j := range b.DepthStencilAttachment {
 			a.DepthStencilAttachment[j].Attachment = b.DepthStencilAttachment[j].Attachment
-			a.DepthStencilAttachment[j].Layout = b.DepthStencilAttachment[j].LayoutToGpu().toVulkan()
+			a.DepthStencilAttachment[j].Layout = b.DepthStencilAttachment[j].LayoutToGpu()
 		}
 		a.PreserveAttachments = make([]uint32, len(b.PreserveAttachments))
 		copy(a.PreserveAttachments, b.PreserveAttachments)
@@ -308,8 +305,8 @@ func (d *RenderPassData) Compile(device *GPUDevice) RenderPassDataCompiled {
 		}
 		a.SrcStageMask = b.SrcStageMaskToGpu()
 		a.DstStageMask = b.DstStageMaskToGpu()
-		a.SrcAccessMask = b.SrcAccessMaskToGpu().toVulkan()
-		a.DstAccessMask = b.DstAccessMaskToGpu().toVulkan()
+		a.SrcAccessMask = b.SrcAccessMaskToGpu()
+		a.DstAccessMask = b.DstAccessMaskToGpu()
 		a.DependencyFlags = b.DependencyFlagsToGpu()
 	}
 	if len(c.Subpass) != len(d.SubpassDescriptions)-1 {
@@ -378,15 +375,15 @@ func (ad *RenderPassAttachmentReference) LayoutToGpu() GPUImageLayout {
 	return imageLayoutToGpu(ad.Layout)
 }
 
-func (ad *RenderPassSubpassDescription) PipelineBindPointToGpu() vulkan_const.PipelineBindPoint {
+func (ad *RenderPassSubpassDescription) PipelineBindPointToGpu() GPUPipelineBindPoint {
 	return pipelineBindPointToGpu(ad.PipelineBindPoint)
 }
 
-func (sd *RenderPassSubpassDependency) SrcStageMaskToGpu() vk.PipelineStageFlags {
+func (sd *RenderPassSubpassDependency) SrcStageMaskToGpu() GPUPipelineStageFlags {
 	return pipelineStageFlagsToGpu(sd.SrcStageMask)
 }
 
-func (sd *RenderPassSubpassDependency) DstStageMaskToGpu() vk.PipelineStageFlags {
+func (sd *RenderPassSubpassDependency) DstStageMaskToGpu() GPUPipelineStageFlags {
 	return pipelineStageFlagsToGpu(sd.DstStageMask)
 }
 
@@ -398,7 +395,7 @@ func (sd *RenderPassSubpassDependency) DstAccessMaskToGpu() GPUAccessFlags {
 	return accessFlagsToGpu(sd.DstAccessMask)
 }
 
-func (sd *RenderPassSubpassDependency) DependencyFlagsToGpu() vk.DependencyFlags {
+func (sd *RenderPassSubpassDependency) DependencyFlagsToGpu() GPUDependencyFlags {
 	return dependencyFlagsToGpu(sd.DependencyFlags)
 }
 
