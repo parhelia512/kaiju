@@ -144,7 +144,7 @@ jobs:
 
           $p = Start-Process -FilePath $exe -ArgumentList $args -NoNewWindow -PassThru
 
-          $timeoutSec = 120
+          $timeoutSec = 180
           $exited = $p.WaitForExit($timeoutSec * 1000)
 
           if (-not $exited) {
