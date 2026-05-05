@@ -534,7 +534,7 @@ func (s *ShaderPipelinePipelineRasterization) FrontFaceToVK() vulkan_const.Front
 }
 
 func (s *ShaderPipelinePipelineMultisample) RasterizationSamplesToVK(device *GPUPhysicalDevice) GPUSampleCountFlags {
-	return sampleCountToVK(s.RasterizationSamples, device)
+	return sampleCountToGpu(s.RasterizationSamples, device)
 }
 
 func (s *ShaderPipelineColorBlend) LogicOpToVK() vulkan_const.LogicOp {

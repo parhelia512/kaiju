@@ -632,7 +632,7 @@ func boolToVkBool(val bool) vk.Bool32 {
 	}
 }
 
-func attachmentLoadOpToVK(val string) GPUAttachmentLoadOp {
+func attachmentLoadOpToGpu(val string) GPUAttachmentLoadOp {
 	if res, ok := StringVkAttachmentLoadOp[val]; ok {
 		return res
 	} else if val != "" {
@@ -641,7 +641,7 @@ func attachmentLoadOpToVK(val string) GPUAttachmentLoadOp {
 	return 0
 }
 
-func attachmentStoreOpToVK(val string) GPUAttachmentStoreOp {
+func attachmentStoreOpToGpu(val string) GPUAttachmentStoreOp {
 	if res, ok := StringVkAttachmentStoreOp[val]; ok {
 		return res
 	} else if val != "" {
@@ -650,7 +650,7 @@ func attachmentStoreOpToVK(val string) GPUAttachmentStoreOp {
 	return 0
 }
 
-func imageLayoutToVK(val string) GPUImageLayout {
+func imageLayoutToGpu(val string) GPUImageLayout {
 	if res, ok := StringVkImageLayout[val]; ok {
 		return res
 	} else if val != "" {
@@ -659,7 +659,7 @@ func imageLayoutToVK(val string) GPUImageLayout {
 	return 0
 }
 
-func sampleCountToVK(val string, device *GPUPhysicalDevice) GPUSampleCountFlags {
+func sampleCountToGpu(val string, device *GPUPhysicalDevice) GPUSampleCountFlags {
 	if val == swapChainSampleCountKey {
 		return device.MaxUsableSampleCount()
 	} else if res, ok := StringVkSampleCountFlagBits[val]; ok {
@@ -670,7 +670,7 @@ func sampleCountToVK(val string, device *GPUPhysicalDevice) GPUSampleCountFlags 
 	return 0
 }
 
-func formatToVK(val string, device *GPUDevice) GPUFormat {
+func formatToGpu(val string, device *GPUDevice) GPUFormat {
 	if val == detectDepthFormatKey {
 		return device.PhysicalDevice.FindSupportedFormat(
 			depthFormatCandidates(), GPUImageTilingOptimal, GPUFormatFeatureDepthStencilAttachmentBit)
@@ -722,7 +722,7 @@ func blendOpToVK(val string) vulkan_const.BlendOp {
 	return 0
 }
 
-func imageTilingToVK(val string) GPUImageTiling {
+func imageTilingToGpu(val string) GPUImageTiling {
 	if res, ok := StringVkImageTiling[val]; ok {
 		return res
 	} else if val != "" {
@@ -731,7 +731,7 @@ func imageTilingToVK(val string) GPUImageTiling {
 	return 0
 }
 
-func filterToVK(val string) GPUFilter {
+func filterToGpu(val string) GPUFilter {
 	if res, ok := StringVkFilter[val]; ok {
 		return res
 	} else if val != "" {
@@ -740,7 +740,7 @@ func filterToVK(val string) GPUFilter {
 	return 0
 }
 
-func pipelineBindPointToVK(val string) vulkan_const.PipelineBindPoint {
+func pipelineBindPointToGpu(val string) vulkan_const.PipelineBindPoint {
 	if res, ok := StringVkPipelineBindPoint[val]; ok {
 		return res
 	} else if val != "" {
@@ -761,32 +761,32 @@ func flagsToVK[B klib.Integer, F klib.Integer](mapping map[string]B, vals []stri
 	return F(mask)
 }
 
-func pipelineStageFlagsToVK(vals []string) vk.PipelineStageFlags {
+func pipelineStageFlagsToGpu(vals []string) vk.PipelineStageFlags {
 	return flagsToVK[vulkan_const.PipelineStageFlagBits, vk.PipelineStageFlags](
 		StringVkPipelineStageFlagBits, vals)
 }
 
-func accessFlagsToVK(vals []string) GPUAccessFlags {
+func accessFlagsToGpu(vals []string) GPUAccessFlags {
 	return flagsToVK[GPUAccessFlags, GPUAccessFlags](
 		StringVkAccessFlagBits, vals)
 }
 
-func imageUsageFlagsToVK(vals []string) GPUImageUsageFlags {
+func imageUsageFlagsToGpu(vals []string) GPUImageUsageFlags {
 	return flagsToVK[GPUImageUsageFlags, GPUImageUsageFlags](
 		StringVkImageUsageFlagBits, vals)
 }
 
-func memoryPropertyFlagsToVK(vals []string) GPUMemoryPropertyFlags {
+func memoryPropertyFlagsToGpu(vals []string) GPUMemoryPropertyFlags {
 	return flagsToVK[GPUMemoryPropertyFlags, GPUMemoryPropertyFlags](
 		StringVkMemoryPropertyFlagBits, vals)
 }
 
-func imageAspectFlagsToVK(vals []string) GPUImageAspectFlags {
+func imageAspectFlagsToGpu(vals []string) GPUImageAspectFlags {
 	return flagsToVK[GPUImageAspectFlags, GPUImageAspectFlags](
 		StringVkImageAspectFlagBits, vals)
 }
 
-func dependencyFlagsToVK(vals []string) vk.DependencyFlags {
+func dependencyFlagsToGpu(vals []string) vk.DependencyFlags {
 	return flagsToVK[vulkan_const.DependencyFlagBits, vk.DependencyFlags](
 		StringVkDependencyFlagBits, vals)
 }
