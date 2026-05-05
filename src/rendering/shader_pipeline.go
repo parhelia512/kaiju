@@ -38,10 +38,8 @@ package rendering
 
 import (
 	"log/slog"
-	"unsafe"
 
 	"kaijuengine.com/klib"
-	"kaijuengine.com/platform/profiler/tracing"
 	vk "kaijuengine.com/rendering/vulkan"
 	"kaijuengine.com/rendering/vulkan_const"
 )
@@ -158,16 +156,16 @@ type ShaderPipelineDataCompiled struct {
 
 type ShaderPipelineInputAssemblyCompiled struct {
 	Topology         vulkan_const.PrimitiveTopology
-	PrimitiveRestart vk.Bool32
+	PrimitiveRestart bool
 }
 
 type ShaderPipelinePipelineRasterizationCompiled struct {
-	DepthClampEnable        vk.Bool32
-	DiscardEnable           vk.Bool32
+	DepthClampEnable        bool
+	DiscardEnable           bool
 	PolygonMode             vulkan_const.PolygonMode
 	CullMode                vk.CullModeFlags
 	FrontFace               vulkan_const.FrontFace
-	DepthBiasEnable         vk.Bool32
+	DepthBiasEnable         bool
 	DepthBiasConstantFactor float32
 	DepthBiasClamp          float32
 	DepthBiasSlopeFactor    float32
@@ -176,24 +174,24 @@ type ShaderPipelinePipelineRasterizationCompiled struct {
 
 type ShaderPipelinePipelineMultisampleCompiled struct {
 	RasterizationSamples  vulkan_const.SampleCountFlagBits
-	SampleShadingEnable   vk.Bool32
+	SampleShadingEnable   bool
 	MinSampleShading      float32
-	AlphaToCoverageEnable vk.Bool32
-	AlphaToOneEnable      vk.Bool32
+	AlphaToCoverageEnable bool
+	AlphaToOneEnable      bool
 }
 
 type ShaderPipelineColorBlendCompiled struct {
-	LogicOpEnable  vk.Bool32
+	LogicOpEnable  bool
 	LogicOp        vulkan_const.LogicOp
 	BlendConstants [4]float32
 }
 
 type ShaderPipelineDepthStencilCompiled struct {
-	DepthTestEnable       vk.Bool32
-	DepthWriteEnable      vk.Bool32
+	DepthTestEnable       bool
+	DepthWriteEnable      bool
 	DepthCompareOp        vulkan_const.CompareOp
-	DepthBoundsTestEnable vk.Bool32
-	StencilTestEnable     vk.Bool32
+	DepthBoundsTestEnable bool
+	StencilTestEnable     bool
 	Front                 vk.StencilOpState
 	Back                  vk.StencilOpState
 	MinDepthBounds        float32
@@ -215,7 +213,7 @@ type ShaderPipelinePushConstantCompiled struct {
 }
 
 type ShaderPipelineColorBlendAttachmentsCompiled struct {
-	BlendEnable         vk.Bool32
+	BlendEnable         bool
 	SrcColorBlendFactor vulkan_const.BlendFactor
 	DstColorBlendFactor vulkan_const.BlendFactor
 	ColorBlendOp        vulkan_const.BlendOp
@@ -230,15 +228,15 @@ func (d *ShaderPipelineData) Compile(device *GPUPhysicalDevice) ShaderPipelineDa
 		Name: d.Name,
 		InputAssembly: ShaderPipelineInputAssemblyCompiled{
 			Topology:         d.InputAssembly.TopologyToVK(),
-			PrimitiveRestart: boolToVkBool(d.InputAssembly.PrimitiveRestart),
+			PrimitiveRestart: d.InputAssembly.PrimitiveRestart,
 		},
 		Rasterization: ShaderPipelinePipelineRasterizationCompiled{
-			DepthClampEnable:        boolToVkBool(d.Rasterization.DepthClampEnable),
-			DiscardEnable:           boolToVkBool(d.Rasterization.RasterizerDiscardEnable),
+			DepthClampEnable:        d.Rasterization.DepthClampEnable,
+			DiscardEnable:           d.Rasterization.RasterizerDiscardEnable,
 			PolygonMode:             d.Rasterization.PolygonModeToVK(),
 			CullMode:                vk.CullModeFlags(d.Rasterization.CullModeToVK()),
 			FrontFace:               d.Rasterization.FrontFaceToVK(),
-			DepthBiasEnable:         boolToVkBool(d.Rasterization.DepthBiasEnable),
+			DepthBiasEnable:         d.Rasterization.DepthBiasEnable,
 			DepthBiasConstantFactor: d.Rasterization.DepthBiasConstantFactor,
 			DepthBiasClamp:          d.Rasterization.DepthBiasClamp,
 			DepthBiasSlopeFactor:    d.Rasterization.DepthBiasSlopeFactor,
@@ -246,13 +244,13 @@ func (d *ShaderPipelineData) Compile(device *GPUPhysicalDevice) ShaderPipelineDa
 		},
 		Multisample: ShaderPipelinePipelineMultisampleCompiled{
 			RasterizationSamples:  vulkan_const.SampleCountFlagBits(d.Multisample.RasterizationSamplesToVK(device).toVulkan()),
-			SampleShadingEnable:   boolToVkBool(d.Multisample.SampleShadingEnable),
+			SampleShadingEnable:   d.Multisample.SampleShadingEnable,
 			MinSampleShading:      d.Multisample.MinSampleShading,
-			AlphaToCoverageEnable: boolToVkBool(d.Multisample.AlphaToCoverageEnable),
-			AlphaToOneEnable:      boolToVkBool(d.Multisample.AlphaToOneEnable),
+			AlphaToCoverageEnable: d.Multisample.AlphaToCoverageEnable,
+			AlphaToOneEnable:      d.Multisample.AlphaToOneEnable,
 		},
 		ColorBlend: ShaderPipelineColorBlendCompiled{
-			LogicOpEnable: boolToVkBool(d.ColorBlend.LogicOpEnable),
+			LogicOpEnable: d.ColorBlend.LogicOpEnable,
 			LogicOp:       d.ColorBlend.LogicOpToVK(),
 			BlendConstants: [4]float32{
 				d.ColorBlend.BlendConstants0,
@@ -263,11 +261,11 @@ func (d *ShaderPipelineData) Compile(device *GPUPhysicalDevice) ShaderPipelineDa
 		},
 		ColorBlendAttachments: make([]ShaderPipelineColorBlendAttachmentsCompiled, len(d.ColorBlendAttachments)),
 		DepthStencil: ShaderPipelineDepthStencilCompiled{
-			DepthTestEnable:       boolToVkBool(d.DepthStencil.DepthTestEnable),
-			DepthWriteEnable:      boolToVkBool(d.DepthStencil.DepthWriteEnable),
+			DepthTestEnable:       d.DepthStencil.DepthTestEnable,
+			DepthWriteEnable:      d.DepthStencil.DepthWriteEnable,
 			DepthCompareOp:        compareOpToVK(d.DepthStencil.DepthCompareOp),
-			DepthBoundsTestEnable: boolToVkBool(d.DepthStencil.DepthBoundsTestEnable),
-			StencilTestEnable:     boolToVkBool(d.DepthStencil.StencilTestEnable),
+			DepthBoundsTestEnable: d.DepthStencil.DepthBoundsTestEnable,
+			StencilTestEnable:     d.DepthStencil.StencilTestEnable,
 			Front: vk.StencilOpState{
 				FailOp:      stencilOpToVK(d.DepthStencil.FrontFailOp),
 				PassOp:      stencilOpToVK(d.DepthStencil.FrontPassOp),
@@ -304,7 +302,7 @@ func (d *ShaderPipelineData) Compile(device *GPUPhysicalDevice) ShaderPipelineDa
 	for i := range d.ColorBlendAttachments {
 		from := &d.ColorBlendAttachments[i]
 		c.ColorBlendAttachments[i] = ShaderPipelineColorBlendAttachmentsCompiled{
-			BlendEnable:         from.BlendEnableToVK(),
+			BlendEnable:         from.BlendEnable,
 			SrcColorBlendFactor: from.SrcColorBlendFactorToVK(),
 			DstColorBlendFactor: from.DstColorBlendFactorToVK(),
 			ColorBlendOp:        from.ColorBlendOpToVK(),
@@ -339,10 +337,6 @@ func (a *ShaderPipelineColorBlendAttachments) ListDstAlphaBlendFactor() []string
 
 func (a *ShaderPipelineColorBlendAttachments) ListAlphaBlendOp() []string {
 	return klib.MapKeysSorted(StringVkBlendOp)
-}
-
-func (a *ShaderPipelineColorBlendAttachments) BlendEnableToVK() vk.Bool32 {
-	return boolToVkBool(a.BlendEnable)
 }
 
 func (a *ShaderPipelineColorBlendAttachments) SrcColorBlendFactorToVK() vulkan_const.BlendFactor {
@@ -604,187 +598,4 @@ func (s *ShaderPipelinePushConstant) ShaderStageFlagsToVK() vk.ShaderStageFlags 
 		mask |= StringVkShaderStageFlagBits[s.StageFlags[i]]
 	}
 	return vk.ShaderStageFlags(mask)
-}
-
-func (s *ShaderPipelineDataCompiled) ConstructPipeline(device *GPUDevice, shader *Shader, renderPass *RenderPass, stages []vk.PipelineShaderStageCreateInfo) bool {
-	defer tracing.NewRegion("ShaderPipelineDataCompiled.ConstructPipeline").End()
-	pSetLayout := vk.DescriptorSetLayout(shader.RenderId.descriptorSetLayout.handle)
-	pipelineLayoutInfo := vk.PipelineLayoutCreateInfo{
-		SType:          vulkan_const.StructureTypePipelineLayoutCreateInfo,
-		Flags:          0, // PipelineLayoutCreateFlags
-		SetLayoutCount: 1,
-		PSetLayouts:    &pSetLayout,
-	}
-	if s.PushConstant.Size > 0 {
-		pushRanges := [1]vk.PushConstantRange{{
-			StageFlags: s.PushConstant.StageFlags,
-			Offset:     0,
-			Size:       s.PushConstant.Size,
-		}}
-		pipelineLayoutInfo.PushConstantRangeCount = 1
-		pipelineLayoutInfo.PPushConstantRanges = &pushRanges[0]
-	}
-	var pLayout vk.PipelineLayout
-	if vk.CreatePipelineLayout(vk.Device(device.LogicalDevice.handle), &pipelineLayoutInfo, nil, &pLayout) != vulkan_const.Success {
-		slog.Error("Failed to create pipeline layout")
-		return false
-	} else {
-		device.LogicalDevice.dbg.track(unsafe.Pointer(pLayout))
-	}
-	shader.RenderId.pipelineLayout.handle = unsafe.Pointer(pLayout)
-	bDesc := vertexGetBindingDescription(shader)
-	bDescCount := uint32(len(bDesc))
-	for i := uint32(1); i < bDescCount; i++ {
-		bDesc[i].Stride = uint32(device.PhysicalDevice.PadBufferSize(uintptr(bDesc[i].Stride)))
-	}
-	aDesc := vertexGetAttributeDescription(shader)
-	vertexInputInfo := vk.PipelineVertexInputStateCreateInfo{
-		SType:                           vulkan_const.StructureTypePipelineVertexInputStateCreateInfo,
-		VertexBindingDescriptionCount:   bDescCount,
-		VertexAttributeDescriptionCount: uint32(len(aDesc)),
-		PVertexBindingDescriptions:      &bDesc[0],
-		PVertexAttributeDescriptions:    &aDesc[0],
-	}
-	inputAssembly := vk.PipelineInputAssemblyStateCreateInfo{
-		SType:                  vulkan_const.StructureTypePipelineInputAssemblyStateCreateInfo,
-		Flags:                  0, // PipelineInputAssemblyStateCreateFlags
-		Topology:               s.InputAssembly.Topology,
-		PrimitiveRestartEnable: s.InputAssembly.PrimitiveRestart,
-	}
-	sce := device.LogicalDevice.SwapChain.Extent
-	viewport := vk.Viewport{
-		X:        0.0,
-		Y:        0.0,
-		Width:    float32(sce.Width()),
-		Height:   float32(sce.Height()),
-		MinDepth: 0.0,
-		MaxDepth: 1.0,
-	}
-	scissor := vk.Rect2D{
-		Offset: vk.Offset2D{X: 0, Y: 0},
-		Extent: vk.Extent2D{
-			Width:  uint32(sce.Width()),
-			Height: uint32(sce.Height()),
-		},
-	}
-	dynamicStates := []vulkan_const.DynamicState{
-		vulkan_const.DynamicStateViewport,
-		vulkan_const.DynamicStateScissor,
-	}
-	dynamicState := vk.PipelineDynamicStateCreateInfo{
-		SType:             vulkan_const.StructureTypePipelineDynamicStateCreateInfo,
-		DynamicStateCount: uint32(len(dynamicStates)),
-		PDynamicStates:    &dynamicStates[0],
-	}
-	viewportState := vk.PipelineViewportStateCreateInfo{
-		SType:         vulkan_const.StructureTypePipelineViewportStateCreateInfo,
-		ViewportCount: 1,
-		PViewports:    &viewport,
-		ScissorCount:  1,
-		PScissors:     &scissor,
-	}
-	rasterizer := vk.PipelineRasterizationStateCreateInfo{
-		SType:                   vulkan_const.StructureTypePipelineRasterizationStateCreateInfo,
-		Flags:                   0, // PipelineRasterizationStateCreateFlags
-		DepthClampEnable:        s.Rasterization.DepthClampEnable,
-		RasterizerDiscardEnable: s.Rasterization.DiscardEnable,
-		PolygonMode:             s.Rasterization.PolygonMode,
-		LineWidth:               s.Rasterization.LineWidth,
-		CullMode:                s.Rasterization.CullMode,
-		FrontFace:               s.Rasterization.FrontFace,
-		DepthBiasEnable:         s.Rasterization.DepthBiasEnable,
-		DepthBiasConstantFactor: s.Rasterization.DepthBiasConstantFactor,
-		DepthBiasClamp:          s.Rasterization.DepthBiasClamp,
-		DepthBiasSlopeFactor:    s.Rasterization.DepthBiasSlopeFactor,
-	}
-	multisampling := vk.PipelineMultisampleStateCreateInfo{
-		SType:                 vulkan_const.StructureTypePipelineMultisampleStateCreateInfo,
-		Flags:                 0, // PipelineMultisampleStateCreateFlags
-		SampleShadingEnable:   s.Multisample.SampleShadingEnable,
-		RasterizationSamples:  s.Multisample.RasterizationSamples,
-		MinSampleShading:      s.Multisample.MinSampleShading,
-		PSampleMask:           nil,
-		AlphaToCoverageEnable: s.Multisample.AlphaToCoverageEnable,
-		AlphaToOneEnable:      s.Multisample.AlphaToOneEnable,
-	}
-	colorBlendAttachment := make([]vk.PipelineColorBlendAttachmentState, len(s.ColorBlendAttachments))
-	for i := range s.ColorBlendAttachments {
-		colorBlendAttachment[i].BlendEnable = s.ColorBlendAttachments[i].BlendEnable
-		colorBlendAttachment[i].SrcColorBlendFactor = s.ColorBlendAttachments[i].SrcColorBlendFactor
-		colorBlendAttachment[i].DstColorBlendFactor = s.ColorBlendAttachments[i].DstColorBlendFactor
-		colorBlendAttachment[i].ColorBlendOp = s.ColorBlendAttachments[i].ColorBlendOp
-		colorBlendAttachment[i].SrcAlphaBlendFactor = s.ColorBlendAttachments[i].SrcAlphaBlendFactor
-		colorBlendAttachment[i].DstAlphaBlendFactor = s.ColorBlendAttachments[i].DstAlphaBlendFactor
-		colorBlendAttachment[i].AlphaBlendOp = s.ColorBlendAttachments[i].AlphaBlendOp
-		writeMask := s.ColorBlendAttachments[i].ColorWriteMask
-		colorBlendAttachment[i].ColorWriteMask = vk.ColorComponentFlags(writeMask)
-	}
-	colorBlendAttachmentCount := len(colorBlendAttachment)
-	colorBlending := vk.PipelineColorBlendStateCreateInfo{
-		SType:           vulkan_const.StructureTypePipelineColorBlendStateCreateInfo,
-		Flags:           0, // PipelineColorBlendStateCreateFlags
-		LogicOpEnable:   s.ColorBlend.LogicOpEnable,
-		LogicOp:         s.ColorBlend.LogicOp,
-		AttachmentCount: uint32(colorBlendAttachmentCount),
-		BlendConstants:  s.ColorBlend.BlendConstants,
-	}
-	if colorBlendAttachmentCount > 0 {
-		colorBlending.PAttachments = &colorBlendAttachment[0]
-	}
-	pipelineInfo := vk.GraphicsPipelineCreateInfo{
-		SType:               vulkan_const.StructureTypeGraphicsPipelineCreateInfo,
-		Flags:               s.GraphicsPipeline.PipelineCreateFlags,
-		StageCount:          uint32(len(stages)),
-		PStages:             &stages[0],
-		PVertexInputState:   &vertexInputInfo,
-		PInputAssemblyState: &inputAssembly,
-		PViewportState:      &viewportState,
-		PRasterizationState: &rasterizer,
-		PMultisampleState:   &multisampling,
-		PColorBlendState:    &colorBlending,
-		PDynamicState:       &dynamicState,
-		Layout:              vk.PipelineLayout(shader.RenderId.pipelineLayout.handle),
-		RenderPass:          renderPass.Handle,
-		BasePipelineHandle:  vk.Pipeline(vk.NullHandle),
-		Subpass:             s.GraphicsPipeline.Subpass,
-	}
-	hasDepth := false
-	for i := 0; i < len(renderPass.construction.SubpassDescriptions) && !hasDepth; i++ {
-		hasDepth = len(renderPass.construction.SubpassDescriptions[i].DepthStencilAttachment) > 0
-	}
-	var depthStencil vk.PipelineDepthStencilStateCreateInfo
-	if hasDepth {
-		depthStencil = vk.PipelineDepthStencilStateCreateInfo{
-			SType:                 vulkan_const.StructureTypePipelineDepthStencilStateCreateInfo,
-			Flags:                 0, // PipelineDepthStencilStateCreateFlags
-			DepthTestEnable:       s.DepthStencil.DepthTestEnable,
-			DepthCompareOp:        s.DepthStencil.DepthCompareOp,
-			DepthBoundsTestEnable: s.DepthStencil.DepthBoundsTestEnable,
-			StencilTestEnable:     s.DepthStencil.StencilTestEnable,
-			MinDepthBounds:        s.DepthStencil.MinDepthBounds,
-			MaxDepthBounds:        s.DepthStencil.MaxDepthBounds,
-			DepthWriteEnable:      s.DepthStencil.DepthWriteEnable,
-			Front:                 s.DepthStencil.Front,
-			Back:                  s.DepthStencil.Back,
-		}
-		pipelineInfo.PDepthStencilState = &depthStencil
-	}
-	tess := vk.PipelineTessellationStateCreateInfo{}
-	if len(shader.data.TessellationControl) > 0 ||
-		len(shader.data.TessellationEvaluation) > 0 {
-		tess.SType = vulkan_const.StructureTypePipelineTessellationStateCreateInfo
-		tess.Flags = 0 // PipelineTessellationStateCreateFlags
-		tess.PatchControlPoints = s.Tessellation.PatchControlPoints
-		pipelineInfo.PTessellationState = &tess
-	}
-	success := true
-	pipelines := [1]vk.Pipeline{}
-	if vk.CreateGraphicsPipelines(vk.Device(device.LogicalDevice.handle), vk.PipelineCache(vk.NullHandle), 1, &pipelineInfo, nil, &pipelines[0]) != vulkan_const.Success {
-		success = false
-		slog.Error("Failed to create graphics pipeline")
-	} else {
-		device.LogicalDevice.dbg.track(unsafe.Pointer(pipelines[0]))
-	}
-	shader.RenderId.graphicsPipeline.handle = unsafe.Pointer(pipelines[0])
-	return success
 }
