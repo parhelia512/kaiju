@@ -273,7 +273,7 @@ func writePushConstants(s *Shader, cmd vk.CommandBuffer, layout vk.PipelineLayou
 		return
 	}
 	vk.CmdPushConstants(cmd, layout,
-		s.pipelineInfo.PushConstant.StageFlags, 0,
+		s.pipelineInfo.PushConstant.StageFlags.toVulkan(), 0,
 		s.pipelineInfo.PushConstant.Size, pushConstantData)
 }
 

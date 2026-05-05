@@ -40,8 +40,6 @@ import (
 	"log/slog"
 
 	"kaijuengine.com/klib"
-	vk "kaijuengine.com/rendering/vulkan"
-	"kaijuengine.com/rendering/vulkan_const"
 )
 
 type ShaderPipelineData struct {
@@ -155,16 +153,16 @@ type ShaderPipelineDataCompiled struct {
 }
 
 type ShaderPipelineInputAssemblyCompiled struct {
-	Topology         vulkan_const.PrimitiveTopology
+	Topology         GPUPrimitiveTopology
 	PrimitiveRestart bool
 }
 
 type ShaderPipelinePipelineRasterizationCompiled struct {
 	DepthClampEnable        bool
 	DiscardEnable           bool
-	PolygonMode             vulkan_const.PolygonMode
-	CullMode                vk.CullModeFlags
-	FrontFace               vulkan_const.FrontFace
+	PolygonMode             GPUPolygonMode
+	CullMode                GPUCullModeFlags
+	FrontFace               GPUFrontFace
 	DepthBiasEnable         bool
 	DepthBiasConstantFactor float32
 	DepthBiasClamp          float32
@@ -173,7 +171,7 @@ type ShaderPipelinePipelineRasterizationCompiled struct {
 }
 
 type ShaderPipelinePipelineMultisampleCompiled struct {
-	RasterizationSamples  vulkan_const.SampleCountFlagBits
+	RasterizationSamples  GPUSampleCountFlags
 	SampleShadingEnable   bool
 	MinSampleShading      float32
 	AlphaToCoverageEnable bool
@@ -182,18 +180,18 @@ type ShaderPipelinePipelineMultisampleCompiled struct {
 
 type ShaderPipelineColorBlendCompiled struct {
 	LogicOpEnable  bool
-	LogicOp        vulkan_const.LogicOp
+	LogicOp        GPULogicOp
 	BlendConstants [4]float32
 }
 
 type ShaderPipelineDepthStencilCompiled struct {
 	DepthTestEnable       bool
 	DepthWriteEnable      bool
-	DepthCompareOp        vulkan_const.CompareOp
+	DepthCompareOp        GPUCompareOp
 	DepthBoundsTestEnable bool
 	StencilTestEnable     bool
-	Front                 vk.StencilOpState
-	Back                  vk.StencilOpState
+	Front                 GPUStencilOpState
+	Back                  GPUStencilOpState
 	MinDepthBounds        float32
 	MaxDepthBounds        float32
 }
@@ -204,38 +202,38 @@ type ShaderPipelineTessellationCompiled struct {
 
 type ShaderPipelineGraphicsPipelineCompiled struct {
 	Subpass             uint32
-	PipelineCreateFlags vk.PipelineCreateFlags
+	PipelineCreateFlags GPUPipelineCreateFlags
 }
 
 type ShaderPipelinePushConstantCompiled struct {
 	Size       uint32
-	StageFlags vk.ShaderStageFlags
+	StageFlags GPUShaderStageFlags
 }
 
 type ShaderPipelineColorBlendAttachmentsCompiled struct {
 	BlendEnable         bool
-	SrcColorBlendFactor vulkan_const.BlendFactor
-	DstColorBlendFactor vulkan_const.BlendFactor
-	ColorBlendOp        vulkan_const.BlendOp
-	SrcAlphaBlendFactor vulkan_const.BlendFactor
-	DstAlphaBlendFactor vulkan_const.BlendFactor
-	AlphaBlendOp        vulkan_const.BlendOp
-	ColorWriteMask      vk.ColorComponentFlags
+	SrcColorBlendFactor GPUBlendFactor
+	DstColorBlendFactor GPUBlendFactor
+	ColorBlendOp        GPUBlendOp
+	SrcAlphaBlendFactor GPUBlendFactor
+	DstAlphaBlendFactor GPUBlendFactor
+	AlphaBlendOp        GPUBlendOp
+	ColorWriteMask      GPUColorComponentFlags
 }
 
 func (d *ShaderPipelineData) Compile(device *GPUPhysicalDevice) ShaderPipelineDataCompiled {
 	c := ShaderPipelineDataCompiled{
 		Name: d.Name,
 		InputAssembly: ShaderPipelineInputAssemblyCompiled{
-			Topology:         d.InputAssembly.TopologyToVK(),
+			Topology:         d.InputAssembly.TopologyToGPU(),
 			PrimitiveRestart: d.InputAssembly.PrimitiveRestart,
 		},
 		Rasterization: ShaderPipelinePipelineRasterizationCompiled{
 			DepthClampEnable:        d.Rasterization.DepthClampEnable,
 			DiscardEnable:           d.Rasterization.RasterizerDiscardEnable,
-			PolygonMode:             d.Rasterization.PolygonModeToVK(),
-			CullMode:                vk.CullModeFlags(d.Rasterization.CullModeToVK()),
-			FrontFace:               d.Rasterization.FrontFaceToVK(),
+			PolygonMode:             d.Rasterization.PolygonModeToGPU(),
+			CullMode:                d.Rasterization.CullModeToGPU(),
+			FrontFace:               d.Rasterization.FrontFaceToGPU(),
 			DepthBiasEnable:         d.Rasterization.DepthBiasEnable,
 			DepthBiasConstantFactor: d.Rasterization.DepthBiasConstantFactor,
 			DepthBiasClamp:          d.Rasterization.DepthBiasClamp,
@@ -243,7 +241,7 @@ func (d *ShaderPipelineData) Compile(device *GPUPhysicalDevice) ShaderPipelineDa
 			LineWidth:               d.Rasterization.LineWidth,
 		},
 		Multisample: ShaderPipelinePipelineMultisampleCompiled{
-			RasterizationSamples:  vulkan_const.SampleCountFlagBits(d.Multisample.RasterizationSamplesToVK(device).toVulkan()),
+			RasterizationSamples:  d.Multisample.RasterizationSamplesToGPU(device),
 			SampleShadingEnable:   d.Multisample.SampleShadingEnable,
 			MinSampleShading:      d.Multisample.MinSampleShading,
 			AlphaToCoverageEnable: d.Multisample.AlphaToCoverageEnable,
@@ -251,7 +249,7 @@ func (d *ShaderPipelineData) Compile(device *GPUPhysicalDevice) ShaderPipelineDa
 		},
 		ColorBlend: ShaderPipelineColorBlendCompiled{
 			LogicOpEnable: d.ColorBlend.LogicOpEnable,
-			LogicOp:       d.ColorBlend.LogicOpToVK(),
+			LogicOp:       d.ColorBlend.LogicOpToGPU(),
 			BlendConstants: [4]float32{
 				d.ColorBlend.BlendConstants0,
 				d.ColorBlend.BlendConstants1,
@@ -263,23 +261,23 @@ func (d *ShaderPipelineData) Compile(device *GPUPhysicalDevice) ShaderPipelineDa
 		DepthStencil: ShaderPipelineDepthStencilCompiled{
 			DepthTestEnable:       d.DepthStencil.DepthTestEnable,
 			DepthWriteEnable:      d.DepthStencil.DepthWriteEnable,
-			DepthCompareOp:        compareOpToVK(d.DepthStencil.DepthCompareOp),
+			DepthCompareOp:        compareOpToGPU(d.DepthStencil.DepthCompareOp),
 			DepthBoundsTestEnable: d.DepthStencil.DepthBoundsTestEnable,
 			StencilTestEnable:     d.DepthStencil.StencilTestEnable,
-			Front: vk.StencilOpState{
-				FailOp:      stencilOpToVK(d.DepthStencil.FrontFailOp),
-				PassOp:      stencilOpToVK(d.DepthStencil.FrontPassOp),
-				DepthFailOp: stencilOpToVK(d.DepthStencil.FrontDepthFailOp),
-				CompareOp:   compareOpToVK(d.DepthStencil.FrontCompareOp),
+			Front: GPUStencilOpState{
+				FailOp:      stencilOpToGPU(d.DepthStencil.FrontFailOp),
+				PassOp:      stencilOpToGPU(d.DepthStencil.FrontPassOp),
+				DepthFailOp: stencilOpToGPU(d.DepthStencil.FrontDepthFailOp),
+				CompareOp:   compareOpToGPU(d.DepthStencil.FrontCompareOp),
 				CompareMask: d.DepthStencil.FrontCompareMask,
 				WriteMask:   d.DepthStencil.FrontWriteMask,
 				Reference:   d.DepthStencil.FrontReference,
 			},
-			Back: vk.StencilOpState{
-				FailOp:      stencilOpToVK(d.DepthStencil.BackFailOp),
-				PassOp:      stencilOpToVK(d.DepthStencil.BackPassOp),
-				DepthFailOp: stencilOpToVK(d.DepthStencil.BackDepthFailOp),
-				CompareOp:   compareOpToVK(d.DepthStencil.BackCompareOp),
+			Back: GPUStencilOpState{
+				FailOp:      stencilOpToGPU(d.DepthStencil.BackFailOp),
+				PassOp:      stencilOpToGPU(d.DepthStencil.BackPassOp),
+				DepthFailOp: stencilOpToGPU(d.DepthStencil.BackDepthFailOp),
+				CompareOp:   compareOpToGPU(d.DepthStencil.BackCompareOp),
 				CompareMask: d.DepthStencil.BackCompareMask,
 				WriteMask:   d.DepthStencil.BackWriteMask,
 				Reference:   d.DepthStencil.BackReference,
@@ -288,28 +286,28 @@ func (d *ShaderPipelineData) Compile(device *GPUPhysicalDevice) ShaderPipelineDa
 			MaxDepthBounds: d.DepthStencil.MaxDepthBounds,
 		},
 		Tessellation: ShaderPipelineTessellationCompiled{
-			PatchControlPoints: d.Tessellation.PatchControlPointsToVK(),
+			PatchControlPoints: d.Tessellation.PatchControlPointsToGPU(),
 		},
 		GraphicsPipeline: ShaderPipelineGraphicsPipelineCompiled{
 			Subpass:             d.GraphicsPipeline.Subpass,
-			PipelineCreateFlags: d.GraphicsPipeline.PipelineCreateFlagsToVK(),
+			PipelineCreateFlags: d.GraphicsPipeline.PipelineCreateFlagsToGPU(),
 		},
 		PushConstant: ShaderPipelinePushConstantCompiled{
 			Size:       d.PushConstant.Size,
-			StageFlags: d.PushConstant.ShaderStageFlagsToVK(),
+			StageFlags: d.PushConstant.ShaderStageFlagsToGPU(),
 		},
 	}
 	for i := range d.ColorBlendAttachments {
 		from := &d.ColorBlendAttachments[i]
 		c.ColorBlendAttachments[i] = ShaderPipelineColorBlendAttachmentsCompiled{
 			BlendEnable:         from.BlendEnable,
-			SrcColorBlendFactor: from.SrcColorBlendFactorToVK(),
-			DstColorBlendFactor: from.DstColorBlendFactorToVK(),
-			ColorBlendOp:        from.ColorBlendOpToVK(),
-			SrcAlphaBlendFactor: from.SrcAlphaBlendFactorToVK(),
-			DstAlphaBlendFactor: from.DstAlphaBlendFactorToVK(),
-			AlphaBlendOp:        from.AlphaBlendOpToVK(),
-			ColorWriteMask:      vk.ColorComponentFlags(from.ColorWriteMaskToVK()),
+			SrcColorBlendFactor: from.SrcColorBlendFactorToGPU(),
+			DstColorBlendFactor: from.DstColorBlendFactorToGPU(),
+			ColorBlendOp:        from.ColorBlendOpToGPU(),
+			SrcAlphaBlendFactor: from.SrcAlphaBlendFactorToGPU(),
+			DstAlphaBlendFactor: from.DstAlphaBlendFactorToGPU(),
+			AlphaBlendOp:        from.AlphaBlendOpToGPU(),
+			ColorWriteMask:      from.ColorWriteMaskToGPU(),
 		}
 	}
 	return c
@@ -339,36 +337,72 @@ func (a *ShaderPipelineColorBlendAttachments) ListAlphaBlendOp() []string {
 	return klib.MapKeysSorted(StringVkBlendOp)
 }
 
-func (a *ShaderPipelineColorBlendAttachments) SrcColorBlendFactorToVK() vulkan_const.BlendFactor {
-	return blendFactorToVK(a.SrcColorBlendFactor)
+func (a *ShaderPipelineColorBlendAttachments) SrcColorBlendFactorToGPU() GPUBlendFactor {
+	return blendFactorToGPU(a.SrcColorBlendFactor)
 }
 
-func (a *ShaderPipelineColorBlendAttachments) DstColorBlendFactorToVK() vulkan_const.BlendFactor {
-	return blendFactorToVK(a.DstColorBlendFactor)
+func (a *ShaderPipelineColorBlendAttachments) DstColorBlendFactorToGPU() GPUBlendFactor {
+	return blendFactorToGPU(a.DstColorBlendFactor)
 }
 
-func (a *ShaderPipelineColorBlendAttachments) ColorBlendOpToVK() vulkan_const.BlendOp {
-	return blendOpToVK(a.ColorBlendOp)
+func (a *ShaderPipelineColorBlendAttachments) ColorBlendOpToGPU() GPUBlendOp {
+	return blendOpToGPU(a.ColorBlendOp)
 }
 
-func (a *ShaderPipelineColorBlendAttachments) SrcAlphaBlendFactorToVK() vulkan_const.BlendFactor {
-	return blendFactorToVK(a.SrcAlphaBlendFactor)
+func (a *ShaderPipelineColorBlendAttachments) SrcAlphaBlendFactorToGPU() GPUBlendFactor {
+	return blendFactorToGPU(a.SrcAlphaBlendFactor)
 }
 
-func (a *ShaderPipelineColorBlendAttachments) DstAlphaBlendFactorToVK() vulkan_const.BlendFactor {
-	return blendFactorToVK(a.DstAlphaBlendFactor)
+func (a *ShaderPipelineColorBlendAttachments) DstAlphaBlendFactorToGPU() GPUBlendFactor {
+	return blendFactorToGPU(a.DstAlphaBlendFactor)
 }
 
-func (a *ShaderPipelineColorBlendAttachments) AlphaBlendOpToVK() vulkan_const.BlendOp {
-	return blendOpToVK(a.AlphaBlendOp)
+func (a *ShaderPipelineColorBlendAttachments) AlphaBlendOpToGPU() GPUBlendOp {
+	return blendOpToGPU(a.AlphaBlendOp)
 }
 
-func (a *ShaderPipelineColorBlendAttachments) ColorWriteMaskToVK() vulkan_const.ColorComponentFlagBits {
-	mask := vulkan_const.ColorComponentFlagBits(0)
+func (a *ShaderPipelineColorBlendAttachments) ColorWriteMaskToGPU() GPUColorComponentFlags {
+	mask := GPUColorComponentFlags(0)
 	for i := range a.ColorWriteMask {
-		mask |= StringVkColorComponentFlagBits[a.ColorWriteMask[i]]
+		mask |= GPUColorComponentFlags(StringVkColorComponentFlagBits[a.ColorWriteMask[i]])
 	}
 	return mask
+}
+
+func blendFactorToGPU(val string) GPUBlendFactor {
+	if res, ok := StringVkBlendFactor[val]; ok {
+		return GPUBlendFactor(res)
+	} else if val != "" {
+		slog.Warn("invalid string for vkBlendFactor", "value", val)
+	}
+	return 0
+}
+
+func blendOpToGPU(val string) GPUBlendOp {
+	if res, ok := StringVkBlendOp[val]; ok {
+		return GPUBlendOp(res)
+	} else if val != "" {
+		slog.Warn("invalid string for vkBlendOp", "value", val)
+	}
+	return 0
+}
+
+func compareOpToGPU(val string) GPUCompareOp {
+	if res, ok := StringVkCompareOp[val]; ok {
+		return GPUCompareOp(res)
+	} else if val != "" {
+		slog.Warn("invalid string for vkCompareOp", "value", val)
+	}
+	return 0
+}
+
+func stencilOpToGPU(val string) GPUStencilOp {
+	if res, ok := StringVkStencilOp[val]; ok {
+		return GPUStencilOp(res)
+	} else if val != "" {
+		slog.Warn("invalid string for vkStencilOpKeep", "value", val)
+	}
+	return 0
 }
 
 func (s ShaderPipelineData) ListTopology() []string {
@@ -443,101 +477,53 @@ func (s ShaderPipelineData) ListPatchControlPoints() []string {
 	return klib.MapKeysSorted(StringVkPatchControlPoints)
 }
 
-func (s *ShaderPipelineData) PrimitiveRestartToVK() vk.Bool32 {
-	return boolToVkBool(s.InputAssembly.PrimitiveRestart)
-}
-
-func (s *ShaderPipelineData) DepthClampEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.Rasterization.DepthClampEnable)
-}
-
-func (s *ShaderPipelineData) RasterizerDiscardEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.Rasterization.RasterizerDiscardEnable)
-}
-
-func (s *ShaderPipelineData) DepthBiasEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.Rasterization.DepthBiasEnable)
-}
-
-func (s *ShaderPipelineData) SampleShadingEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.Multisample.SampleShadingEnable)
-}
-
-func (s *ShaderPipelineData) AlphaToCoverageEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.Multisample.AlphaToCoverageEnable)
-}
-
-func (s *ShaderPipelineData) AlphaToOneEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.Multisample.AlphaToOneEnable)
-}
-
-func (s *ShaderPipelineData) LogicOpEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.ColorBlend.LogicOpEnable)
-}
-
-func (s *ShaderPipelineData) DepthTestEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.DepthStencil.DepthTestEnable)
-}
-
-func (s *ShaderPipelineData) DepthWriteEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.DepthStencil.DepthWriteEnable)
-}
-
-func (s *ShaderPipelineData) DepthBoundsTestEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.DepthStencil.DepthBoundsTestEnable)
-}
-
-func (s *ShaderPipelineData) StencilTestEnableToVK() vk.Bool32 {
-	return boolToVkBool(s.DepthStencil.StencilTestEnable)
-}
-
-func (s *ShaderPipelineInputAssembly) TopologyToVK() vulkan_const.PrimitiveTopology {
+func (s *ShaderPipelineInputAssembly) TopologyToGPU() GPUPrimitiveTopology {
 	if res, ok := StringVkPrimitiveTopology[s.Topology]; ok {
-		return res
+		return GPUPrimitiveTopology(res)
 	} else if s.Topology != "" {
 		slog.Warn("invalid string for vkPrimitiveTopology", "value", s.Topology)
 	}
-	return vulkan_const.PrimitiveTopologyTriangleList
+	return GPUPrimitiveTopologyTriangleList
 }
 
-func (s *ShaderPipelinePipelineRasterization) PolygonModeToVK() vulkan_const.PolygonMode {
+func (s *ShaderPipelinePipelineRasterization) PolygonModeToGPU() GPUPolygonMode {
 	if res, ok := StringVkPolygonMode[s.PolygonMode]; ok {
-		return res
+		return GPUPolygonMode(res)
 	} else if s.PolygonMode != "" {
 		slog.Warn("invalid string for vkPolygonMode", "value", s.PolygonMode)
 	}
-	return vulkan_const.PolygonModeFill
+	return GPUPolygonModeFill
 }
 
-func (s *ShaderPipelinePipelineRasterization) CullModeToVK() vulkan_const.CullModeFlagBits {
+func (s *ShaderPipelinePipelineRasterization) CullModeToGPU() GPUCullModeFlags {
 	if res, ok := StringVkCullModeFlagBits[s.CullMode]; ok {
-		return res
+		return GPUCullModeFlags(res)
 	} else if s.CullMode != "" {
 		slog.Warn("invalid string for vkCullModeFlagBits", "value", s.CullMode)
 	}
-	return vulkan_const.CullModeFrontBit
+	return GPUCullModeFrontBit
 }
 
-func (s *ShaderPipelinePipelineRasterization) FrontFaceToVK() vulkan_const.FrontFace {
+func (s *ShaderPipelinePipelineRasterization) FrontFaceToGPU() GPUFrontFace {
 	if res, ok := StringVkFrontFace[s.FrontFace]; ok {
-		return res
+		return GPUFrontFace(res)
 	} else if s.FrontFace != "" {
 		slog.Warn("invalid string for vkFrontFace", "value", s.FrontFace)
 	}
-	return vulkan_const.FrontFaceClockwise
+	return GPUFrontFaceClockwise
 }
 
-func (s *ShaderPipelinePipelineMultisample) RasterizationSamplesToVK(device *GPUPhysicalDevice) GPUSampleCountFlags {
+func (s *ShaderPipelinePipelineMultisample) RasterizationSamplesToGPU(device *GPUPhysicalDevice) GPUSampleCountFlags {
 	return sampleCountToGpu(s.RasterizationSamples, device)
 }
 
-func (s *ShaderPipelineColorBlend) LogicOpToVK() vulkan_const.LogicOp {
+func (s *ShaderPipelineColorBlend) LogicOpToGPU() GPULogicOp {
 	if res, ok := StringVkLogicOp[s.LogicOp]; ok {
-		return res
+		return GPULogicOp(res)
 	} else if s.LogicOp != "" {
 		slog.Warn("invalid string for vkLogicOp", "value", s.LogicOp)
 	}
-	return vulkan_const.LogicOpCopy
+	return GPULogicOpCopy
 }
 
 func (s *ShaderPipelineData) BlendConstants() [4]float32 {
@@ -549,7 +535,7 @@ func (s *ShaderPipelineData) BlendConstants() [4]float32 {
 	}
 }
 
-func (s *ShaderPipelineTessellation) PatchControlPointsToVK() uint32 {
+func (s *ShaderPipelineTessellation) PatchControlPointsToGPU() uint32 {
 	if res, ok := StringVkPatchControlPoints[s.PatchControlPoints]; ok {
 		return res
 	} else if s.PatchControlPoints != "" {
@@ -558,44 +544,44 @@ func (s *ShaderPipelineTessellation) PatchControlPointsToVK() uint32 {
 	return 3
 }
 
-// TODO:  This and the BackStencilOpStateToVK are duplicates because of a bad
+// TODO:  This and the BackStencilOpStateToGPU are duplicates because of a bad
 // structure setup, please fix later
-func (s *ShaderPipelineData) FrontStencilOpStateToVK() vk.StencilOpState {
-	return vk.StencilOpState{
-		FailOp:      stencilOpToVK(s.DepthStencil.FrontFailOp),
-		PassOp:      stencilOpToVK(s.DepthStencil.FrontPassOp),
-		DepthFailOp: stencilOpToVK(s.DepthStencil.FrontDepthFailOp),
-		CompareOp:   compareOpToVK(s.DepthStencil.FrontCompareOp),
+func (s *ShaderPipelineData) FrontStencilOpStateToGPU() GPUStencilOpState {
+	return GPUStencilOpState{
+		FailOp:      stencilOpToGPU(s.DepthStencil.FrontFailOp),
+		PassOp:      stencilOpToGPU(s.DepthStencil.FrontPassOp),
+		DepthFailOp: stencilOpToGPU(s.DepthStencil.FrontDepthFailOp),
+		CompareOp:   compareOpToGPU(s.DepthStencil.FrontCompareOp),
 		CompareMask: s.DepthStencil.FrontCompareMask,
 		WriteMask:   s.DepthStencil.FrontWriteMask,
 		Reference:   s.DepthStencil.FrontReference,
 	}
 }
 
-func (s *ShaderPipelineData) BackStencilOpStateToVK() vk.StencilOpState {
-	return vk.StencilOpState{
-		FailOp:      stencilOpToVK(s.DepthStencil.BackFailOp),
-		PassOp:      stencilOpToVK(s.DepthStencil.BackPassOp),
-		DepthFailOp: stencilOpToVK(s.DepthStencil.BackDepthFailOp),
-		CompareOp:   compareOpToVK(s.DepthStencil.BackCompareOp),
+func (s *ShaderPipelineData) BackStencilOpStateToGPU() GPUStencilOpState {
+	return GPUStencilOpState{
+		FailOp:      stencilOpToGPU(s.DepthStencil.BackFailOp),
+		PassOp:      stencilOpToGPU(s.DepthStencil.BackPassOp),
+		DepthFailOp: stencilOpToGPU(s.DepthStencil.BackDepthFailOp),
+		CompareOp:   compareOpToGPU(s.DepthStencil.BackCompareOp),
 		CompareMask: s.DepthStencil.BackCompareMask,
 		WriteMask:   s.DepthStencil.BackWriteMask,
 		Reference:   s.DepthStencil.BackReference,
 	}
 }
 
-func (s *ShaderPipelineGraphicsPipeline) PipelineCreateFlagsToVK() vk.PipelineCreateFlags {
-	mask := vulkan_const.PipelineCreateFlagBits(0)
+func (s *ShaderPipelineGraphicsPipeline) PipelineCreateFlagsToGPU() GPUPipelineCreateFlags {
+	mask := GPUPipelineCreateFlags(0)
 	for i := range s.PipelineCreateFlags {
-		mask |= StringVkPipelineCreateFlagBits[s.PipelineCreateFlags[i]]
+		mask |= GPUPipelineCreateFlags(StringVkPipelineCreateFlagBits[s.PipelineCreateFlags[i]])
 	}
-	return vk.PipelineCreateFlags(mask)
+	return mask
 }
 
-func (s *ShaderPipelinePushConstant) ShaderStageFlagsToVK() vk.ShaderStageFlags {
-	mask := vulkan_const.ShaderStageFlagBits(0)
+func (s *ShaderPipelinePushConstant) ShaderStageFlagsToGPU() GPUShaderStageFlags {
+	mask := GPUShaderStageFlags(0)
 	for i := range s.StageFlags {
-		mask |= StringVkShaderStageFlagBits[s.StageFlags[i]]
+		mask |= GPUShaderStageFlags(StringVkShaderStageFlagBits[s.StageFlags[i]])
 	}
-	return vk.ShaderStageFlags(mask)
+	return mask
 }
